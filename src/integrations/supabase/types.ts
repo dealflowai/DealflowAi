@@ -117,6 +117,143 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          channel: string | null
+          contact_id: string | null
+          contact_type: string | null
+          created_at: string | null
+          deal_id: string | null
+          direction: string | null
+          id: number
+          message: string | null
+          owner_id: string
+          response_received: boolean | null
+          scheduled_followup: string | null
+        }
+        Insert: {
+          channel?: string | null
+          contact_id?: string | null
+          contact_type?: string | null
+          created_at?: string | null
+          deal_id?: string | null
+          direction?: string | null
+          id?: number
+          message?: string | null
+          owner_id: string
+          response_received?: boolean | null
+          scheduled_followup?: string | null
+        }
+        Update: {
+          channel?: string | null
+          contact_id?: string | null
+          contact_type?: string | null
+          created_at?: string | null
+          deal_id?: string | null
+          direction?: string | null
+          id?: number
+          message?: string | null
+          owner_id?: string
+          response_received?: boolean | null
+          scheduled_followup?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          address: string
+          ai_score: number | null
+          arv: number | null
+          city: string | null
+          condition_score: number | null
+          contract_pdf_url: string | null
+          created_at: string | null
+          deal_type: string | null
+          id: string
+          lat: number | null
+          list_price: number | null
+          loi_pdf_url: string | null
+          lon: number | null
+          margin: number | null
+          max_offer: number | null
+          notes: string | null
+          owner_id: string
+          repair_estimate: number | null
+          seller_contact: string | null
+          seller_email: string | null
+          seller_phone: string | null
+          state: string | null
+          status: string | null
+          top_buyer_ids: string[] | null
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address: string
+          ai_score?: number | null
+          arv?: number | null
+          city?: string | null
+          condition_score?: number | null
+          contract_pdf_url?: string | null
+          created_at?: string | null
+          deal_type?: string | null
+          id?: string
+          lat?: number | null
+          list_price?: number | null
+          loi_pdf_url?: string | null
+          lon?: number | null
+          margin?: number | null
+          max_offer?: number | null
+          notes?: string | null
+          owner_id: string
+          repair_estimate?: number | null
+          seller_contact?: string | null
+          seller_email?: string | null
+          seller_phone?: string | null
+          state?: string | null
+          status?: string | null
+          top_buyer_ids?: string[] | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string
+          ai_score?: number | null
+          arv?: number | null
+          city?: string | null
+          condition_score?: number | null
+          contract_pdf_url?: string | null
+          created_at?: string | null
+          deal_type?: string | null
+          id?: string
+          lat?: number | null
+          list_price?: number | null
+          loi_pdf_url?: string | null
+          lon?: number | null
+          margin?: number | null
+          max_offer?: number | null
+          notes?: string | null
+          owner_id?: string
+          repair_estimate?: number | null
+          seller_contact?: string | null
+          seller_email?: string | null
+          seller_phone?: string | null
+          state?: string | null
+          status?: string | null
+          top_buyer_ids?: string[] | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           clerk_id: string
