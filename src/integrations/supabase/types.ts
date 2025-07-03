@@ -11,52 +11,109 @@ export type Database = {
     Tables: {
       buyers: {
         Row: {
+          acquisition_timeline: string | null
           asset_types: string[] | null
           budget_max: number | null
           budget_min: number | null
+          city: string | null
+          contact_info: string | null
           created_at: string | null
+          criteria_notes: string | null
           email: string | null
+          equity_position: number | null
+          financing_type: string | null
           id: string
+          investment_criteria: string | null
+          land_buyer: boolean | null
+          last_contacted: string | null
+          location_focus: string | null
           markets: string[] | null
           name: string | null
+          notes: string | null
           owner_id: string
+          partnership_interest: boolean | null
           phone: string | null
+          portfolio_summary: string | null
+          priority: string | null
+          property_type_interest: string[] | null
+          referral_source: string | null
           source: string | null
+          state: string | null
           status: string | null
           tags: string[] | null
+          tags_additional: string[] | null
           updated_at: string | null
+          zip_code: string | null
         }
         Insert: {
+          acquisition_timeline?: string | null
           asset_types?: string[] | null
           budget_max?: number | null
           budget_min?: number | null
+          city?: string | null
+          contact_info?: string | null
           created_at?: string | null
+          criteria_notes?: string | null
           email?: string | null
+          equity_position?: number | null
+          financing_type?: string | null
           id?: string
+          investment_criteria?: string | null
+          land_buyer?: boolean | null
+          last_contacted?: string | null
+          location_focus?: string | null
           markets?: string[] | null
           name?: string | null
+          notes?: string | null
           owner_id: string
+          partnership_interest?: boolean | null
           phone?: string | null
+          portfolio_summary?: string | null
+          priority?: string | null
+          property_type_interest?: string[] | null
+          referral_source?: string | null
           source?: string | null
+          state?: string | null
           status?: string | null
           tags?: string[] | null
+          tags_additional?: string[] | null
           updated_at?: string | null
+          zip_code?: string | null
         }
         Update: {
+          acquisition_timeline?: string | null
           asset_types?: string[] | null
           budget_max?: number | null
           budget_min?: number | null
+          city?: string | null
+          contact_info?: string | null
           created_at?: string | null
+          criteria_notes?: string | null
           email?: string | null
+          equity_position?: number | null
+          financing_type?: string | null
           id?: string
+          investment_criteria?: string | null
+          land_buyer?: boolean | null
+          last_contacted?: string | null
+          location_focus?: string | null
           markets?: string[] | null
           name?: string | null
+          notes?: string | null
           owner_id?: string
+          partnership_interest?: boolean | null
           phone?: string | null
+          portfolio_summary?: string | null
+          priority?: string | null
+          property_type_interest?: string[] | null
+          referral_source?: string | null
           source?: string | null
+          state?: string | null
           status?: string | null
           tags?: string[] | null
+          tags_additional?: string[] | null
           updated_at?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }

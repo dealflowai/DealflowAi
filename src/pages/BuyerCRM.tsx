@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
@@ -15,6 +14,7 @@ const BuyerCRM = () => {
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedPriority, setSelectedPriority] = useState('All');
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data: buyers = [], isLoading, refetch } = useQuery({
@@ -42,11 +42,14 @@ const BuyerCRM = () => {
     const matchesSearch = !searchTerm || 
       buyer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       buyer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      buyer.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      buyer.state?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       buyer.markets?.some(market => market.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = selectedStatus === 'All' || buyer.status === selectedStatus.toLowerCase();
+    const matchesPriority = selectedPriority === 'All' || buyer.priority === selectedPriority;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const getStatusColor = (status: string) => {
@@ -84,6 +87,21 @@ const BuyerCRM = () => {
     return `${Math.floor(diffInSeconds / 86400)} days ago`;
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority?.toUpperCase()) {
+      case 'VERY HIGH':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'HIGH':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'MEDIUM':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'LOW':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -112,14 +130,14 @@ const BuyerCRM = () => {
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Enhanced Filters */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
+            <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search buyers by name, email, or location..."
+                  placeholder="Search buyers by name, email, location, or market..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -138,6 +156,22 @@ const BuyerCRM = () => {
                   <option value="Active">Active</option>
                   <option value="Warm">Warm</option>
                   <option value="Cold">Cold</option>
+                  <option value="Not contacted">Not Contacted</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Qualified">Qualified</option>
+                  <option value="Deal pending">Deal Pending</option>
+                </select>
+
+                <select 
+                  value={selectedPriority} 
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="All">All Priority</option>
+                  <option value="VERY HIGH">Very High</option>
+                  <option value="HIGH">High</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="LOW">Low</option>
                 </select>
               </div>
             </div>
@@ -171,6 +205,16 @@ const BuyerCRM = () => {
                         <Badge className={getStatusColor(buyer.status || 'new')}>
                           {buyer.status || 'new'}
                         </Badge>
+                        {buyer.priority && (
+                          <Badge className={getPriorityColor(buyer.priority)}>
+                            {buyer.priority}
+                          </Badge>
+                        )}
+                        {buyer.land_buyer && (
+                          <Badge variant="outline" className="text-xs">
+                            Land Buyer
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     <button className="p-2 hover:bg-gray-100 rounded-lg">
@@ -180,6 +224,7 @@ const BuyerCRM = () => {
                 </CardHeader>
 
                 <CardContent className="space-y-3">
+                  {/* Contact Information */}
                   {buyer.email && (
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Mail className="w-4 h-4" />
@@ -193,14 +238,28 @@ const BuyerCRM = () => {
                       <span>{buyer.phone}</span>
                     </div>
                   )}
-                  
-                  {buyer.markets && buyer.markets.length > 0 && (
+
+                  {/* Location */}
+                  {(buyer.city || buyer.state || buyer.markets) && (
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
-                      <span>{buyer.markets.join(', ')}</span>
+                      <span>
+                        {buyer.city && buyer.state ? `${buyer.city}, ${buyer.state}` : 
+                         buyer.city || buyer.state || ''}
+                        {buyer.markets && buyer.markets.length > 0 && (
+                          <span className="text-gray-500"> • {buyer.markets.join(', ')}</span>
+                        )}
+                      </span>
                     </div>
                   )}
 
+                  {/* Budget Range */}
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <DollarSign className="w-4 h-4" />
+                    <span>{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
+                  </div>
+
+                  {/* Asset Types */}
                   {buyer.asset_types && buyer.asset_types.length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-2">Asset Types:</p>
@@ -214,10 +273,54 @@ const BuyerCRM = () => {
                     </div>
                   )}
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Budget Range:</p>
-                    <p className="text-sm text-gray-600">{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</p>
-                  </div>
+                  {/* Property Types */}
+                  {buyer.property_type_interest && buyer.property_type_interest.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-2">Property Types:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {buyer.property_type_interest.map((type, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {type}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Acquisition Timeline */}
+                  {buyer.acquisition_timeline && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <Calendar className="w-4 h-4" />
+                      <span>{buyer.acquisition_timeline}</span>
+                    </div>
+                  )}
+
+                  {/* Financing Type */}
+                  {buyer.financing_type && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <Building className="w-4 h-4" />
+                      <span>{buyer.financing_type}</span>
+                    </div>
+                  )}
+
+                  {/* Investment Criteria */}
+                  {buyer.investment_criteria && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Investment Criteria:</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{buyer.investment_criteria}</p>
+                    </div>
+                  )}
+
+                  {/* Tags */}
+                  {buyer.tags && buyer.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {buyer.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
 
                 <CardFooter className="flex items-center justify-between pt-4 border-t border-gray-100">
