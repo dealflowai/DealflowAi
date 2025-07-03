@@ -729,7 +729,13 @@ const BuyerScraper = ({ onBuyersImported }: BuyerScraperProps) => {
                     <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No discovery jobs yet</h3>
                     <p className="text-gray-600 mb-4">Start by running an AI discovery to find qualified buyers</p>
-                    <Button onClick={() => document.querySelector('[value="scrape"]')?.click?.()} variant="outline">
+                    <Button 
+                      onClick={() => {
+                        const scrapeTab = document.querySelector('[value="scrape"]') as HTMLElement;
+                        scrapeTab?.click();
+                      }} 
+                      variant="outline"
+                    >
                       Start Discovery
                     </Button>
                   </CardContent>
