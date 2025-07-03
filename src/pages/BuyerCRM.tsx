@@ -27,6 +27,8 @@ const BuyerCRM = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
+      console.log('Fetching buyers for user:', user.id);
+      
       const { data, error } = await supabase
         .from('buyers')
         .select('*')
@@ -38,6 +40,7 @@ const BuyerCRM = () => {
         return [];
       }
       
+      console.log('Fetched buyers:', data);
       return data;
     },
     enabled: !!user?.id,

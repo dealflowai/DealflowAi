@@ -29,16 +29,13 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen fixed left-0 top-0 z-40">
       <div className="p-6">
-        <div className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-              <img 
-                src="/lovable-uploads/31d7d21d-e4cc-42f4-b157-11340e93aadd.png" 
-                alt="DealFlow Logo" 
-                className="w-6 h-6"
-              />
-            </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+            <img 
+              src="/lovable-uploads/31d7d21d-e4cc-42f4-b157-11340e93aadd.png" 
+              alt="DealFlow Logo" 
+              className="w-6 h-6"
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
