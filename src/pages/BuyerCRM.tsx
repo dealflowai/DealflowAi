@@ -3,7 +3,7 @@ import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe } from 'lucide-react';
+import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AddBuyerDialog from '@/components/BuyerCRM/AddBuyerDialog';
 import BuyerScraper from '@/components/BuyerCRM/BuyerScraper';
 import BuyerStats from '@/components/BuyerCRM/BuyerStats';
+import AIOutreach from '@/components/BuyerCRM/AIOutreach';
 
 const BuyerCRM = () => {
   const { user } = useUser();
@@ -135,6 +136,14 @@ const BuyerCRM = () => {
               Discover Buyers
             </Button>
             <Button 
+              variant="outline"
+              onClick={() => setActiveTab('ai-outreach')}
+              className="border-purple-200 text-purple-700 hover:bg-purple-50"
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              AI Outreach
+            </Button>
+            <Button 
               className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
               onClick={() => setShowAddDialog(true)}
             >
@@ -149,9 +158,10 @@ const BuyerCRM = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Buyer Database</TabsTrigger>
             <TabsTrigger value="discovery">Buyer Discovery</TabsTrigger>
+            <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -219,6 +229,10 @@ const BuyerCRM = () => {
                       <Button variant="outline" onClick={() => setActiveTab('discovery')}>
                         <Globe className="w-4 h-4 mr-2" />
                         Discover Buyers
+                      </Button>
+                      <Button variant="outline" onClick={() => setActiveTab('ai-outreach')}>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        AI Outreach
                       </Button>
                     </div>
                   )}
@@ -381,6 +395,10 @@ const BuyerCRM = () => {
 
           <TabsContent value="discovery" className="space-y-6">
             <BuyerScraper onBuyersImported={refetch} />
+          </TabsContent>
+
+          <TabsContent value="ai-outreach" className="space-y-6">
+            <AIOutreach buyers={buyers} onRefresh={refetch} />
           </TabsContent>
         </Tabs>
 
