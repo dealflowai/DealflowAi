@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { 
@@ -8,7 +9,8 @@ import {
   MessageSquare,
   Settings,
   Home,
-  Search
+  Search,
+  ArrowDown
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -30,6 +32,7 @@ const Sidebar = () => {
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+            <ArrowDown className="w-5 h-5 text-white rotate-45" />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
