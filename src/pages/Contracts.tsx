@@ -17,7 +17,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useUserSync } from '@/hooks/useUserSync';
+import { useProfileData } from '@/hooks/useProfileData';
 
 const Contracts = () => {
   const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -36,7 +36,7 @@ const Contracts = () => {
     specialTerms: ''
   });
   
-  const { user } = useUserSync();
+  const { profile } = useProfileData();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -44,45 +44,41 @@ const Contracts = () => {
   const { data: contracts = [], isLoading: contractsLoading } = useQuery({
     queryKey: ['contracts'],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!profile?.id) return [];
       
       const { data, error } = await supabase
         .from('contracts')
         .select('*')
+        .eq('owner_id', profile.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Fetch deals for contract generation
   const { data: deals = [] } = useQuery({
     queryKey: ['deals-for-contracts'],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!profile?.id) return [];
       
       const { data, error } = await supabase
         .from('deals')
         .select('id, address, city, state, list_price, status')
+        .eq('owner_id', profile.id)
         .in('status', ['new', 'contacted', 'offer_sent']);
       
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Generate contract mutation
   const generateContractMutation = useMutation({
     mutationFn: async (contractData: any) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('clerk_id', user?.id)
-        .single();
-
       const { data, error } = await supabase
         .from('contracts')
         .insert({
@@ -248,6 +244,16 @@ const Contracts = () => {
       title: `${contractTemplates.find(t => t.id === contractForm.templateType)?.title} - ${contractForm.propertyAddress}`
     });
   };
+
+  if (!profile) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-8">
+          <p className="text-gray-600">Please log in to access contracts.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
