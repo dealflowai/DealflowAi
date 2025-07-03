@@ -206,7 +206,7 @@ const BuyerCRM = () => {
         </TabsContent>
 
         <TabsContent value="scraper" className="mt-6">
-          <BuyerScraper />
+          <BuyerScraper onBuyersImported={handleRefresh} />
         </TabsContent>
       </Tabs>
 
