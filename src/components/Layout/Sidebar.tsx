@@ -29,17 +29,25 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen fixed left-0 top-0 z-40">
       <div className="p-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/ae8b80c8-96c0-48c5-a8f5-1dcd332db304.png" 
-              alt="DealFlow Logo" 
-              className="w-8 h-8 rounded-lg"
-            />
+        <div className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <img 
+                src="/lovable-uploads/ae8b80c8-96c0-48c5-a8f5-1dcd332db304.png" 
+                alt="DealFlow Logo" 
+                className="w-6 h-6 brightness-0 invert"
+              />
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
           </div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-            dealflow.ai
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              dealflow.ai
+            </h1>
+            <p className="text-xs text-green-600 font-medium opacity-75">
+              AI-Powered CRM
+            </p>
+          </div>
         </div>
       </div>
 
@@ -55,7 +63,7 @@ const Sidebar = () => {
               className={cn(
                 "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-sidebar-accent",
                 isActive 
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm" 
+                  ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm" 
                   : "text-sidebar-foreground hover:text-sidebar-accent-foreground"
               )}
             >
@@ -67,10 +75,10 @@ const Sidebar = () => {
       </nav>
 
       <div className="absolute bottom-6 left-4 right-4">
-        <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-lg p-4 border border-blue-100">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
           <h3 className="font-medium text-sm text-gray-900 mb-1">Upgrade to Pro</h3>
           <p className="text-xs text-gray-600 mb-3">Unlock unlimited AI analysis and premium features</p>
-          <button className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white text-xs py-2 px-3 rounded-md hover:from-blue-700 hover:to-teal-700 transition-all duration-200">
+          <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs py-2 px-3 rounded-md hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md">
             Upgrade Now
           </button>
         </div>
