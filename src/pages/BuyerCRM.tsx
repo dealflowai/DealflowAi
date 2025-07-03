@@ -1,159 +1,417 @@
-
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useUser } from "@clerk/clerk-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Plus, Users, TrendingUp, Bot } from "lucide-react";
-import BuyersList from "@/components/BuyerCRM/BuyersList";
-import BuyerStats from "@/components/BuyerCRM/BuyerStats";
-import BuyerScraper from "@/components/BuyerCRM/BuyerScraper";
-import AIOutreach from "@/components/BuyerCRM/AIOutreach";
-import AddBuyerDialog from "@/components/BuyerCRM/AddBuyerDialog";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import Layout from '@/components/Layout/Layout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@clerk/clerk-react';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AddBuyerDialog from '@/components/BuyerCRM/AddBuyerDialog';
+import BuyerScraper from '@/components/BuyerCRM/BuyerScraper';
+import BuyerStats from '@/components/BuyerCRM/BuyerStats';
+import AIOutreach from '@/components/BuyerCRM/AIOutreach';
 
 const BuyerCRM = () => {
   const { user } = useUser();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedPriority, setSelectedPriority] = useState('All');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch buyers with proper error handling
-  const { data: buyers = [], isLoading, error, refetch } = useQuery({
+  const { data: buyers = [], isLoading, refetch } = useQuery({
     queryKey: ['buyers', user?.id],
     queryFn: async () => {
-      if (!user?.id) {
-        console.log('No user ID available');
-        return [];
-      }
-
-      console.log('Fetching buyers for user:', user.id);
+      if (!user?.id) return [];
       
       const { data, error } = await supabase
         .from('buyers')
         .select('*')
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
-
+      
       if (error) {
         console.error('Error fetching buyers:', error);
-        throw error;
+        return [];
       }
-
-      console.log('Fetched buyers:', data);
-      return data || [];
+      
+      return data;
     },
     enabled: !!user?.id,
   });
 
-  const handleRefresh = () => {
-    refetch();
-    toast.success("Buyer data refreshed");
+  const filteredBuyers = buyers.filter(buyer => {
+    const matchesSearch = !searchTerm || 
+      buyer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      buyer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      buyer.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      buyer.state?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      buyer.markets?.some(market => market.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStatus = selectedStatus === 'All' || buyer.status === selectedStatus.toLowerCase();
+    const matchesPriority = selectedPriority === 'All' || buyer.priority === selectedPriority;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'warm':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'cold':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'new':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
   };
 
-  if (error) {
+  const formatBudgetRange = (min: number | null, max: number | null) => {
+    if (!min && !max) return 'Budget not specified';
+    if (!min) return `Up to $${max?.toLocaleString()}`;
+    if (!max) return `From $${min?.toLocaleString()}`;
+    return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+  };
+
+  const getTimeAgo = (dateString: string | null) => {
+    if (!dateString) return 'Unknown';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority?.toUpperCase()) {
+      case 'VERY HIGH':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'HIGH':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'MEDIUM':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'LOW':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <h2 className="text-lg font-semibold text-red-600 mb-2">Error Loading Buyers</h2>
-            <p className="text-gray-600 mb-4">
-              {error instanceof Error ? error.message : 'An unexpected error occurred'}
-            </p>
-            <Button onClick={handleRefresh}>Try Again</Button>
-          </CardContent>
-        </Card>
-      </div>
+      <Layout>
+        <div className="p-6 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Buyer CRM</h1>
-          <p className="text-gray-600">Manage your real estate buyer relationships</p>
+    <Layout>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Buyer CRM</h1>
+            <p className="text-gray-600 mt-1">Manage your qualified cash buyers and discover new opportunities</p>
+          </div>
+          <div className="flex space-x-3">
+            <Button 
+              variant="outline"
+              onClick={() => setActiveTab('discovery')}
+              className="border-blue-200 text-blue-700 hover:bg-blue-50"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              Discover Buyers
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setActiveTab('ai-outreach')}
+              className="border-purple-200 text-purple-700 hover:bg-purple-50"
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              AI Outreach
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+              onClick={() => setShowAddDialog(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Buyer
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Buyer
-        </Button>
-      </div>
 
-      {/* Stats Overview */}
-      <BuyerStats buyers={buyers} />
+        {/* Stats Overview */}
+        <BuyerStats buyers={buyers} />
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="buyers" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="buyers" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>Buyers</span>
-          </TabsTrigger>
-          <TabsTrigger value="ai-outreach" className="flex items-center space-x-2">
-            <Bot className="h-4 w-4" />
-            <span>AI Outreach</span>
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center space-x-2">
-            <TrendingUp className="h-4 w-4" />
-            <span>Analytics</span>
-          </TabsTrigger>
-          <TabsTrigger value="scraper" className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Find Buyers</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Buyer Database</TabsTrigger>
+            <TabsTrigger value="discovery">Buyer Discovery</TabsTrigger>
+            <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="buyers" className="mt-6">
-          <BuyersList 
-            buyers={buyers} 
-            isLoading={isLoading} 
-            onRefresh={handleRefresh}
-          />
-        </TabsContent>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Enhanced Filters */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search buyers by name, email, location, or market..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Filter className="w-4 h-4 text-gray-400" />
+                    <select 
+                      value={selectedStatus} 
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="All">All Status</option>
+                      <option value="New">New</option>
+                      <option value="Active">Active</option>
+                      <option value="Warm">Warm</option>
+                      <option value="Cold">Cold</option>
+                      <option value="Not contacted">Not Contacted</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Qualified">Qualified</option>
+                      <option value="Deal pending">Deal Pending</option>
+                    </select>
 
-        <TabsContent value="ai-outreach" className="mt-6">
-          <AIOutreach 
-            buyers={buyers} 
-            onRefresh={handleRefresh}
-          />
-        </TabsContent>
+                    <select 
+                      value={selectedPriority} 
+                      onChange={(e) => setSelectedPriority(e.target.value)}
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="All">All Priority</option>
+                      <option value="VERY HIGH">Very High</option>
+                      <option value="HIGH">High</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="LOW">Low</option>
+                    </select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="analytics" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5" />
-                <span>Advanced Analytics</span>
-              </CardTitle>
-              <CardDescription>
-                Detailed insights into your buyer relationships and outreach performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Advanced Analytics Coming Soon</h3>
-                <p className="text-gray-600">
-                  Detailed performance metrics, ROI tracking, and predictive analytics will be available here.
-                </p>
+            {/* Buyers Grid */}
+            {filteredBuyers.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <p className="text-gray-500 text-lg mb-4">
+                    {buyers.length === 0 ? 'No buyers found. Add your first buyer to get started!' : 'No buyers match your search criteria.'}
+                  </p>
+                  {buyers.length === 0 && (
+                    <div className="flex justify-center space-x-3">
+                      <Button onClick={() => setShowAddDialog(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Your First Buyer
+                      </Button>
+                      <Button variant="outline" onClick={() => setActiveTab('discovery')}>
+                        <Globe className="w-4 h-4 mr-2" />
+                        Discover Buyers
+                      </Button>
+                      <Button variant="outline" onClick={() => setActiveTab('ai-outreach')}>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        AI Outreach
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredBuyers.map((buyer) => (
+                  <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">{buyer.name || 'Unnamed Buyer'}</h3>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Badge className={getStatusColor(buyer.status || 'new')}>
+                              {buyer.status || 'new'}
+                            </Badge>
+                            {buyer.priority && (
+                              <Badge className={getPriorityColor(buyer.priority)}>
+                                {buyer.priority}
+                              </Badge>
+                            )}
+                            {buyer.land_buyer && (
+                              <Badge variant="outline" className="text-xs">
+                                Land Buyer
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <button className="p-2 hover:bg-gray-100 rounded-lg">
+                          <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                        </button>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-3">
+                      {/* Contact Information */}
+                      {buyer.email && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Mail className="w-4 h-4" />
+                          <span>{buyer.email}</span>
+                        </div>
+                      )}
+                      
+                      {buyer.phone && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Phone className="w-4 h-4" />
+                          <span>{buyer.phone}</span>
+                        </div>
+                      )}
+
+                      {/* Location */}
+                      {(buyer.city || buyer.state || buyer.markets) && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span>
+                            {buyer.city && buyer.state ? `${buyer.city}, ${buyer.state}` : 
+                             buyer.city || buyer.state || ''}
+                            {buyer.markets && buyer.markets.length > 0 && (
+                              <span className="text-gray-500"> • {buyer.markets.join(', ')}</span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Budget Range */}
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <DollarSign className="w-4 h-4" />
+                        <span>{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
+                      </div>
+
+                      {/* Asset Types */}
+                      {buyer.asset_types && buyer.asset_types.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Asset Types:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {buyer.asset_types.map((type, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {type}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Property Types */}
+                      {buyer.property_type_interest && buyer.property_type_interest.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Property Types:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {buyer.property_type_interest.map((type, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {type}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Acquisition Timeline */}
+                      {buyer.acquisition_timeline && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Calendar className="w-4 h-4" />
+                          <span>{buyer.acquisition_timeline}</span>
+                        </div>
+                      )}
+
+                      {/* Financing Type */}
+                      {buyer.financing_type && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Building className="w-4 h-4" />
+                          <span>{buyer.financing_type}</span>
+                        </div>
+                      )}
+
+                      {/* Investment Criteria */}
+                      {buyer.investment_criteria && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Investment Criteria:</p>
+                          <p className="text-sm text-gray-600 line-clamp-2">{buyer.investment_criteria}</p>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      {buyer.tags && buyer.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {buyer.tags.map((tag, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+
+                    <CardFooter className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <span className="text-xs text-gray-400">
+                        Added: {getTimeAgo(buyer.created_at)}
+                      </span>
+                      <div className="flex space-x-2">
+                        {buyer.phone && (
+                          <Button variant="outline" size="sm">
+                            <Phone className="w-3 h-3 mr-1" />
+                            Call
+                          </Button>
+                        )}
+                        {buyer.email && (
+                          <Button variant="outline" size="sm">
+                            <Mail className="w-3 h-3 mr-1" />
+                            Email
+                          </Button>
+                        )}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            )}
+          </TabsContent>
 
-        <TabsContent value="scraper" className="mt-6">
-          <BuyerScraper onBuyerAdded={handleRefresh} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="discovery" className="space-y-6">
+            <BuyerScraper onBuyersImported={refetch} />
+          </TabsContent>
 
-      {/* Add Buyer Dialog */}
-      <AddBuyerDialog 
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onBuyerAdded={handleRefresh}
-      />
-    </div>
+          <TabsContent value="ai-outreach" className="space-y-6">
+            <AIOutreach buyers={buyers} onRefresh={refetch} />
+          </TabsContent>
+        </Tabs>
+
+        <AddBuyerDialog 
+          open={showAddDialog} 
+          onOpenChange={setShowAddDialog}
+          onBuyerAdded={() => {
+            refetch();
+            setShowAddDialog(false);
+          }}
+        />
+      </div>
+    </Layout>
   );
 };
 
