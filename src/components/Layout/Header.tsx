@@ -1,10 +1,13 @@
 
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
+import { UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const Header = () => {
+  const { user } = useUser();
+
   return (
     <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-64 right-0 z-30">
       <div className="flex items-center justify-between px-6 h-full">
@@ -26,12 +29,18 @@ const Header = () => {
           
           <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">John Wholesaler</p>
+              <p className="text-sm font-medium text-gray-900">
+                {user?.firstName || user?.emailAddresses[0]?.emailAddress || 'User'}
+              </p>
               <p className="text-xs text-gray-500">Pro Plan</p>
             </div>
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8"
+                }
+              }}
+            />
           </div>
         </div>
       </div>
