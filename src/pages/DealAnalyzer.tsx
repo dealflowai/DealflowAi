@@ -7,6 +7,7 @@ import DealAnalysis from '@/components/DealAnalyzer/DealAnalysis';
 import DealPipeline from '@/components/DealAnalyzer/DealPipeline';
 import DealStats from '@/components/DealAnalyzer/DealStats';
 import { Search, Calculator, BarChart3, TrendingUp } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 
 interface Property {
   id: string;
@@ -27,6 +28,7 @@ interface Property {
 }
 
 const DealAnalyzer = () => {
+  const { isLoaded, isSignedIn } = useUser();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [activeTab, setActiveTab] = useState('search');
 
@@ -34,6 +36,34 @@ const DealAnalyzer = () => {
     setSelectedProperty(property);
     setActiveTab('analyze');
   };
+
+  // Show loading while Clerk is loading
+  if (!isLoaded) {
+    return (
+      <Layout>
+        <div className="p-6 flex items-center justify-center min-h-96">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="text-gray-600">Loading...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show error if not signed in
+  if (!isSignedIn) {
+    return (
+      <Layout>
+        <div className="p-6 flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
+            <p className="text-gray-600">Please sign in to access the Deal Analyzer</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

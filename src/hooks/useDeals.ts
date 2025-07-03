@@ -11,19 +11,33 @@ export const useDeals = () => {
   const { user } = useUser();
   const profileId = user?.id;
 
+  console.log('useDeals - profileId:', profileId, 'user:', user);
+
   return useQuery({
     queryKey: ['deals', profileId],
     queryFn: async () => {
-      if (!profileId) throw new Error('No user profile found');
+      if (!profileId) {
+        console.log('useDeals - No profileId, throwing error');
+        throw new Error('No user profile found');
+      }
+
+      console.log('useDeals - Fetching profile for profileId:', profileId);
 
       // Get the user's profile first to get the UUID
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('clerk_id', profileId)
         .single();
 
-      if (!profile) throw new Error('Profile not found');
+      console.log('useDeals - Profile query result:', { profile, profileError });
+
+      if (profileError || !profile) {
+        console.log('useDeals - Profile not found, returning empty array');
+        return []; // Return empty array instead of throwing error
+      }
+
+      console.log('useDeals - Fetching deals for profile id:', profile.id);
 
       const { data, error } = await supabase
         .from('deals')
@@ -31,8 +45,14 @@ export const useDeals = () => {
         .eq('owner_id', profile.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Deal[];
+      console.log('useDeals - Deals query result:', { data, error });
+
+      if (error) {
+        console.error('useDeals - Error fetching deals:', error);
+        throw error;
+      }
+      
+      return (data as Deal[]) || [];
     },
     enabled: !!profileId,
   });
@@ -47,6 +67,8 @@ export const useCreateDeal = () => {
     mutationFn: async (dealData: Omit<DealInsert, 'owner_id'>) => {
       if (!profileId) throw new Error('No user profile found');
 
+      console.log('useCreateDeal - Creating deal for profileId:', profileId);
+
       // Get the user's profile first to get the UUID
       const { data: profile } = await supabase
         .from('profiles')
@@ -56,13 +78,20 @@ export const useCreateDeal = () => {
 
       if (!profile) throw new Error('Profile not found');
 
+      console.log('useCreateDeal - Creating deal with data:', dealData);
+
       const { data, error } = await supabase
         .from('deals')
         .insert([{ ...dealData, owner_id: profile.id }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('useCreateDeal - Error creating deal:', error);
+        throw error;
+      }
+      
+      console.log('useCreateDeal - Deal created successfully:', data);
       return data;
     },
     onSuccess: () => {

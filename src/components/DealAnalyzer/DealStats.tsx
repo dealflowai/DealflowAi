@@ -5,7 +5,9 @@ import { useDeals } from '@/hooks/useDeals';
 import { TrendingUp, DollarSign, FileText, Users, Target } from 'lucide-react';
 
 const DealStats: React.FC = () => {
-  const { data: deals, isLoading } = useDeals();
+  const { data: deals, isLoading, error } = useDeals();
+
+  console.log('DealStats - deals:', deals, 'isLoading:', isLoading, 'error:', error);
 
   const calculateStats = () => {
     if (!deals || deals.length === 0) {
@@ -84,6 +86,19 @@ const DealStats: React.FC = () => {
     }
   ];
 
+  if (error) {
+    console.error('DealStats error:', error);
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <Card className="col-span-full">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600">Error loading deal statistics</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -103,21 +118,24 @@ const DealStats: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-      {statCards.map((stat, index) => (
-        <Card key={index}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+      {statCards.map((stat, index) => {
+        const IconComponent = stat.icon;
+        return (
+          <Card key={index}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                </div>
+                <div className={`${stat.bgColor} p-3 rounded-full`}>
+                  <IconComponent className={`w-6 h-6 ${stat.color}`} />
+                </div>
               </div>
-              <div className={`${stat.bgColor} p-3 rounded-full`}>
-                <stat.icon className={`w-6 h-6 ${stat.color}`} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
