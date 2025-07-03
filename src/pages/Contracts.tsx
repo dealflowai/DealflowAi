@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,12 +24,13 @@ import {
   BarChart3,
   Users,
   DollarSign,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 
 export default function Contracts() {
-  useUserSync();
-  const { data: profile } = useProfileData();
+  const { user, isLoaded } = useUserSync();
+  const { data: profile, isLoading: profileLoading } = useProfileData();
   const [activeTab, setActiveTab] = useState('contracts');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [contractData, setContractData] = useState({
@@ -48,52 +48,92 @@ export default function Contracts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch contracts
+  console.log('User loaded:', isLoaded, 'User:', user?.id);
+  console.log('Profile loading:', profileLoading, 'Profile:', profile);
+
+  // Show loading state while authentication and profile are loading
+  if (!isLoaded || profileLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error if user is not authenticated
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">Please sign in to access contracts.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Fetch contracts using user.id directly since profile might not exist yet
   const { data: contracts = [], isLoading: contractsLoading } = useQuery({
-    queryKey: ['contracts', profile?.id],
+    queryKey: ['contracts', user?.id],
     queryFn: async () => {
-      if (!profile?.id) return [];
+      if (!user?.id) return [];
+      
+      console.log('Fetching contracts for user:', user.id);
       
       const { data, error } = await supabase
         .from('contracts')
         .select('*')
-        .eq('owner_id', profile.id)
+        .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching contracts:', error);
+        return [];
+      }
+      
+      console.log('Fetched contracts:', data);
       return data;
     },
-    enabled: !!profile?.id,
+    enabled: !!user?.id,
   });
 
-  // Fetch deals for contract creation
+  // Fetch deals for contract creation using user.id directly
   const { data: deals = [] } = useQuery({
-    queryKey: ['deals', profile?.id],
+    queryKey: ['deals', user?.id],
     queryFn: async () => {
-      if (!profile?.id) return [];
+      if (!user?.id) return [];
       
       const { data, error } = await supabase
         .from('deals')
         .select('*')
-        .eq('owner_id', profile.id)
+        .eq('owner_id', user.id)
         .eq('status', 'contracted');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching deals:', error);
+        return [];
+      }
       return data;
     },
-    enabled: !!profile?.id,
+    enabled: !!user?.id,
   });
 
   // Create contract mutation
   const createContractMutation = useMutation({
     mutationFn: async (contractInfo: any) => {
-      if (!profile?.id) throw new Error('No profile found');
+      if (!user?.id) throw new Error('No user found');
       
       const { data, error } = await supabase
         .from('contracts')
         .insert({ 
           ...contractInfo, 
-          owner_id: profile.id,
+          owner_id: user.id,
           template_type: selectedTemplate,
           purchase_price: contractInfo.purchase_price ? parseInt(contractInfo.purchase_price) : null,
           earnest_money: contractInfo.earnest_money ? parseInt(contractInfo.earnest_money) : null,
@@ -194,18 +234,6 @@ export default function Contracts() {
     { id: 'lease_option', name: 'Lease Option', description: 'Lease with option to purchase agreement' },
     { id: 'seller_financing', name: 'Seller Financing', description: 'Owner-financed purchase agreement' }
   ];
-
-  if (!profile) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Loading your profile...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -432,7 +460,10 @@ export default function Contracts() {
             </CardHeader>
             <CardContent>
               {contractsLoading ? (
-                <p>Loading contracts...</p>
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2">Loading contracts...</span>
+                </div>
               ) : contracts.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   No contracts created yet. Start by creating your first contract!
