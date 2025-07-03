@@ -23,21 +23,49 @@ const BuyerCRM = () => {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedPriority, setSelectedPriority] = useState("All");
 
-  // Fetch buyers with proper error handling
-  const { data: buyers = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['buyers', user?.id],
+  // First, get the user's profile to get their UUID
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('No user ID available');
+        console.log('No user ID available for profile fetch');
+        return null;
+      }
+
+      console.log('Fetching profile for Clerk user:', user.id);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      console.log('User profile found:', data);
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Then fetch buyers using the profile UUID
+  const { data: buyers = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['buyers', userProfile?.id],
+    queryFn: async () => {
+      if (!userProfile?.id) {
+        console.log('No profile ID available for buyers fetch');
         return [];
       }
 
-      console.log('Fetching buyers for user:', user.id);
+      console.log('Fetching buyers for profile ID:', userProfile.id);
       
       const { data, error } = await supabase
         .from('buyers')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id', userProfile.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -48,7 +76,22 @@ const BuyerCRM = () => {
       console.log('Fetched buyers:', data);
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!userProfile?.id,
+  });
+
+  // Filter buyers based on search and filters
+  const filteredBuyers = buyers.filter(buyer => {
+    const matchesSearch = !searchQuery || 
+      buyer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      buyer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      buyer.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      buyer.state?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      buyer.markets?.some(market => market.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = selectedStatus === 'All' || buyer.status === selectedStatus.toLowerCase();
+    const matchesPriority = selectedPriority === 'All' || buyer.priority === selectedPriority;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const handleRefresh = () => {
@@ -66,6 +109,19 @@ const BuyerCRM = () => {
               {error instanceof Error ? error.message : 'An unexpected error occurred'}
             </p>
             <Button onClick={handleRefresh}>Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!userProfile && user?.id) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <h2 className="text-lg font-semibold text-blue-600 mb-2">Setting up your account...</h2>
+            <p className="text-gray-600">Please wait while we initialize your profile.</p>
           </CardContent>
         </Card>
       </div>
@@ -165,7 +221,7 @@ const BuyerCRM = () => {
                 </div>
               ) : (
                 <BuyersList 
-                  buyers={buyers}
+                  buyers={filteredBuyers}
                   searchQuery={searchQuery}
                   selectedStatus={selectedStatus}
                   selectedPriority={selectedPriority}
