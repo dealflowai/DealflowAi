@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +32,7 @@ interface PropertyScraperProps {
 const PropertyScraper: React.FC<PropertyScraperProps> = ({ onPropertySelect, selectedProperty }) => {
   const [searchLocation, setSearchLocation] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
-  const [propertyType, setPropertyType] = useState('');
+  const [propertyType, setPropertyType] = useState('all');
   const [isSearching, setIsSearching] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
 
@@ -146,7 +145,7 @@ const PropertyScraper: React.FC<PropertyScraperProps> = ({ onPropertySelect, sel
         property.zipCode.includes(searchLocation);
       
       const matchesPrice = !maxPrice || property.listPrice <= parseInt(maxPrice);
-      const matchesType = !propertyType || property.propertyType === propertyType;
+      const matchesType = propertyType === 'all' || property.propertyType === propertyType;
       
       return matchesLocation && matchesPrice && matchesType;
     });
@@ -198,7 +197,7 @@ const PropertyScraper: React.FC<PropertyScraperProps> = ({ onPropertySelect, sel
                 <SelectValue placeholder="Property Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="Single Family">Single Family</SelectItem>
                 <SelectItem value="Condo">Condo</SelectItem>
                 <SelectItem value="Townhouse">Townhouse</SelectItem>
