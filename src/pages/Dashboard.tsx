@@ -4,8 +4,30 @@ import Layout from '@/components/Layout/Layout';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import RecentActivity from '@/components/Dashboard/RecentActivity';
 import { Users, Calculator, FileText, DollarSign, TrendingUp, Target } from 'lucide-react';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { useUser } from '@clerk/clerk-react';
 
 const Dashboard = () => {
+  const { user } = useUser();
+  const { stats, recentActivity, isLoading } = useDashboardData();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="p-6 space-y-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="p-6 space-y-6">
@@ -13,7 +35,9 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">Welcome back, John. Here's your dealflow overview.</p>
+            <p className="text-gray-600 mt-1">
+              Welcome back, {user?.firstName || 'User'}. Here's your dealflow overview.
+            </p>
           </div>
           <div className="flex space-x-3">
             <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
@@ -28,33 +52,33 @@ const Dashboard = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
-            title="Active Buyers"
-            value="142"
-            change="+12% from last month"
+            title="Total Buyers"
+            value={stats.totalBuyers}
+            change={`${stats.newBuyers} new this month`}
             changeType="positive"
             icon={Users}
           />
           <StatsCard
-            title="Deals Analyzed"
-            value="89"
-            change="+8% from last month"
+            title="Active Buyers"
+            value={stats.activeBuyers}
+            change={`${Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}% active rate`}
             changeType="positive"
             icon={Calculator}
           />
           <StatsCard
-            title="Contracts Generated"
-            value="34"
-            change="+15% from last month"
-            changeType="positive"
-            icon={FileText}
+            title="Average Budget"
+            value={`$${stats.averageBudget.toLocaleString()}`}
+            change="Based on buyer data"
+            changeType="neutral"
+            icon={DollarSign}
             gradient={true}
           />
           <StatsCard
-            title="Revenue This Month"
-            value="$23,450"
-            change="+22% from last month"
-            changeType="positive"
-            icon={DollarSign}
+            title="New Buyers"
+            value={stats.newBuyers}
+            change="Need qualification"
+            changeType="neutral"
+            icon={FileText}
           />
         </div>
 
@@ -62,53 +86,60 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Overview */}
           <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Deal Pipeline</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Buyer Pipeline</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-yellow-800">Under Analysis</span>
+                  <span className="text-sm font-medium text-yellow-800">New Buyers</span>
                   <Target className="w-4 h-4 text-yellow-600" />
                 </div>
-                <p className="text-2xl font-bold text-yellow-900">23</p>
-                <p className="text-xs text-yellow-600 mt-1">Properties being evaluated</p>
+                <p className="text-2xl font-bold text-yellow-900">{stats.newBuyers}</p>
+                <p className="text-xs text-yellow-600 mt-1">Need qualification</p>
               </div>
               
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-800">Buyer Matched</span>
+                  <span className="text-sm font-medium text-blue-800">Active Buyers</span>
                   <Users className="w-4 h-4 text-blue-600" />
                 </div>
-                <p className="text-2xl font-bold text-blue-900">15</p>
-                <p className="text-xs text-blue-600 mt-1">Ready for outreach</p>
+                <p className="text-2xl font-bold text-blue-900">{stats.activeBuyers}</p>
+                <p className="text-xs text-blue-600 mt-1">Ready for deals</p>
               </div>
               
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-green-800">Under Contract</span>
+                  <span className="text-sm font-medium text-green-800">Total Budget</span>
                   <FileText className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="text-2xl font-bold text-green-900">8</p>
-                <p className="text-xs text-green-600 mt-1">Closing soon</p>
+                <p className="text-2xl font-bold text-green-900">
+                  ${(stats.averageBudget * stats.totalBuyers).toLocaleString()}
+                </p>
+                <p className="text-xs text-green-600 mt-1">Combined buying power</p>
               </div>
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Conversion Rate</span>
+                <span className="text-gray-600">Active Rate</span>
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="font-medium text-green-600">17.3%</span>
+                  <span className="font-medium text-green-600">
+                    {Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}%
+                  </span>
                 </div>
               </div>
               <div className="mt-2 bg-gray-200 rounded-full h-2">
-                <div className="bg-gradient-to-r from-blue-600 to-teal-600 h-2 rounded-full" style={{ width: '73%' }}></div>
+                <div 
+                  className="bg-gradient-to-r from-blue-600 to-teal-600 h-2 rounded-full" 
+                  style={{ width: `${Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}%` }}
+                ></div>
               </div>
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <RecentActivity />
+          {/* Recent Activity with real data */}
+          <RecentActivity activities={recentActivity} />
         </div>
 
         {/* Quick Actions */}
