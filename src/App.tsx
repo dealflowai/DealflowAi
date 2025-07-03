@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ClerkProvider } from "@clerk/clerk-react";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -16,104 +15,81 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import AuthPage from "./components/Auth/AuthPage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
-import Layout from "./components/Layout/Layout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const PUBLISHABLE_KEY = "pk_test_ZmluZS1tb3VudGFpbmxpb24tOTMuY2xlcmsuYWNjb3VudHMuZGV2JA";
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key");
-}
-
 const App = () => (
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/analyzer"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <DealAnalyzer />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/buyers"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <BuyerCRM />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/marketplace"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Marketplace />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/contracts"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Contracts />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/analytics"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Analytics />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Settings />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/app" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ClerkProvider>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analyzer"
+            element={
+              <ProtectedRoute>
+                <DealAnalyzer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/buyers"
+            element={
+              <ProtectedRoute>
+                <BuyerCRM />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/marketplace"
+            element={
+              <ProtectedRoute>
+                <Marketplace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contracts"
+            element={
+              <ProtectedRoute>
+                <Contracts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
