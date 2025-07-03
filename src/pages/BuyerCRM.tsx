@@ -6,7 +6,9 @@ import { useUser } from "@clerk/clerk-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, TrendingUp, Bot } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Users, TrendingUp, Bot, Search } from "lucide-react";
 import BuyersList from "@/components/BuyerCRM/BuyersList";
 import BuyerStats from "@/components/BuyerCRM/BuyerStats";
 import BuyerScraper from "@/components/BuyerCRM/BuyerScraper";
@@ -17,6 +19,9 @@ import { toast } from "sonner";
 const BuyerCRM = () => {
   const { user } = useUser();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedPriority, setSelectedPriority] = useState("All");
 
   // Fetch buyers with proper error handling
   const { data: buyers = [], isLoading, error, refetch } = useQuery({
@@ -105,11 +110,69 @@ const BuyerCRM = () => {
         </TabsList>
 
         <TabsContent value="buyers" className="mt-6">
-          <BuyersList 
-            buyers={buyers} 
-            isLoading={isLoading} 
-            onRefresh={handleRefresh}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Buyer Management</CardTitle>
+              <CardDescription>
+                Search, filter, and manage your buyer relationships
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Search and Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search buyers by name, email, location, or market..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Statuses</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="qualified">Qualified</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="warm">Warm</SelectItem>
+                    <SelectItem value="cold">Cold</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Priorities</SelectItem>
+                    <SelectItem value="VERY HIGH">Very High</SelectItem>
+                    <SelectItem value="HIGH">High</SelectItem>
+                    <SelectItem value="MEDIUM">Medium</SelectItem>
+                    <SelectItem value="LOW">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Buyers List */}
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-2">Loading buyers...</p>
+                </div>
+              ) : (
+                <BuyersList 
+                  buyers={buyers}
+                  searchQuery={searchQuery}
+                  selectedStatus={selectedStatus}
+                  selectedPriority={selectedPriority}
+                />
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="ai-outreach" className="mt-6">
@@ -143,7 +206,7 @@ const BuyerCRM = () => {
         </TabsContent>
 
         <TabsContent value="scraper" className="mt-6">
-          <BuyerScraper onBuyerAdded={handleRefresh} />
+          <BuyerScraper />
         </TabsContent>
       </Tabs>
 
