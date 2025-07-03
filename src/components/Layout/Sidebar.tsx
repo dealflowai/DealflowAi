@@ -29,9 +29,13 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen fixed left-0 top-0 z-40">
       <div className="p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">DF</span>
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/ae8b80c8-96c0-48c5-a8f5-1dcd332db304.png" 
+              alt="DealFlow Logo" 
+              className="w-8 h-8 rounded-lg"
+            />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
             dealflow.ai
