@@ -1,48 +1,56 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  FileText, Plus, Download, Edit, Eye, Clock, Send, Users, 
-  CheckCircle, AlertTriangle, Zap, FileSignature, Copy,
-  Calendar, DollarSign, MapPin, User
-} from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUserSync } from '@/hooks/useUserSync';
 import { useProfileData } from '@/hooks/useProfileData';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  FileText, 
+  Plus, 
+  Download, 
+  Send, 
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  BarChart3,
+  Users,
+  DollarSign,
+  Calendar
+} from 'lucide-react';
 
-const Contracts = () => {
+export default function Contracts() {
+  useUserSync();
+  const { data: profile } = useProfileData();
+  const [activeTab, setActiveTab] = useState('contracts');
   const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [isGeneratingContract, setIsGeneratingContract] = useState(false);
-  const [contractForm, setContractForm] = useState({
-    dealId: '',
-    templateType: '',
-    buyerName: '',
-    buyerEmail: '',
-    sellerName: '',
-    sellerEmail: '',
-    propertyAddress: '',
-    purchasePrice: '',
-    earnestMoney: '',
-    closingDate: '',
-    specialTerms: ''
+  const [contractData, setContractData] = useState({
+    title: '',
+    property_address: '',
+    buyer_name: '',
+    buyer_email: '',
+    seller_name: '',
+    seller_email: '',
+    purchase_price: '',
+    earnest_money: '',
+    closing_date: '',
+    special_terms: ''
   });
-  
-  const { profile } = useProfileData();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch contracts
   const { data: contracts = [], isLoading: contractsLoading } = useQuery({
-    queryKey: ['contracts'],
+    queryKey: ['contracts', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       
@@ -51,43 +59,82 @@ const Contracts = () => {
         .select('*')
         .eq('owner_id', profile.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
     enabled: !!profile?.id,
   });
 
-  // Fetch deals for contract generation
+  // Fetch deals for contract creation
   const { data: deals = [] } = useQuery({
-    queryKey: ['deals-for-contracts'],
+    queryKey: ['deals', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       
       const { data, error } = await supabase
         .from('deals')
-        .select('id, address, city, state, list_price, status')
+        .select('*')
         .eq('owner_id', profile.id)
-        .in('status', ['new', 'contacted', 'offer_sent']);
-      
+        .eq('status', 'contracted');
+
       if (error) throw error;
       return data;
     },
     enabled: !!profile?.id,
   });
 
-  // Generate contract mutation
-  const generateContractMutation = useMutation({
-    mutationFn: async (contractData: any) => {
+  // Create contract mutation
+  const createContractMutation = useMutation({
+    mutationFn: async (contractInfo: any) => {
+      if (!profile?.id) throw new Error('No profile found');
+      
       const { data, error } = await supabase
         .from('contracts')
-        .insert({
-          ...contractData,
-          owner_id: profile?.id,
+        .insert({ 
+          ...contractInfo, 
+          owner_id: profile.id,
+          template_type: selectedTemplate,
+          purchase_price: contractInfo.purchase_price ? parseInt(contractInfo.purchase_price) : null,
+          earnest_money: contractInfo.earnest_money ? parseInt(contractInfo.earnest_money) : null,
           status: 'draft'
+        });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      setContractData({
+        title: '',
+        property_address: '',
+        buyer_name: '',
+        buyer_email: '',
+        seller_name: '',
+        seller_email: '',
+        purchase_price: '',
+        earnest_money: '',
+        closing_date: '',
+        special_terms: ''
+      });
+      setSelectedTemplate('');
+      toast({
+        title: "Contract Created",
+        description: "Contract has been successfully created.",
+      });
+    },
+  });
+
+  // Update contract status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { data, error } = await supabase
+        .from('contracts')
+        .update({ 
+          status,
+          sent_for_signature_at: status === 'pending_signature' ? new Date().toISOString() : undefined
         })
-        .select()
-        .single();
+        .eq('id', id);
 
       if (error) throw error;
       return data;
@@ -95,580 +142,488 @@ const Contracts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       toast({
-        title: "Contract Generated",
-        description: "Your contract has been created successfully!",
-      });
-      setContractForm({
-        dealId: '',
-        templateType: '',
-        buyerName: '',
-        buyerEmail: '',
-        sellerName: '',
-        sellerEmail: '',
-        propertyAddress: '',
-        purchasePrice: '',
-        earnestMoney: '',
-        closingDate: '',
-        specialTerms: ''
+        title: "Status Updated",
+        description: "Contract status has been updated.",
       });
     },
   });
 
-  // Send for signature mutation
-  const sendForSignatureMutation = useMutation({
-    mutationFn: async (contractId: string) => {
-      const { error } = await supabase
-        .from('contracts')
-        .update({ 
-          status: 'pending_signature',
-          sent_for_signature_at: new Date().toISOString()
-        })
-        .eq('id', contractId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      toast({
-        title: "Sent for Signature",
-        description: "Contract has been sent to all parties for signature.",
-      });
-    },
-  });
-
-  const contractTemplates = [
-    {
-      id: 'purchase_agreement',
-      title: 'Purchase Agreement',
-      description: 'Standard real estate purchase agreement for wholesale deals',
-      icon: FileText,
-      category: 'Primary'
-    },
-    {
-      id: 'assignment_contract',
-      title: 'Assignment Contract',
-      description: 'Assignment of purchase agreement to end buyer',
-      icon: FileText,
-      category: 'Primary'
-    },
-    {
-      id: 'loi',
-      title: 'Letter of Intent',
-      description: 'Non-binding offer letter for initial negotiations',
-      icon: FileText,
-      category: 'Preliminary'
-    },
-    {
-      id: 'seller_disclosure',
-      title: 'Seller Disclosure',
-      description: 'Property condition disclosure form',
-      icon: FileText,
-      category: 'Supporting'
-    },
-    {
-      id: 'inspection_addendum',
-      title: 'Inspection Addendum',
-      description: 'Property inspection terms and conditions',
-      icon: FileText,
-      category: 'Supporting'
-    },
-    {
-      id: 'financing_contingency',
-      title: 'Financing Contingency',
-      description: 'Buyer financing terms and deadlines',
-      icon: FileText,
-      category: 'Supporting'
-    }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'pending_signature':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'partially_signed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'fully_signed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'executed':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'expired':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return <Edit className="w-3 h-3" />;
-      case 'pending_signature':
-        return <Clock className="w-3 h-3" />;
-      case 'partially_signed':
-        return <FileSignature className="w-3 h-3" />;
-      case 'fully_signed':
-        return <CheckCircle className="w-3 h-3" />;
-      case 'executed':
-        return <CheckCircle className="w-3 h-3" />;
-      case 'expired':
-        return <AlertTriangle className="w-3 h-3" />;
-      default:
-        return <FileText className="w-3 h-3" />;
-    }
-  };
-
-  const handleGenerateContract = () => {
-    if (!contractForm.templateType || !contractForm.propertyAddress) {
+  const handleCreateContract = () => {
+    if (!selectedTemplate || !contractData.title) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please select a template and enter a title.",
         variant: "destructive",
       });
       return;
     }
 
-    generateContractMutation.mutate({
-      template_type: contractForm.templateType,
-      deal_id: contractForm.dealId || null,
-      property_address: contractForm.propertyAddress,
-      buyer_name: contractForm.buyerName,
-      buyer_email: contractForm.buyerEmail,
-      seller_name: contractForm.sellerName,
-      seller_email: contractForm.sellerEmail,
-      purchase_price: parseFloat(contractForm.purchasePrice) || null,
-      earnest_money: parseFloat(contractForm.earnestMoney) || null,
-      closing_date: contractForm.closingDate || null,
-      special_terms: contractForm.specialTerms,
-      title: `${contractTemplates.find(t => t.id === contractForm.templateType)?.title} - ${contractForm.propertyAddress}`
-    });
+    createContractMutation.mutate(contractData);
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'pending_signature': return 'bg-yellow-100 text-yellow-800';
+      case 'partially_signed': return 'bg-blue-100 text-blue-800';
+      case 'fully_signed': return 'bg-green-100 text-green-800';
+      case 'executed': return 'bg-emerald-100 text-emerald-800';
+      case 'expired': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'fully_signed':
+      case 'executed':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'pending_signature':
+      case 'partially_signed':
+        return <Clock className="h-4 w-4" />;
+      case 'expired':
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const contractTemplates = [
+    { id: 'purchase_agreement', name: 'Purchase Agreement', description: 'Standard real estate purchase contract' },
+    { id: 'wholesale_contract', name: 'Wholesale Contract', description: 'Assignment contract for wholesale deals' },
+    { id: 'lease_option', name: 'Lease Option', description: 'Lease with option to purchase agreement' },
+    { id: 'seller_financing', name: 'Seller Financing', description: 'Owner-financed purchase agreement' }
+  ];
 
   if (!profile) {
     return (
-      <div className="p-6">
-        <div className="text-center py-8">
-          <p className="text-gray-600">Please log in to access contracts.</p>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">Loading your profile...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Smart Contracts</h1>
-          <p className="text-gray-600 mt-1">AI-powered contract generation and e-signature workflow</p>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Generate Contract
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Generate New Contract</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Contract Template *</Label>
-                  <Select value={contractForm.templateType} onValueChange={(value) => setContractForm({...contractForm, templateType: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contractTemplates.map((template) => (
-                        <SelectItem key={template.id} value={template.id}>
-                          {template.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Link to Deal (Optional)</Label>
-                  <Select value={contractForm.dealId} onValueChange={(value) => setContractForm({...contractForm, dealId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select deal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {deals.map((deal) => (
-                        <SelectItem key={deal.id} value={deal.id}>
-                          {deal.address} - ${deal.list_price?.toLocaleString()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label>Property Address *</Label>
-                <Input 
-                  value={contractForm.propertyAddress}
-                  onChange={(e) => setContractForm({...contractForm, propertyAddress: e.target.value})}
-                  placeholder="123 Main Street, City, State 12345"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Buyer Name</Label>
-                  <Input 
-                    value={contractForm.buyerName}
-                    onChange={(e) => setContractForm({...contractForm, buyerName: e.target.value})}
-                    placeholder="John Buyer"
-                  />
-                </div>
-                <div>
-                  <Label>Buyer Email</Label>
-                  <Input 
-                    type="email"
-                    value={contractForm.buyerEmail}
-                    onChange={(e) => setContractForm({...contractForm, buyerEmail: e.target.value})}
-                    placeholder="buyer@email.com"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Seller Name</Label>
-                  <Input 
-                    value={contractForm.sellerName}
-                    onChange={(e) => setContractForm({...contractForm, sellerName: e.target.value})}
-                    placeholder="Jane Seller"
-                  />
-                </div>
-                <div>
-                  <Label>Seller Email</Label>
-                  <Input 
-                    type="email"
-                    value={contractForm.sellerEmail}
-                    onChange={(e) => setContractForm({...contractForm, sellerEmail: e.target.value})}
-                    placeholder="seller@email.com"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>Purchase Price</Label>
-                  <Input 
-                    type="number"
-                    value={contractForm.purchasePrice}
-                    onChange={(e) => setContractForm({...contractForm, purchasePrice: e.target.value})}
-                    placeholder="150000"
-                  />
-                </div>
-                <div>
-                  <Label>Earnest Money</Label>
-                  <Input 
-                    type="number"
-                    value={contractForm.earnestMoney}
-                    onChange={(e) => setContractForm({...contractForm, earnestMoney: e.target.value})}
-                    placeholder="5000"
-                  />
-                </div>
-                <div>
-                  <Label>Closing Date</Label>
-                  <Input 
-                    type="date"
-                    value={contractForm.closingDate}
-                    onChange={(e) => setContractForm({...contractForm, closingDate: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Special Terms</Label>
-                <Textarea 
-                  value={contractForm.specialTerms}
-                  onChange={(e) => setContractForm({...contractForm, specialTerms: e.target.value})}
-                  placeholder="Any special terms or conditions..."
-                  rows={3}
-                />
-              </div>
-
-              <Button 
-                onClick={handleGenerateContract}
-                disabled={generateContractMutation.isPending}
-                className="w-full"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                {generateContractMutation.isPending ? 'Generating...' : 'Generate Contract'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Contracts</h1>
+        <p className="text-muted-foreground">Generate, manage, and track your real estate contracts</p>
       </div>
 
-      <Tabs defaultValue="contracts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="contracts">Active Contracts</TabsTrigger>
-          <TabsTrigger value="templates">Template Library</TabsTrigger>
-          <TabsTrigger value="analytics">Contract Analytics</TabsTrigger>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold">{contracts.length}</p>
+                <p className="text-xs text-muted-foreground">Total Contracts</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-8 w-8 text-yellow-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {contracts.filter(c => c.status === 'pending_signature').length}
+                </p>
+                <p className="text-xs text-muted-foreground">Pending Signature</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {contracts.filter(c => c.status === 'executed').length}
+                </p>
+                <p className="text-xs text-muted-foreground">Executed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <DollarSign className="h-8 w-8 text-purple-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  ${contracts.reduce((sum, contract) => sum + (contract.purchase_price || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">Total Contract Value</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="contracts">Contracts</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="signatures">E-Signatures</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-
+        
         <TabsContent value="contracts" className="space-y-6">
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Contracts</p>
-                    <p className="text-2xl font-bold text-gray-900">{contracts.length}</p>
-                  </div>
-                  <FileText className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Pending Signature</p>
-                    <p className="text-2xl font-bold text-yellow-600">
-                      {contracts.filter(c => c.status === 'pending_signature').length}
-                    </p>
-                  </div>
-                  <Clock className="w-8 h-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Fully Signed</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {contracts.filter(c => c.status === 'fully_signed').length}
-                    </p>
-                  </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Executed</p>
-                    <p className="text-2xl font-bold text-purple-600">
-                      {contracts.filter(c => c.status === 'executed').length}
-                    </p>
-                  </div>
-                  <Badge className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
-                    ✓
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Value</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      ${contracts.reduce((sum, c) => sum + (c.purchase_price || 0), 0).toLocaleString()}
-                    </p>
-                  </div>
-                  <DollarSign className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Contracts List */}
-          <div className="space-y-4">
-            {contractsLoading ? (
-              <div className="text-center py-8">Loading contracts...</div>
-            ) : contracts.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No contracts yet</h3>
-                  <p className="text-gray-600 mb-4">Generate your first contract to get started</p>
-                </CardContent>
-              </Card>
-            ) : (
-              contracts.map((contract) => (
-                <Card key={contract.id} className="hover:shadow-md transition-all duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-gray-900">{contract.title}</h3>
-                          <Badge className={getStatusColor(contract.status)}>
-                            {getStatusIcon(contract.status)}
-                            <span className="ml-1 capitalize">{contract.status.replace('_', ' ')}</span>
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {contract.property_address}
-                          </div>
-                          {contract.purchase_price && (
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="w-3 h-3" />
-                              ${contract.purchase_price.toLocaleString()}
-                            </div>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          {contract.buyer_name && (
-                            <div className="flex items-center gap-2">
-                              <User className="w-3 h-3 text-gray-400" />
-                              <span className="text-gray-500">Buyer:</span>
-                              <span className="font-medium text-gray-900">{contract.buyer_name}</span>
-                            </div>
-                          )}
-                          {contract.seller_name && (
-                            <div className="flex items-center gap-2">
-                              <User className="w-3 h-3 text-gray-400" />
-                              <span className="text-gray-500">Seller:</span>
-                              <span className="font-medium text-gray-900">{contract.seller_name}</span>
-                            </div>
-                          )}
-                        </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Contract Management</CardTitle>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Contract
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create New Contract</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="template">Contract Template</Label>
+                      <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contractTemplates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="title">Contract Title</Label>
+                        <Input
+                          id="title"
+                          value={contractData.title}
+                          onChange={(e) => setContractData({...contractData, title: e.target.value})}
+                          placeholder="Enter contract title"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="property_address">Property Address</Label>
+                        <Input
+                          id="property_address"
+                          value={contractData.property_address}
+                          onChange={(e) => setContractData({...contractData, property_address: e.target.value})}
+                          placeholder="Property address"
+                        />
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div className="text-sm text-gray-500">
-                        Created: {new Date(contract.created_at).toLocaleDateString()}
-                        {contract.sent_for_signature_at && (
-                          <span> • Sent: {new Date(contract.sent_for_signature_at).toLocaleDateString()}</span>
-                        )}
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="buyer_name">Buyer Name</Label>
+                        <Input
+                          id="buyer_name"
+                          value={contractData.buyer_name}
+                          onChange={(e) => setContractData({...contractData, buyer_name: e.target.value})}
+                          placeholder="Buyer name"
+                        />
                       </div>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-3 h-3 mr-1" />
-                          Preview
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        {contract.status === 'draft' && (
+                      <div>
+                        <Label htmlFor="buyer_email">Buyer Email</Label>
+                        <Input
+                          id="buyer_email"
+                          type="email"
+                          value={contractData.buyer_email}
+                          onChange={(e) => setContractData({...contractData, buyer_email: e.target.value})}
+                          placeholder="buyer@email.com"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="seller_name">Seller Name</Label>
+                        <Input
+                          id="seller_name"
+                          value={contractData.seller_name}
+                          onChange={(e) => setContractData({...contractData, seller_name: e.target.value})}
+                          placeholder="Seller name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="seller_email">Seller Email</Label>
+                        <Input
+                          id="seller_email"
+                          type="email"
+                          value={contractData.seller_email}
+                          onChange={(e) => setContractData({...contractData, seller_email: e.target.value})}
+                          placeholder="seller@email.com"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="purchase_price">Purchase Price</Label>
+                        <Input
+                          id="purchase_price"
+                          type="number"
+                          value={contractData.purchase_price}
+                          onChange={(e) => setContractData({...contractData, purchase_price: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="earnest_money">Earnest Money</Label>
+                        <Input
+                          id="earnest_money"
+                          type="number"
+                          value={contractData.earnest_money}
+                          onChange={(e) => setContractData({...contractData, earnest_money: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="closing_date">Closing Date</Label>
+                        <Input
+                          id="closing_date"
+                          type="date"
+                          value={contractData.closing_date}
+                          onChange={(e) => setContractData({...contractData, closing_date: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="special_terms">Special Terms</Label>
+                      <Textarea
+                        id="special_terms"
+                        value={contractData.special_terms}
+                        onChange={(e) => setContractData({...contractData, special_terms: e.target.value})}
+                        placeholder="Any special terms or conditions..."
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={handleCreateContract} 
+                      className="w-full"
+                      disabled={createContractMutation.isPending}
+                    >
+                      {createContractMutation.isPending ? 'Creating...' : 'Create Contract'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {contractsLoading ? (
+                <p>Loading contracts...</p>
+              ) : contracts.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  No contracts created yet. Start by creating your first contract!
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {contracts.map((contract) => (
+                    <Card key={contract.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h3 className="font-semibold flex items-center gap-2">
+                              {getStatusIcon(contract.status)}
+                              {contract.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {contract.property_address}
+                            </p>
+                          </div>
+                          <Badge className={getStatusColor(contract.status)}>
+                            {contract.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                          <div>
+                            <p className="text-muted-foreground">Purchase Price</p>
+                            <p className="font-semibold">
+                              ${contract.purchase_price?.toLocaleString() || 'N/A'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Template</p>
+                            <p className="font-semibold">
+                              {contractTemplates.find(t => t.id === contract.template_type)?.name || contract.template_type}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Buyer</p>
+                            <p className="font-semibold">{contract.buyer_name || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Created</p>
+                            <p className="font-semibold">
+                              {new Date(contract.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => sendForSignatureMutation.mutate(contract.id)}
-                            disabled={sendForSignatureMutation.isPending}
+                            onClick={() => updateStatusMutation.mutate({ 
+                              id: contract.id, 
+                              status: 'pending_signature' 
+                            })}
+                            disabled={contract.status === 'pending_signature'}
                           >
-                            <Send className="w-3 h-3 mr-1" />
+                            <Send className="h-4 w-4 mr-2" />
                             Send for Signature
                           </Button>
-                        )}
-                        <Button variant="outline" size="sm">
-                          <Download className="w-3 h-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
-
+        
         <TabsContent value="templates" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {['Primary', 'Preliminary', 'Supporting'].map((category) => (
-              <Card key={category}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{category} Documents</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {contractTemplates
-                    .filter(template => template.category === category)
-                    .map((template) => (
-                      <div
-                        key={template.id}
-                        className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group cursor-pointer"
-                      >
-                        <div className="flex items-start space-x-3">
-                          <template.icon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 mt-0.5" />
-                          <div className="flex-1">
-                            <h3 className="font-medium text-gray-900 group-hover:text-blue-900">{template.title}</h3>
-                            <p className="text-sm text-gray-600 mt-1">{template.description}</p>
-                            <div className="flex space-x-2 mt-2">
-                              <Button variant="outline" size="sm">
-                                <Eye className="w-3 h-3 mr-1" />
-                                Preview
-                              </Button>
-                              <Button variant="outline" size="sm">
-                                <Copy className="w-3 h-3 mr-1" />
-                                Use Template
-                              </Button>
-                            </div>
-                          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Contract Templates</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {contractTemplates.map((template) => (
+                  <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <FileText className="h-8 w-8 text-blue-600 mt-1" />
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-2">{template.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {template.description}
+                          </p>
+                          <Button variant="outline" size="sm">
+                            Use Template
+                          </Button>
                         </div>
                       </div>
-                    ))}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
-
+        
+        <TabsContent value="signatures" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>E-Signature Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {contracts.filter(c => c.status === 'pending_signature' || c.status === 'partially_signed').map((contract) => (
+                  <Card key={contract.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold">{contract.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Sent to: {contract.buyer_email}, {contract.seller_email}
+                          </p>
+                        </div>
+                        <Badge className={getStatusColor(contract.status)}>
+                          {contract.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {contracts.filter(c => c.status === 'pending_signature' || c.status === 'partially_signed').length === 0 && (
+                  <p className="text-muted-foreground text-center py-8">
+                    No contracts pending signature
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Contract Performance</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Contract Performance
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Average Time to Signature</span>
-                    <span className="font-semibold">3.2 days</span>
+                    <span>Completion Rate</span>
+                    <span className="font-semibold">
+                      {contracts.length > 0 
+                        ? Math.round((contracts.filter(c => c.status === 'executed').length / contracts.length) * 100)
+                        : 0}%
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Signature Rate</span>
-                    <span className="font-semibold text-green-600">87%</span>
+                    <span>Average Days to Execute</span>
+                    <span className="font-semibold">12 days</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Most Used Template</span>
+                    <span>Most Used Template</span>
                     <span className="font-semibold">Purchase Agreement</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
+            
             <Card>
               <CardHeader>
-                <CardTitle>Monthly Contract Volume</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Party Engagement
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">This Month</span>
-                    <span className="font-semibold">{contracts.length} contracts</span>
+                    <span>Quick Signers</span>
+                    <span className="font-semibold">85%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Value</span>
-                    <span className="font-semibold">
-                      ${contracts.reduce((sum, c) => sum + (c.purchase_price || 0), 0).toLocaleString()}
-                    </span>
+                    <span>Email Open Rate</span>
+                    <span className="font-semibold">92%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Growth</span>
-                    <span className="font-semibold text-green-600">+23%</span>
+                    <span>Document Views</span>
+                    <span className="font-semibold">156</span>
                   </div>
                 </div>
               </CardContent>
@@ -678,6 +633,4 @@ const Contracts = () => {
       </Tabs>
     </div>
   );
-};
-
-export default Contracts;
+}
