@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { 
@@ -31,11 +30,6 @@ const Sidebar = () => {
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-            <img 
-              src="/lovable-uploads/31d7d21d-e4cc-42f4-b157-11340e93aadd.png" 
-              alt="DealFlow Logo" 
-              className="w-6 h-6"
-            />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
