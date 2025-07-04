@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
+import DealComparison from '@/components/Marketplace/DealComparison';
+import SavedSearches from '@/components/Marketplace/SavedSearches';
+import DealMatchingEngine from '@/components/Marketplace/DealMatchingEngine';
 import { 
   Search, 
   MapPin, 
@@ -29,7 +31,13 @@ import {
   SlidersHorizontal,
   Clock,
   Target,
-  Award
+  Award,
+  BarChart3,
+  Zap,
+  GitCompare,
+  Brain,
+  Layers,
+  Settings
 } from 'lucide-react';
 
 const Marketplace = () => {
@@ -42,6 +50,9 @@ const Marketplace = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [savedDeals, setSavedDeals] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [comparisonDeals, setComparisonDeals] = useState<number[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
+  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
 
   const deals = [
     {
@@ -123,7 +134,7 @@ const Marketplace = () => {
 
   const buyerRequests = [
     {
-      id: 1,
+      id: '1',
       buyer: 'Jennifer Smith',
       buyerRating: 4.7,
       criteria: 'SFH $50K-$100K in Metro Atlanta',
@@ -137,7 +148,7 @@ const Marketplace = () => {
       financingReady: true
     },
     {
-      id: 2,
+      id: '2',
       buyer: 'Robert Davis',
       buyerRating: 4.5,
       criteria: 'Multi-family properties in Birmingham',
@@ -211,16 +222,45 @@ const Marketplace = () => {
     }
   };
 
+  const toggleComparison = (dealId: number) => {
+    setComparisonDeals(prev => 
+      prev.includes(dealId) 
+        ? prev.filter(id => id !== dealId)
+        : [...prev, dealId].slice(0, 4) // Max 4 deals for comparison
+    );
+  };
+
+  const handleApplySearch = (criteria: any) => {
+    if (criteria.searchTerm) setSearchTerm(criteria.searchTerm);
+    if (criteria.priceRange) setPriceRange(criteria.priceRange);
+    if (criteria.states) setSelectedStates(criteria.states);
+    if (criteria.types) setSelectedTypes(criteria.types);
+  };
+
   return (
     <Layout>
       <div className="p-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Deal Marketplace</h1>
-            <p className="text-gray-600 mt-1">Discover investment opportunities and connect with qualified buyers</p>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-3">
+              <Building className="w-8 h-8 text-blue-600" />
+              <span>Advanced Marketplace</span>
+              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                AI-Powered
+              </Badge>
+            </h1>
+            <p className="text-gray-600 mt-1">Intelligent deal discovery with advanced matching and analytics</p>
           </div>
           <div className="flex space-x-3">
+            <Button 
+              variant="outline" 
+              className="flex items-center space-x-2"
+              onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+            >
+              <Settings className="w-4 h-4" />
+              <span>Advanced Features</span>
+            </Button>
             <Button variant="outline" className="flex items-center space-x-2">
               <Bell className="w-4 h-4" />
               <span>Alerts</span>
@@ -231,6 +271,55 @@ const Marketplace = () => {
             </Button>
           </div>
         </div>
+
+        {/* Advanced Features Panel */}
+        {showAdvancedFeatures && (
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Zap className="w-5 h-5 text-blue-600" />
+                <span>Advanced Features</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col items-center space-y-2"
+                  onClick={() => setActiveTab('matching')}
+                >
+                  <Brain className="w-6 h-6 text-purple-600" />
+                  <span className="text-sm">AI Matching</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col items-center space-y-2"
+                  onClick={() => setActiveTab('saved-searches')}
+                >
+                  <Bookmark className="w-6 h-6 text-green-600" />
+                  <span className="text-sm">Saved Searches</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col items-center space-y-2"
+                  onClick={() => setShowComparison(true)}
+                  disabled={comparisonDeals.length < 2}
+                >
+                  <GitCompare className="w-6 h-6 text-blue-600" />
+                  <span className="text-sm">Compare ({comparisonDeals.length})</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col items-center space-y-2"
+                  onClick={() => setActiveTab('analytics')}
+                >
+                  <BarChart3 className="w-6 h-6 text-orange-600" />
+                  <span className="text-sm">Analytics</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Search and Filters Bar */}
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 space-y-4">
@@ -327,12 +416,30 @@ const Marketplace = () => {
           )}
         </div>
 
-        {/* Results Summary */}
+        {/* Results Summary with Comparison */}
         <div className="flex justify-between items-center mb-6">
-          <p className="text-gray-600">
-            Showing {filteredDeals.length} deals • {buyerRequests.length} active buyer requests
-          </p>
+          <div className="flex items-center space-x-4">
+            <p className="text-gray-600">
+              Showing {filteredDeals.length} deals • {buyerRequests.length} active buyer requests
+            </p>
+            {comparisonDeals.length > 0 && (
+              <Badge variant="outline" className="flex items-center space-x-1">
+                <GitCompare className="w-3 h-3" />
+                <span>{comparisonDeals.length} selected for comparison</span>
+              </Badge>
+            )}
+          </div>
           <div className="flex space-x-2">
+            {comparisonDeals.length >= 2 && (
+              <Button
+                size="sm"
+                onClick={() => setShowComparison(true)}
+                className="flex items-center space-x-1"
+              >
+                <GitCompare className="w-3 h-3" />
+                <span>Compare ({comparisonDeals.length})</span>
+              </Button>
+            )}
             <Button
               variant={viewMode === 'grid' ? 'default' : 'outline'}
               size="sm"
@@ -351,15 +458,18 @@ const Marketplace = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="deals">Investment Deals ({filteredDeals.length})</TabsTrigger>
-            <TabsTrigger value="buyers">Buyer Requests ({buyerRequests.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+            <TabsTrigger value="deals">Deals ({filteredDeals.length})</TabsTrigger>
+            <TabsTrigger value="buyers">Buyers ({buyerRequests.length})</TabsTrigger>
+            <TabsTrigger value="matching">AI Matching</TabsTrigger>
+            <TabsTrigger value="saved-searches">Saved Searches</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="deals" className="space-y-4">
             <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-4'}>
               {filteredDeals.map((deal) => (
-                <Card key={deal.id} className={`hover:shadow-lg transition-all duration-200 ${deal.featured ? 'ring-2 ring-blue-200 bg-blue-50/30' : ''}`}>
+                <Card key={deal.id} className={`hover:shadow-lg transition-all duration-200 ${deal.featured ? 'ring-2 ring-blue-200 bg-blue-50/30' : ''} ${comparisonDeals.includes(deal.id) ? 'ring-2 ring-purple-300 bg-purple-50/30' : ''}`}>
                   {deal.featured && (
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 text-xs font-medium">
                       ⭐ FEATURED DEAL
@@ -376,6 +486,14 @@ const Marketplace = () => {
                         </CardDescription>
                       </div>
                       <div className="flex space-x-1 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleComparison(deal.id)}
+                          className={`p-1 ${comparisonDeals.includes(deal.id) ? 'text-purple-600' : 'text-gray-400'}`}
+                        >
+                          <GitCompare className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -583,7 +701,71 @@ const Marketplace = () => {
               ))}
             </div>
           </TabsContent>
+
+          <TabsContent value="matching" className="space-y-4">
+            <DealMatchingEngine deals={filteredDeals} buyers={buyerRequests} />
+          </TabsContent>
+
+          <TabsContent value="saved-searches" className="space-y-4">
+            <SavedSearches onApplySearch={handleApplySearch} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                    <span>Deal Volume</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">{filteredDeals.length}</div>
+                  <p className="text-gray-600">Active deals in marketplace</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-green-600" />
+                    <span>Avg ROI</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600 mb-2">
+                    {Math.round(filteredDeals.reduce((acc, deal) => acc + deal.roiEstimate, 0) / filteredDeals.length)}%
+                  </div>
+                  <p className="text-gray-600">Average expected ROI</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <DollarSign className="w-5 h-5 text-purple-600" />
+                    <span>Total Value</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
+                    ${Math.round(filteredDeals.reduce((acc, deal) => acc + deal.price, 0) / 1000000 * 10) / 10}M
+                  </div>
+                  <p className="text-gray-600">Total portfolio value</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
+
+        {/* Deal Comparison Modal */}
+        {showComparison && comparisonDeals.length >= 2 && (
+          <DealComparison
+            deals={filteredDeals.filter(deal => comparisonDeals.includes(deal.id))}
+            onRemove={(dealId) => setComparisonDeals(prev => prev.filter(id => id !== dealId))}
+            onClose={() => setShowComparison(false)}
+          />
+        )}
       </div>
     </Layout>
   );
