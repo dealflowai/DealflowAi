@@ -1,53 +1,99 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Clock, FileText, DollarSign, Calendar, Users } from 'lucide-react';
-
-const monthlyData = [
-  { month: 'Jan', contracts: 12, value: 540000, signed: 8 },
-  { month: 'Feb', contracts: 15, value: 675000, signed: 11 },
-  { month: 'Mar', contracts: 18, value: 810000, signed: 14 },
-  { month: 'Apr', contracts: 22, value: 990000, signed: 18 },
-  { month: 'May', contracts: 19, value: 855000, signed: 15 },
-  { month: 'Jun', contracts: 24, value: 1080000, signed: 20 }
-];
-
-const contractTypeData = [
-  { name: 'Purchase Agreement', value: 45, color: '#3B82F6' },
-  { name: 'Assignment', value: 32, color: '#10B981' },
-  { name: 'Letter of Intent', value: 18, color: '#F59E0B' },
-  { name: 'Disclosure', value: 28, color: '#EF4444' },
-  { name: 'Option Contract', value: 15, color: '#8B5CF6' }
-];
-
-const signatureData = [
-  { stage: 'Draft', count: 8, percentage: 15 },
-  { stage: 'Sent', count: 12, percentage: 22 },
-  { stage: 'Pending', count: 18, percentage: 33 },
-  { stage: 'Signed', count: 16, percentage: 30 }
-];
+import { 
+  TrendingUp, 
+  FileText, 
+  Clock, 
+  DollarSign, 
+  Users, 
+  CheckCircle,
+  AlertCircle,
+  Calendar
+} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const ContractAnalytics = () => {
-  const totalContracts = monthlyData.reduce((sum, month) => sum + month.contracts, 0);
-  const totalValue = monthlyData.reduce((sum, month) => sum + month.value, 0);
-  const totalSigned = monthlyData.reduce((sum, month) => sum + month.signed, 0);
-  const signatureRate = Math.round((totalSigned / totalContracts) * 100);
-  const avgContractValue = Math.round(totalValue / totalContracts);
-  const avgTimeToSign = 5.2; // days
+  // Mock data for analytics
+  const monthlyData = [
+    { month: 'Jan', contracts: 12, value: 450000, signed: 8 },
+    { month: 'Feb', contracts: 15, value: 680000, signed: 12 },
+    { month: 'Mar', contracts: 18, value: 720000, signed: 14 },
+    { month: 'Apr', contracts: 22, value: 890000, signed: 18 },
+    { month: 'May', contracts: 25, value: 1200000, signed: 20 },
+    { month: 'Jun', contracts: 28, value: 1350000, signed: 24 }
+  ];
+
+  const contractTypes = [
+    { name: 'Purchase Agreement', value: 45, color: '#8884d8' },
+    { name: 'Assignment', value: 30, color: '#82ca9d' },
+    { name: 'LOI', value: 15, color: '#ffc658' },
+    { name: 'Option Contract', value: 10, color: '#ff7300' }
+  ];
+
+  const recentContracts = [
+    {
+      id: '1',
+      title: '123 Oak Street Purchase Agreement',
+      status: 'signed',
+      value: 85000,
+      daysToSign: 3,
+      createdAt: '2024-01-15'
+    },
+    {
+      id: '2',
+      title: 'Pine Ave Assignment Contract',
+      status: 'pending',
+      value: 65000,
+      daysToSign: null,
+      createdAt: '2024-01-14'
+    },
+    {
+      id: '3',
+      title: 'Maple Dr LOI',
+      status: 'draft',
+      value: 45000,
+      daysToSign: null,
+      createdAt: '2024-01-13'
+    }
+  ];
+
+  const avgSigningTime = recentContracts
+    .filter(c => c.daysToSign !== null)
+    .reduce((acc, c) => acc + (c.daysToSign || 0), 0) / 
+    recentContracts.filter(c => c.daysToSign !== null).length || 0;
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'signed': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'draft': return <AlertCircle className="w-4 h-4 text-gray-400" />;
+      default: return null;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'signed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Contracts</p>
-                <p className="text-2xl font-bold text-gray-900">{totalContracts}</p>
-                <p className="text-xs text-green-600 mt-1">+18% from last month</p>
+                <p className="text-2xl font-bold text-gray-900">120</p>
+                <p className="text-xs text-green-600 mt-1">+12% from last month</p>
               </div>
               <FileText className="w-8 h-8 text-blue-600" />
             </div>
@@ -55,74 +101,52 @@ const ContractAnalytics = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Signature Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{signatureRate}%</p>
-                <p className="text-xs text-green-600 mt-1">+5% from last month</p>
-              </div>
-              <Users className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">${(totalValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-green-600 mt-1">+25% from last month</p>
+                <p className="text-2xl font-bold text-gray-900">$4.2M</p>
+                <p className="text-xs text-green-600 mt-1">+18% from last month</p>
               </div>
-              <DollarSign className="w-8 h-8 text-purple-600" />
+              <DollarSign className="w-8 h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Time to Sign</p>
-                <p className="text-2xl font-bold text-gray-900">{avgTimeToSign} days</p>
-                <p className="text-xs text-red-600 mt-1">+0.8 days from last month</p>
+                <p className="text-sm font-medium text-gray-600">Signature Rate</p>
+                <p className="text-2xl font-bold text-gray-900">86%</p>
+                <p className="text-xs text-green-600 mt-1">+5% from last month</p>
               </div>
-              <Clock className="w-8 h-8 text-yellow-600" />
+              <Users className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Avg. Sign Time</p>
+                <p className="text-2xl font-bold text-gray-900">{avgSigningTime.toFixed(1)} days</p>
+                <p className="text-xs text-red-600 mt-1">-1.2 days from last month</p>
+              </div>
+              <Clock className="w-8 h-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Performance */}
+        {/* Monthly Trends */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <TrendingUp className="w-5 h-5 text-blue-600" />
-              <span>Monthly Performance</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="contracts" fill="#3B82F6" name="Total Contracts" />
-                <Bar dataKey="signed" fill="#10B981" name="Signed Contracts" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Contract Value Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
-              <span>Contract Value Trend</span>
+              <span>Monthly Contract Trends</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -131,28 +155,36 @@ const ContractAnalytics = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`$${(value / 1000).toFixed(0)}K`, 'Value']} />
-                <Line type="monotone" dataKey="value" stroke="#10B981" strokeWidth={3} />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="contracts" 
+                  stroke="#8884d8" 
+                  strokeWidth={2}
+                  name="Contracts Created"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="signed" 
+                  stroke="#82ca9d" 
+                  strokeWidth={2}
+                  name="Contracts Signed"
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contract Types Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-purple-600" />
-              <span>Contract Types</span>
-            </CardTitle>
+            <CardTitle>Contract Types Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={contractTypeData}
+                  data={contractTypes}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -161,7 +193,7 @@ const ContractAnalytics = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {contractTypeData.map((entry, index) => (
+                  {contractTypes.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -170,68 +202,91 @@ const ContractAnalytics = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Signature Pipeline */}
+      {/* Recent Contracts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5 text-gray-600" />
+            <span>Recent Contract Activity</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentContracts.map((contract) => (
+              <div key={contract.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  {getStatusIcon(contract.status)}
+                  <div>
+                    <h4 className="font-medium text-gray-900">{contract.title}</h4>
+                    <p className="text-sm text-gray-500">Created on {contract.createdAt}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">${contract.value.toLocaleString()}</p>
+                    {contract.daysToSign && (
+                      <p className="text-sm text-gray-500">Signed in {contract.daysToSign} days</p>
+                    )}
+                  </div>
+                  <Badge className={getStatusColor(contract.status)}>
+                    {contract.status}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="w-5 h-5 text-yellow-600" />
-              <span>Signature Pipeline</span>
-            </CardTitle>
+            <CardTitle className="text-lg">Completion Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {signatureData.map((stage, index) => (
-                <div key={stage.stage}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">{stage.stage}</span>
-                    <span className="text-sm text-gray-600">{stage.count} contracts</span>
-                  </div>
-                  <Progress value={stage.percentage} className="h-2" />
-                  <div className="text-xs text-gray-500 mt-1">{stage.percentage}% of total</div>
-                </div>
-              ))}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">This Month</span>
+                <span className="text-sm font-medium">86%</span>
+              </div>
+              <Progress value={86} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Response Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Avg. Response</span>
+                <span className="text-sm font-medium">2.3 hrs</span>
+              </div>
+              <Progress value={75} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Client Satisfaction</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Overall Rating</span>
+                <span className="text-sm font-medium">4.8/5</span>
+              </div>
+              <Progress value={96} className="h-2" />
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Performance Insights */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            <span>Performance Insights</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-green-800">Top Performing Template</span>
-              </div>
-              <p className="text-sm text-green-700">Purchase Agreement has the highest signature rate at 89%</p>
-            </div>
-            
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-sm font-medium text-yellow-800">Improvement Opportunity</span>
-              </div>
-              <p className="text-sm text-yellow-700">Letter of Intent templates take 40% longer to sign</p>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-blue-800">Monthly Goal</span>
-              </div>
-              <p className="text-sm text-blue-700">83% towards 30 contract goal for this month</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
