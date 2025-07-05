@@ -1,25 +1,84 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout/Layout';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import RecentActivity from '@/components/Dashboard/RecentActivity';
-import { Users, Calculator, FileText, DollarSign, TrendingUp, Target } from 'lucide-react';
+import GuidedTour from '@/components/Onboarding/GuidedTour';
+import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUser } from '@clerk/clerk-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { SkeletonCard } from '@/components/ui/skeleton-card';
 
 const Dashboard = () => {
   const { user } = useUser();
   const { stats, recentActivity, isLoading } = useDashboardData();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if user has completed onboarding
+  const { data: hasCompletedOnboarding } = useQuery({
+    queryKey: ['onboarding', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return true;
+      
+      const localFlag = localStorage.getItem('hasCompletedOnboard');
+      if (localFlag === 'true') return true;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('has_completed_onboarding')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      return data?.has_completed_onboarding || false;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch fresh insights
+  const { data: insights } = useQuery({
+    queryKey: ['insights', user?.id],
+    queryFn: async () => {
+      // Mock fresh insights - in real app this would be a Supabase RPC
+      return [
+        {
+          id: 1,
+          type: 'opportunity',
+          title: 'New Market Opportunity',
+          description: '3 new cash buyers discovered in your target markets',
+          action: 'View Buyers',
+          actionUrl: '/buyers'
+        },
+        {
+          id: 2,
+          type: 'insight',
+          title: 'AI Deal Analysis',
+          description: 'Average deal score increased by 12% this week',
+          action: 'View Analytics',
+          actionUrl: '/analytics'
+        }
+      ];
+    },
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (hasCompletedOnboarding === false) {
+      setShowOnboarding(true);
+    }
+  }, [hasCompletedOnboarding]);
 
   if (isLoading) {
     return (
       <Layout>
         <div className="p-6 space-y-6">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
+                <SkeletonCard key={i} />
               ))}
             </div>
           </div>
@@ -34,29 +93,55 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Welcome back, {user?.firstName || 'User'}. Here's your dealflow overview.
             </p>
           </div>
           <div className="flex space-x-3">
-            <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+            <Button variant="outline" data-tour="contracts">
               Export Report
-            </button>
-            <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-teal-700 transition-all duration-200">
+            </Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90"
+              data-tour="deal-analyzer"
+            >
+              <Plus className="w-4 h-4 mr-2" />
               New Deal
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Fresh Insights Card */}
+        {insights && insights.length > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center space-x-3 mb-3">
+              <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Fresh Insights</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {insights.map((insight) => (
+                <div key={insight.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+                  <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">{insight.title}</h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{insight.description}</p>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    {insight.action}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Stats Grid - Improved density and consistency */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Total Buyers"
             value={stats.totalBuyers}
             change={`${stats.newBuyers} new this month`}
             changeType="positive"
             icon={Users}
+            data-tour="buyers-cta"
           />
           <StatsCard
             title="Active Buyers"
@@ -82,56 +167,80 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Zero State Check */}
+        {stats.totalBuyers === 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 text-center">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Buyers Yet</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Import a lead or discover buyers to start building your pipeline.</p>
+              <Button className="bg-primary hover:bg-primary/90" data-tour="buyers-cta">
+                <Bot className="w-4 h-4 mr-2" />
+                Discover Buyers
+              </Button>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 text-center">
+              <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Deals Analyzed</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Import a lead or scrape a listing to start analyzing deals.</p>
+              <Button variant="outline" data-tour="ai-discovery">
+                <Plus className="w-4 h-4 mr-2" />
+                Analyze First Deal
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Overview */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Buyer Pipeline</h3>
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Buyer Pipeline</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-yellow-800">New Buyers</span>
-                  <Target className="w-4 h-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">New Buyers</span>
+                  <Target className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 </div>
-                <p className="text-2xl font-bold text-yellow-900">{stats.newBuyers}</p>
-                <p className="text-xs text-yellow-600 mt-1">Need qualification</p>
+                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">{stats.newBuyers}</p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Need qualification</p>
               </div>
               
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-800">Active Buyers</span>
-                  <Users className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Active Buyers</span>
+                  <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="text-2xl font-bold text-blue-900">{stats.activeBuyers}</p>
-                <p className="text-xs text-blue-600 mt-1">Ready for deals</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.activeBuyers}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Ready for deals</p>
               </div>
               
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-green-800">Total Budget</span>
-                  <FileText className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800 dark:text-green-300">Total Budget</span>
+                  <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-2xl font-bold text-green-900">
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                   ${(stats.averageBudget * stats.totalBuyers).toLocaleString()}
                 </p>
-                <p className="text-xs text-green-600 mt-1">Combined buying power</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">Combined buying power</p>
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Active Rate</span>
+                <span className="text-gray-600 dark:text-gray-400">Active Rate</span>
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="font-medium text-green-600">
+                  <span className="font-medium text-green-600 dark:text-green-400">
                     {Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}%
                   </span>
                 </div>
               </div>
-              <div className="mt-2 bg-gray-200 rounded-full h-2">
+              <div className="mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-blue-600 to-teal-600 h-2 rounded-full" 
+                  className="bg-primary h-2 rounded-full transition-all duration-500" 
                   style={{ width: `${Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}%` }}
                 ></div>
               </div>
@@ -143,30 +252,36 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group">
-              <Calculator className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">Analyze New Deal</span>
+            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group">
+              <Calculator className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">Analyze New Deal</span>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all duration-200 group">
-              <Users className="w-5 h-5 text-gray-600 group-hover:text-green-600" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-green-700">Add Buyer</span>
+            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group" data-tour="buyers-cta">
+              <Users className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-700 dark:group-hover:text-green-300">Add Buyer</span>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group">
-              <FileText className="w-5 h-5 text-gray-600 group-hover:text-purple-600" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-purple-700">Generate Contract</span>
+            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 group">
+              <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-300">Generate Contract</span>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 group">
-              <TrendingUp className="w-5 h-5 text-gray-600 group-hover:text-orange-600" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-orange-700">View Analytics</span>
+            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200 group">
+              <TrendingUp className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-300">View Analytics</span>
             </button>
           </div>
         </div>
+
+        {/* Guided Tour */}
+        <GuidedTour 
+          isOpen={showOnboarding}
+          onComplete={() => setShowOnboarding(false)}
+        />
       </div>
     </Layout>
   );

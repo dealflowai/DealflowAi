@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
@@ -8,11 +8,13 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar collapsed={sidebarCollapsed} onToggle={setSidebarCollapsed} />
       <Header />
-      <main className="ml-64 pt-16">
+      <main className={`${sidebarCollapsed ? 'ml-16' : 'ml-64'} pt-16 transition-all duration-200`}>
         {children}
       </main>
     </div>

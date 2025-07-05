@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { useSupabaseSync } from "@/hooks/useSupabaseSync";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import AuthPage from "./components/Auth/AuthPage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -13,10 +14,14 @@ import Dashboard from "./pages/Dashboard";
 import BuyerCRM from "./pages/BuyerCRM";
 import DealAnalyzer from "./pages/DealAnalyzer";
 import Contracts from "./pages/Contracts";
-import Marketplace from "./pages/Marketplace";
-import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
+
+// Lazy load heavy pages
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 const queryClient = new QueryClient();
 
@@ -27,14 +32,24 @@ const AppContent = () => {
   // Show loading while checking auth status
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="text-gray-600">Loading...</span>
+          <span className="text-gray-600 dark:text-gray-300">Loading...</span>
         </div>
       </div>
     );
   }
+
+  const PageSkeleton = () => (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <BrowserRouter>
@@ -69,12 +84,16 @@ const AppContent = () => {
         } />
         <Route path="/marketplace" element={
           <ProtectedRoute>
-            <Marketplace />
+            <Suspense fallback={<PageSkeleton />}>
+              <Marketplace />
+            </Suspense>
           </ProtectedRoute>
         } />
         <Route path="/analytics" element={
           <ProtectedRoute>
-            <Analytics />
+            <Suspense fallback={<PageSkeleton />}>
+              <Analytics />
+            </Suspense>
           </ProtectedRoute>
         } />
         <Route path="/settings" element={
@@ -90,11 +109,13 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AppContent />
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AppContent />
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

@@ -3,7 +3,7 @@ import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles } from 'lucide-react';
+import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
@@ -46,6 +46,13 @@ const BuyerCRM = () => {
     enabled: !!user?.id,
   });
 
+  // Check if no new buyers for >7 days
+  const lastBuyerAdded = buyers.length > 0 ? new Date(buyers[0].created_at!) : null;
+  const daysSinceLastBuyer = lastBuyerAdded ? 
+    Math.floor((new Date().getTime() - lastBuyerAdded.getTime()) / (1000 * 60 * 60 * 24)) : 
+    999;
+  const showDiscoveryCTA = daysSinceLastBuyer > 7;
+
   const filteredBuyers = buyers.filter(buyer => {
     const matchesSearch = !searchTerm || 
       buyer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,15 +70,15 @@ const BuyerCRM = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
       case 'warm':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       case 'cold':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
       case 'new':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
@@ -98,15 +105,15 @@ const BuyerCRM = () => {
   const getPriorityColor = (priority: string) => {
     switch (priority?.toUpperCase()) {
       case 'VERY HIGH':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
       case 'HIGH':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
       case 'MEDIUM':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       case 'LOW':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
@@ -126,14 +133,14 @@ const BuyerCRM = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Buyer CRM</h1>
-            <p className="text-gray-600 mt-1">Manage your qualified cash buyers and discover new opportunities</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Buyer CRM</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your qualified cash buyers and discover new opportunities</p>
           </div>
           <div className="flex space-x-3">
             <Button 
               variant="outline"
               onClick={() => setActiveTab('discovery')}
-              className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
             >
               <Globe className="w-4 h-4 mr-2" />
               Discover Buyers
@@ -141,13 +148,13 @@ const BuyerCRM = () => {
             <Button 
               variant="outline"
               onClick={() => setActiveTab('ai-outreach')}
-              className="border-purple-200 text-purple-700 hover:bg-purple-50"
+              className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20"
             >
               <Bot className="w-4 h-4 mr-2" />
               AI Outreach
             </Button>
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+              className="bg-primary hover:bg-primary/90"
               onClick={() => setShowAddDialog(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -155,6 +162,33 @@ const BuyerCRM = () => {
             </Button>
           </div>
         </div>
+
+        {/* Discovery CTA - Show if no new buyers for >7 days */}
+        {showDiscoveryCTA && (
+          <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <div className="flex-1">
+                  <h3 className="font-medium text-orange-900 dark:text-orange-100">
+                    It's been {daysSinceLastBuyer} days since your last buyer addition
+                  </h3>
+                  <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
+                    Run discovery on LinkedIn to find fresh opportunities and grow your pipeline.
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={() => setActiveTab('discovery')}
+                >
+                  <Bot className="w-4 h-4 mr-2" />
+                  Run Discovery
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Overview */}
         <BuyerStats buyers={buyers} />
@@ -169,8 +203,8 @@ const BuyerCRM = () => {
 
           <TabsContent value="overview" className="space-y-6">
             {/* Enhanced Filters */}
-            <Card>
-              <CardContent className="p-6">
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -187,7 +221,7 @@ const BuyerCRM = () => {
                     <select 
                       value={selectedStatus} 
                       onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="All">All Status</option>
                       <option value="New">New</option>
@@ -203,7 +237,7 @@ const BuyerCRM = () => {
                     <select 
                       value={selectedPriority} 
                       onChange={(e) => setSelectedPriority(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="All">All Priority</option>
                       <option value="VERY HIGH">Very High</option>
@@ -218,10 +252,10 @@ const BuyerCRM = () => {
 
             {/* Buyers Grid */}
             {filteredBuyers.length === 0 ? (
-              <Card>
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
                 <CardContent className="p-12 text-center">
-                  <p className="text-gray-500 text-lg mb-4">
-                    {buyers.length === 0 ? 'No buyers found. Add your first buyer to get started!' : 'No buyers match your search criteria.'}
+                  <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
+                    {buyers.length === 0 ? 'No buyers found. Import a lead or discover buyers to start building your pipeline.' : 'No buyers match your search criteria.'}
                   </p>
                   {buyers.length === 0 && (
                     <div className="flex justify-center space-x-3">
@@ -233,7 +267,7 @@ const BuyerCRM = () => {
                         <Globe className="w-4 h-4 mr-2" />
                         Discover Buyers
                       </Button>
-                      <Button variant="outline" onClick={() => setActiveTab('ai-outreach')}>
+                      <Button variant="outline" onClick={()={() => setActiveTab('ai-outreach')}>
                         <Sparkles className="w-4 h-4 mr-2" />
                         AI Outreach
                       </Button>
@@ -244,11 +278,11 @@ const BuyerCRM = () => {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredBuyers.map((buyer) => (
-                  <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200">
+                  <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200 dark:bg-gray-800 dark:border-gray-700">
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">{buyer.name || 'Unnamed Buyer'}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{buyer.name || 'Unnamed Buyer'}</h3>
                           <div className="flex items-center space-x-2 mt-2">
                             <Badge className={getStatusColor(buyer.status || 'new')}>
                               {buyer.status || 'new'}
@@ -265,52 +299,48 @@ const BuyerCRM = () => {
                             )}
                           </div>
                         </div>
-                        <button className="p-2 hover:bg-gray-100 rounded-lg">
+                        <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                           <MoreHorizontal className="w-4 h-4 text-gray-400" />
                         </button>
                       </div>
                     </CardHeader>
 
                     <CardContent className="space-y-3">
-                      {/* Contact Information */}
                       {buyer.email && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <Mail className="w-4 h-4" />
                           <span>{buyer.email}</span>
                         </div>
                       )}
                       
                       {buyer.phone && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <Phone className="w-4 h-4" />
                           <span>{buyer.phone}</span>
                         </div>
                       )}
 
-                      {/* Location */}
                       {(buyer.city || buyer.state || buyer.markets) && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <MapPin className="w-4 h-4" />
                           <span>
                             {buyer.city && buyer.state ? `${buyer.city}, ${buyer.state}` : 
                              buyer.city || buyer.state || ''}
                             {buyer.markets && buyer.markets.length > 0 && (
-                              <span className="text-gray-500"> • {buyer.markets.join(', ')}</span>
+                              <span className="text-gray-500 dark:text-gray-500"> • {buyer.markets.join(', ')}</span>
                             )}
                           </span>
                         </div>
                       )}
 
-                      {/* Budget Range */}
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                         <DollarSign className="w-4 h-4" />
                         <span>{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
                       </div>
 
-                      {/* Asset Types */}
                       {buyer.asset_types && buyer.asset_types.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Asset Types:</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Asset Types:</p>
                           <div className="flex flex-wrap gap-1">
                             {buyer.asset_types.map((type, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -321,10 +351,9 @@ const BuyerCRM = () => {
                         </div>
                       )}
 
-                      {/* Property Types */}
                       {buyer.property_type_interest && buyer.property_type_interest.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Property Types:</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Property Types:</p>
                           <div className="flex flex-wrap gap-1">
                             {buyer.property_type_interest.map((type, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -335,31 +364,27 @@ const BuyerCRM = () => {
                         </div>
                       )}
 
-                      {/* Acquisition Timeline */}
                       {buyer.acquisition_timeline && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <Calendar className="w-4 h-4" />
                           <span>{buyer.acquisition_timeline}</span>
                         </div>
                       )}
 
-                      {/* Financing Type */}
                       {buyer.financing_type && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <Building className="w-4 h-4" />
                           <span>{buyer.financing_type}</span>
                         </div>
                       )}
 
-                      {/* Investment Criteria */}
                       {buyer.investment_criteria && (
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Investment Criteria:</p>
-                          <p className="text-sm text-gray-600 line-clamp-2">{buyer.investment_criteria}</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Investment Criteria:</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{buyer.investment_criteria}</p>
                         </div>
                       )}
 
-                      {/* Tags */}
                       {buyer.tags && buyer.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {buyer.tags.map((tag, index) => (
@@ -371,7 +396,7 @@ const BuyerCRM = () => {
                       )}
                     </CardContent>
 
-                    <CardFooter className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <CardFooter className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                       <span className="text-xs text-gray-400">
                         Added: {getTimeAgo(buyer.created_at)}
                       </span>
