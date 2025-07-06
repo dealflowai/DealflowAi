@@ -334,6 +334,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           first_name: string | null
+          has_completed_onboarding: boolean | null
           id: string
           last_name: string | null
           updated_at: string | null
@@ -343,6 +344,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           first_name?: string | null
+          has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
           updated_at?: string | null
@@ -352,6 +354,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           first_name?: string | null
+          has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
           updated_at?: string | null
