@@ -1,122 +1,78 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
-import { useSupabaseSync } from "@/hooks/useSupabaseSync";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import AuthPage from "./components/Auth/AuthPage";
-import ProtectedRoute from "./components/Auth/ProtectedRoute";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import BuyerCRM from "./pages/BuyerCRM";
-import DealAnalyzer from "./pages/DealAnalyzer";
-import Contracts from "./pages/Contracts";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import { lazy, Suspense } from "react";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-
-// Lazy load heavy pages
-const Marketplace = lazy(() => import("./pages/Marketplace"));
-const Analytics = lazy(() => import("./pages/Analytics"));
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ClerkProvider } from '@clerk/clerk-react';
+import { Suspense } from 'react';
+import { Toaster } from '@/components/ui/sonner';
+import { useSupabaseSync } from '@/hooks/useSupabaseSync';
+import AuthWrapper from '@/components/Auth/AuthWrapper';
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
+import Landing from '@/pages/Landing';
+import Index from '@/pages/Index';
+import Dashboard from '@/pages/Dashboard';
+import BuyerCRM from '@/pages/BuyerCRM';
+import DealAnalyzer from '@/pages/DealAnalyzer';
+import Contracts from '@/pages/Contracts';
+import Settings from '@/pages/Settings';
+import NotFound from '@/pages/NotFound';
+import OnboardingTour from '@/components/Onboarding/OnboardingTour';
+import { LazyMarketplace, LazyAnalytics, LazyBuyerPortal } from '@/components/Performance/LazyRoutes';
+import { SkeletonCard } from '@/components/Performance/SkeletonCard';
+import './App.css';
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
-  const { isSignedIn, isLoaded } = useUser();
+const PUBLISHABLE_KEY = "pk_test_ZW5kbGVzcy1tYXJtb3NldC00Ni5jbGVyay5hY2NvdW50cy5kZXYk";
+
+function AppContent() {
   useSupabaseSync();
 
-  // Show loading while checking auth status
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="text-gray-600 dark:text-gray-300">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  const PageSkeleton = () => (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-    </div>
-  );
-
   return (
-    <BrowserRouter>
+    <>
       <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        <Route 
-          path="/" 
-          element={
-            isSignedIn ? (
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            ) : (
-              <Landing />
-            )
-          } 
-        />
-        <Route path="/buyers" element={
-          <ProtectedRoute>
-            <BuyerCRM />
-          </ProtectedRoute>
+        <Route path="/" element={<Landing />} />
+        <Route path="/auth" element={<AuthWrapper />} />
+        <Route path="/portal" element={
+          <Suspense fallback={<div className="p-8"><SkeletonCard /></div>}>
+            <LazyBuyerPortal />
+          </Suspense>
         } />
-        <Route path="/analyzer" element={
-          <ProtectedRoute>
-            <DealAnalyzer />
-          </ProtectedRoute>
-        } />
-        <Route path="/contracts" element={
-          <ProtectedRoute>
-            <Contracts />
-          </ProtectedRoute>
-        } />
-        <Route path="/marketplace" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageSkeleton />}>
-              <Marketplace />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Index />} />
+          <Route path="/home" element={<Dashboard />} />
+          <Route path="/buyers" element={<BuyerCRM />} />
+          <Route path="/deals" element={<DealAnalyzer />} />
+          <Route path="/marketplace" element={
+            <Suspense fallback={<div className="p-8"><SkeletonCard /></div>}>
+              <LazyMarketplace />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/analytics" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageSkeleton />}>
-              <Analytics />
+          } />
+          <Route path="/contracts" element={<Contracts />} />
+          <Route path="/analytics" element={
+            <Suspense fallback={<div className="p-8"><SkeletonCard /></div>}>
+              <LazyAnalytics />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        } />
+          } />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+      <OnboardingTour />
+      <Toaster />
+    </>
   );
-};
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AppContent />
+        </Router>
+      </QueryClientProvider>
+    </ClerkProvider>
+  );
+}
 
 export default App;
