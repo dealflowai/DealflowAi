@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Phone, Mail, MapPin, DollarSign, Filter, MoreHorizontal, Edit, User } from "lucide-react";
+import { Phone, Mail, MapPin, DollarSign, Filter, MoreHorizontal, Edit, User, Building2 } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SkeletonBuyerCard } from "@/components/Performance/SkeletonCard";
@@ -374,7 +374,7 @@ const BuyersList = ({ buyers, searchQuery, selectedStatus, selectedPriority }: B
                       {/* Financing Type */}
                       {buyer.financing_type && (
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <Building className="w-4 h-4 flex-shrink-0" />
+                          <Building2 className="w-4 h-4 flex-shrink-0" />
                           <span>{buyer.financing_type}</span>
                         </div>
                       )}

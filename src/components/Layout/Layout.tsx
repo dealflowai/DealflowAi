@@ -8,13 +8,13 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar collapsed={sidebarCollapsed} onToggle={setSidebarCollapsed} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Header />
-      <main className={`${sidebarCollapsed ? 'ml-16' : 'ml-64'} pt-16 transition-all duration-200`}>
+      <main className="lg:ml-64 pt-16">
         {children}
       </main>
     </div>

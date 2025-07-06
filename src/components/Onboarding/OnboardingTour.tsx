@@ -81,7 +81,7 @@ const OnboardingTour = () => {
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
     
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRunTour(false);
       completeOnboardingMutation.mutate();
     }

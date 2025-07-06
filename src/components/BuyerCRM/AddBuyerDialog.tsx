@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface AddBuyerDialogProps {
   open: boolean;
@@ -19,7 +18,6 @@ interface AddBuyerDialogProps {
 
 const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProps) => {
   const { user } = useUser();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
