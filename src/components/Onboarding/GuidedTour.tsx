@@ -49,7 +49,7 @@ const GuidedTour = ({ isOpen, onComplete }: GuidedTourProps) => {
   const handleJoyrideCallback = async (data: CallBackProps) => {
     const { status } = data;
     
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRun(false);
       
       // Store completion flag in localStorage and Supabase

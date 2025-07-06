@@ -26,11 +26,16 @@ const Dashboard = () => {
       const localFlag = localStorage.getItem('hasCompletedOnboard');
       if (localFlag === 'true') return true;
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('has_completed_onboarding')
         .eq('clerk_id', user.id)
         .single();
+      
+      if (error) {
+        console.log('Profile not found or missing onboarding field:', error.message);
+        return false;
+      }
       
       return data?.has_completed_onboarding || false;
     },
