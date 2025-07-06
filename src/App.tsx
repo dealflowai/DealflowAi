@@ -16,9 +16,20 @@ import NotFound from './pages/NotFound';
 import AuthWrapper from './components/Auth/AuthWrapper';
 import OnboardingTour from './components/Onboarding/OnboardingTour';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const CLERK_PUBLISHABLE_KEY = 'pk_test_ZW5kbGVzcy1tYXJtb3NldC00Ni5jbGVyay5hY2NvdW50cy5kZXYk';
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
 
 function App() {
   return (
