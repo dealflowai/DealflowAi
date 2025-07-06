@@ -9,41 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      buyer_comments: {
-        Row: {
-          author_id: string
-          body: string
-          buyer_id: string | null
-          created_at: string | null
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          author_id: string
-          body: string
-          buyer_id?: string | null
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          author_id?: string
-          body?: string
-          buyer_id?: string | null
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "buyer_comments_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "buyers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       buyers: {
         Row: {
           acquisition_timeline: string | null
@@ -286,7 +251,6 @@ export type Database = {
           contract_pdf_url: string | null
           created_at: string | null
           deal_type: string | null
-          featured_until: string | null
           id: string
           lat: number | null
           list_price: number | null
@@ -315,7 +279,6 @@ export type Database = {
           contract_pdf_url?: string | null
           created_at?: string | null
           deal_type?: string | null
-          featured_until?: string | null
           id?: string
           lat?: number | null
           list_price?: number | null
@@ -344,7 +307,6 @@ export type Database = {
           contract_pdf_url?: string | null
           created_at?: string | null
           deal_type?: string | null
-          featured_until?: string | null
           id?: string
           lat?: number | null
           list_price?: number | null
@@ -366,33 +328,6 @@ export type Database = {
         }
         Relationships: []
       }
-      organization_limits: {
-        Row: {
-          created_at: string | null
-          daily_tokens: number | null
-          id: string
-          org_id: string
-          seat_limit: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          daily_tokens?: number | null
-          id?: string
-          org_id: string
-          seat_limit?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          daily_tokens?: number | null
-          id?: string
-          org_id?: string
-          seat_limit?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           clerk_id: string
@@ -402,7 +337,6 @@ export type Database = {
           has_completed_onboarding: boolean | null
           id: string
           last_name: string | null
-          role: string | null
           updated_at: string | null
         }
         Insert: {
@@ -413,7 +347,6 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
-          role?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -424,7 +357,6 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
-          role?: string | null
           updated_at?: string | null
         }
         Relationships: []

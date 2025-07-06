@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddBuyerDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface AddBuyerDialogProps {
 
 const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProps) => {
   const { user } = useUser();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -101,11 +103,18 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
 
       if (error) {
         console.error('Error adding buyer:', error);
-        toast.error('Failed to add buyer. Please try again.');
+        toast({
+          title: 'Error',
+          description: 'Failed to add buyer. Please try again.',
+          variant: 'destructive',
+        });
         return;
       }
 
-      toast.success('Buyer added successfully!');
+      toast({
+        title: 'Success',
+        description: 'Buyer added successfully!',
+      });
 
       // Reset form
       setFormData({
@@ -147,7 +156,11 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
       onBuyerAdded();
     } catch (error) {
       console.error('Error adding buyer:', error);
-      toast.error('Failed to add buyer. Please try again.');
+      toast({
+        title: 'Error',
+        description: 'Failed to add buyer. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }

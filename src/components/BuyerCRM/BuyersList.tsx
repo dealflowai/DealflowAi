@@ -1,14 +1,13 @@
-import { useState, useMemo, Suspense } from "react";
+
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Phone, Mail, MapPin, DollarSign, Filter, MoreHorizontal, Edit, User, Building2 } from "lucide-react";
+import { Phone, Mail, MapPin, DollarSign, TrendingUp, Star, Eye, MessageSquare, User, Building, Calendar, Target, Filter, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SkeletonBuyerCard } from "@/components/Performance/SkeletonCard";
-import BuyerComments from "./BuyerComments";
 
 interface Buyer {
   id: string;
@@ -44,7 +43,6 @@ const BuyersList = ({ buyers, searchQuery, selectedStatus, selectedPriority }: B
   const [sortBy, setSortBy] = useState<'name' | 'budget' | 'created' | 'priority' | 'status'>('created');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedBuyerId, setSelectedBuyerId] = useState<string | null>(null);
 
   // Enhanced filtering
   const filteredBuyers = useMemo(() => {
@@ -194,16 +192,6 @@ const BuyersList = ({ buyers, searchQuery, selectedStatus, selectedPriority }: B
     return 'text-red-600';
   };
 
-  if (buyers.length === 0) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        <SkeletonBuyerCard />
-        <SkeletonBuyerCard />
-        <SkeletonBuyerCard />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       {/* Enhanced Controls */}
@@ -269,201 +257,184 @@ const BuyersList = ({ buyers, searchQuery, selectedStatus, selectedPriority }: B
           </CardContent>
         </Card>
       ) : (
-        <div className="flex gap-6">
-          <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 flex-1" 
-            : "space-y-4 flex-1"
-          }>
-            {sortedBuyers.map((buyer) => {
-              const buyerScore = calculateBuyerScore(buyer);
-              
-              return (
-                <Card 
-                  key={buyer.id} 
-                  className={`hover:shadow-lg transition-all duration-200 group cursor-pointer ${
-                    selectedBuyerId === buyer.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  onClick={() => setSelectedBuyerId(selectedBuyerId === buyer.id ? null : buyer.id)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                            {buyer.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{buyer.name || 'Unnamed Buyer'}</h3>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge className={getStatusColor(buyer.status)}>
-                              {buyer.status || 'new'}
+        <div className={viewMode === 'grid' 
+          ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" 
+          : "space-y-4"
+        }>
+          {sortedBuyers.map((buyer) => {
+            const buyerScore = calculateBuyerScore(buyer);
+            
+            return (
+              <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200 group">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                          {buyer.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{buyer.name || 'Unnamed Buyer'}</h3>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge className={getStatusColor(buyer.status)}>
+                            {buyer.status || 'new'}
+                          </Badge>
+                          {buyer.priority && (
+                            <Badge className={getPriorityColor(buyer.priority)}>
+                              {buyer.priority}
                             </Badge>
-                            {buyer.priority && (
-                              <Badge className={getPriorityColor(buyer.priority)}>
-                                {buyer.priority}
-                              </Badge>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <div className={`text-xs font-bold ${getScoreColor(buyerScore)} cursor-help`}>
-                              {buyerScore}%
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent className="w-48">
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-semibold">Buyer Quality Score</h4>
-                              <Progress value={buyerScore} className="h-2" />
-                              <div className="text-xs text-gray-600">
-                                Based on contact info, budget, priority, and engagement level
-                              </div>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
-
-                    <div className="space-y-3">
-                      {/* Contact Information */}
-                      {buyer.email && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <Mail className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">{buyer.email}</span>
-                        </div>
-                      )}
-                      
-                      {buyer.phone && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <Phone className="w-4 h-4 flex-shrink-0" />
-                          <span>{buyer.phone}</span>
-                        </div>
-                      )}
-
-                      {/* Location */}
-                      {(buyer.city || buyer.state || buyer.markets) && (
-                        <div className="flex items-start space-x-2 text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                          <div>
-                            {buyer.city && buyer.state ? (
-                              <div>{buyer.city}, {buyer.state}</div>
-                            ) : (
-                              <div>{buyer.city || buyer.state || ''}</div>
-                            )}
-                            {buyer.markets && buyer.markets.length > 0 && (
-                              <div className="text-xs text-gray-500">
-                                Markets: {buyer.markets.join(', ')}
-                              </div>
-                            )}
+                    <div className="flex items-center space-x-2">
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <div className={`text-xs font-bold ${getScoreColor(buyerScore)} cursor-help`}>
+                            {buyerScore}%
                           </div>
-                        </div>
-                      )}
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-48">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">Buyer Quality Score</h4>
+                            <Progress value={buyerScore} className="h-2" />
+                            <div className="text-xs text-gray-600">
+                              Based on contact info, budget, priority, and engagement level
+                            </div>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
 
-                      {/* Budget Range */}
+                  <div className="space-y-3">
+                    {/* Contact Information */}
+                    {buyer.email && (
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <DollarSign className="w-4 h-4 flex-shrink-0" />
-                        <span>{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
+                        <Mail className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{buyer.email}</span>
                       </div>
+                    )}
+                    
+                    {buyer.phone && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4 flex-shrink-0" />
+                        <span>{buyer.phone}</span>
+                      </div>
+                    )}
 
-                      {/* Financing Type */}
-                      {buyer.financing_type && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <Building2 className="w-4 h-4 flex-shrink-0" />
-                          <span>{buyer.financing_type}</span>
+                    {/* Location */}
+                    {(buyer.city || buyer.state || buyer.markets) && (
+                      <div className="flex items-start space-x-2 text-sm text-gray-600">
+                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <div>
+                          {buyer.city && buyer.state ? (
+                            <div>{buyer.city}, {buyer.state}</div>
+                          ) : (
+                            <div>{buyer.city || buyer.state || ''}</div>
+                          )}
+                          {buyer.markets && buyer.markets.length > 0 && (
+                            <div className="text-xs text-gray-500">
+                              Markets: {buyer.markets.join(', ')}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    )}
+
+                    {/* Budget Range */}
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <DollarSign className="w-4 h-4 flex-shrink-0" />
+                      <span>{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
                     </div>
 
-                    {/* Asset Types */}
-                    {buyer.asset_types && buyer.asset_types.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Asset Types:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {buyer.asset_types.map((type, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {type}
-                            </Badge>
-                          ))}
-                        </div>
+                    {/* Financing Type */}
+                    {buyer.financing_type && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Building className="w-4 h-4 flex-shrink-0" />
+                        <span>{buyer.financing_type}</span>
                       </div>
                     )}
+                  </div>
 
-                    {/* Property Types */}
-                    {buyer.property_type_interest && buyer.property_type_interest.length > 0 && (
-                      <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Property Types:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {buyer.property_type_interest.map((type, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {type}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Investment Criteria */}
-                    {buyer.investment_criteria && (
-                      <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-700">Investment Criteria:</p>
-                        <p className="text-sm text-gray-600 line-clamp-2 mt-1">{buyer.investment_criteria}</p>
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {buyer.tags && buyer.tags.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {buyer.tags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
+                  {/* Asset Types */}
+                  {buyer.asset_types && buyer.asset_types.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Asset Types:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {buyer.asset_types.map((type, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {type}
                           </Badge>
                         ))}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Actions and Footer */}
-                    <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-                      <span className="text-xs text-gray-400">
-                        Added: {getTimeAgo(buyer.created_at)}
-                      </span>
-                      <div className="flex space-x-2">
-                        {buyer.phone && (
-                          <Button variant="outline" size="sm">
-                            <Phone className="w-3 h-3 mr-1" />
-                            Call
-                          </Button>
-                        )}
-                        {buyer.email && (
-                          <Button variant="outline" size="sm">
-                            <Mail className="w-3 h-3 mr-1" />
-                            Email
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-3 h-3" />
-                        </Button>
+                  {/* Property Types */}
+                  {buyer.property_type_interest && buyer.property_type_interest.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Property Types:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {buyer.property_type_interest.map((type, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {type}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                  )}
 
-          {/* Comments Sidebar */}
-          {selectedBuyerId && (
-            <div className="w-80">
-              <Suspense fallback={<SkeletonBuyerCard />}>
-                <BuyerComments buyerId={selectedBuyerId} />
-              </Suspense>
-            </div>
-          )}
+                  {/* Investment Criteria */}
+                  {buyer.investment_criteria && (
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-gray-700">Investment Criteria:</p>
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{buyer.investment_criteria}</p>
+                    </div>
+                  )}
+
+                  {/* Tags */}
+                  {buyer.tags && buyer.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {buyer.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Actions and Footer */}
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+                    <span className="text-xs text-gray-400">
+                      Added: {getTimeAgo(buyer.created_at)}
+                    </span>
+                    <div className="flex space-x-2">
+                      {buyer.phone && (
+                        <Button variant="outline" size="sm">
+                          <Phone className="w-3 h-3 mr-1" />
+                          Call
+                        </Button>
+                      )}
+                      {buyer.email && (
+                        <Button variant="outline" size="sm">
+                          <Mail className="w-3 h-3 mr-1" />
+                          Email
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm">
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

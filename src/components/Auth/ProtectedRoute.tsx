@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  return children || <Outlet />;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;
