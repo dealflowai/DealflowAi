@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -267,7 +268,7 @@ const BuyerCRM = () => {
                         <Globe className="w-4 h-4 mr-2" />
                         Discover Buyers
                       </Button>
-                      <Button variant="outline" onClick={()={() => setActiveTab('ai-outreach')}>
+                      <Button variant="outline" onClick={() => setActiveTab('ai-outreach')}>
                         <Sparkles className="w-4 h-4 mr-2" />
                         AI Outreach
                       </Button>
