@@ -9,7 +9,7 @@ const Header = () => {
   const { user } = useUser();
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-64 right-0 z-30">
+    <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 lg:left-64 right-0 z-30">
       <div className="flex items-center justify-between px-6 h-full">
         <div className="flex items-center space-x-4 flex-1 max-w-md">
           <div className="relative flex-1">

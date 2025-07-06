@@ -7,7 +7,7 @@ import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 import { toast } from 'sonner';
 
 const OnboardingTour = () => {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [runTour, setRunTour] = useState(false);
 
   const { data: profile } = useQuery({
@@ -28,7 +28,7 @@ const OnboardingTour = () => {
       
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isLoaded,
   });
 
   const completeOnboardingMutation = useMutation({
@@ -87,7 +87,7 @@ const OnboardingTour = () => {
     }
   };
 
-  if (!profile || profile.has_completed_onboarding) {
+  if (!profile || profile.has_completed_onboarding || !isLoaded) {
     return null;
   }
 
