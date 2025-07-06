@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { ClerkProvider, useUser } from "@clerk/clerk-react";
 import { useSupabaseSync } from "@/hooks/useSupabaseSync";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AuthPage from "./components/Auth/AuthPage";
@@ -15,6 +15,7 @@ import BuyerCRM from "./pages/BuyerCRM";
 import DealAnalyzer from "./pages/DealAnalyzer";
 import Contracts from "./pages/Contracts";
 import Settings from "./pages/Settings";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
@@ -22,6 +23,12 @@ import { SkeletonCard } from "@/components/ui/skeleton-card";
 // Lazy load heavy pages
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+
+const PUBLISHABLE_KEY = "pk_test_ZW5kbGVzcy1tYXJtb3NldC00Ni5jbGVyay5hY2NvdW50cy5kZXYk";
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
 
 const queryClient = new QueryClient();
 
@@ -96,6 +103,11 @@ const AppContent = () => {
             </Suspense>
           </ProtectedRoute>
         } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
         <Route path="/settings" element={
           <ProtectedRoute>
             <Settings />
@@ -108,15 +120,17 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppContent />
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ClerkProvider>
 );
 
 export default App;

@@ -12,9 +12,13 @@ import {
   Search,
   TrendingUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@clerk/clerk-react';
 
 const sidebarItems = [
   { icon: Home, label: 'Dashboard', path: '/' },
@@ -33,6 +37,35 @@ interface SidebarProps {
 
 const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
+  const { user } = useUser();
+
+  // Check if user has admin role
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Add admin link if user has admin role
+  const isAdmin = profile && ['admin', 'super_admin'].includes(profile.role);
+  const allSidebarItems = isAdmin 
+    ? [...sidebarItems, { icon: Shield, label: 'Admin', path: '/admin' }]
+    : sidebarItems;
 
   return (
     <div className={cn(
@@ -81,7 +114,7 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
 
       {/* Navigation */}
       <nav className="px-4 space-y-2">
-        {sidebarItems.map((item) => {
+        {allSidebarItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
           
@@ -100,6 +133,9 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
               {!collapsed && <span>{item.label}</span>}
+              {!collapsed && item.label === 'Admin' && (
+                <Shield className="w-3 h-3 ml-auto text-yellow-500" />
+              )}
             </Link>
           );
         })}
