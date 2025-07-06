@@ -101,18 +101,11 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
 
       if (error) {
         console.error('Error adding buyer:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to add buyer. Please try again.',
-          variant: 'destructive',
-        });
+        toast.error('Failed to add buyer. Please try again.');
         return;
       }
 
-      toast({
-        title: 'Success',
-        description: 'Buyer added successfully!',
-      });
+      toast.success('Buyer added successfully!');
 
       // Reset form
       setFormData({
@@ -154,11 +147,7 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
       onBuyerAdded();
     } catch (error) {
       console.error('Error adding buyer:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add buyer. Please try again.',
-        variant: 'destructive',
-      });
+      toast.error('Failed to add buyer. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
