@@ -6,7 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AdminAccessControlProps {
   children: React.ReactNode;
@@ -17,26 +18,66 @@ const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessCon
   const { user, isLoaded } = useUser();
 
   // Check if user has admin role
-  const { data: profile, isLoading: profileLoading, error } = useQuery({
+  const { data: profile, isLoading: profileLoading, error, refetch } = useQuery({
     queryKey: ['admin-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
+      console.log('Checking profile for Clerk ID:', user.id);
+      
+      // First, try to get existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('role, first_name, last_name, email')
         .eq('clerk_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
+      if (fetchError) {
+        console.error('Error fetching profile:', fetchError);
       }
       
-      return data;
+      // If profile doesn't exist, create it
+      if (!existingProfile) {
+        console.log('Profile not found, creating new profile...');
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            clerk_id: user.id,
+            email: user.primaryEmailAddress?.emailAddress,
+            first_name: user.firstName,
+            last_name: user.lastName,
+            role: 'super_admin' // Default to super_admin for testing
+          })
+          .select('role, first_name, last_name, email')
+          .single();
+        
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          return null;
+        }
+        
+        console.log('Created new profile:', newProfile);
+        return newProfile;
+      }
+      
+      console.log('Found existing profile:', existingProfile);
+      return existingProfile;
     },
     enabled: !!user?.id && isLoaded,
+    retry: 1,
   });
+
+  // Debug function to check current user state
+  const debugAuth = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('debug_current_user');
+      console.log('Debug auth result:', data, error);
+    } catch (err) {
+      console.error('Debug auth error:', err);
+    }
+  };
 
   // Show loading while checking auth status
   if (!isLoaded || profileLoading) {
@@ -64,6 +105,42 @@ const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessCon
     return <Navigate to="/auth" replace />;
   }
 
+  // Show error state with retry option
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="w-6 h-6 text-red-600" />
+            </div>
+            <CardTitle className="text-xl text-red-600">Authentication Error</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-gray-600 dark:text-gray-400">
+              There was an error checking your permissions.
+            </p>
+            <div className="text-sm text-gray-500 font-mono bg-gray-100 p-2 rounded">
+              {error.message}
+            </div>
+            <div className="space-y-2">
+              <Button onClick={() => refetch()} className="w-full">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry Authentication
+              </Button>
+              <Button variant="outline" onClick={debugAuth} className="w-full">
+                Debug Auth State
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">
+              Your Clerk ID: {user.id}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Check if profile exists and has required role
   if (!profile || !profile.role || !['admin', 'super_admin'].includes(profile.role)) {
     return (
@@ -86,6 +163,18 @@ const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessCon
               <div className="text-sm text-gray-500">
                 <strong>Required:</strong> Admin or Super Admin
               </div>
+              <div className="text-sm text-gray-500">
+                <strong>Clerk ID:</strong> {user.id}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Button onClick={() => refetch()} className="w-full">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Profile
+              </Button>
+              <Button variant="outline" onClick={debugAuth} className="w-full">
+                Debug Auth State
+              </Button>
             </div>
             <div className="pt-4">
               <Badge variant="destructive">

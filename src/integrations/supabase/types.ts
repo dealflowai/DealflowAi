@@ -457,7 +457,15 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      debug_current_user: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          jwt_sub: string
+          auth_uid: string
+          profile_exists: boolean
+          profile_role: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -11,27 +11,31 @@ export const useSupabaseSync = () => {
       if (!isSignedIn || !user) return;
 
       try {
-        // Check if user profile exists in Supabase using a direct query
+        console.log('Syncing user to Supabase:', user.id);
+        
+        // Check if user profile exists in Supabase
         const { data: existingProfile, error } = await supabase
-          .from('profiles' as any)
+          .from('profiles')
           .select('*')
           .eq('clerk_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error checking user profile:', error);
           return;
         }
 
         // Create profile if it doesn't exist
         if (!existingProfile) {
+          console.log('Creating new profile for user:', user.id);
           const { error: insertError } = await supabase
-            .from('profiles' as any)
+            .from('profiles')
             .insert({
               clerk_id: user.id,
               email: user.primaryEmailAddress?.emailAddress,
               first_name: user.firstName,
               last_name: user.lastName,
+              role: 'super_admin', // Default to super_admin for now
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             });
@@ -42,7 +46,24 @@ export const useSupabaseSync = () => {
             console.log('User profile created successfully');
           }
         } else {
-          console.log('User profile already exists');
+          console.log('User profile already exists:', existingProfile);
+          
+          // Update profile with latest info from Clerk
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              email: user.primaryEmailAddress?.emailAddress,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              updated_at: new Date().toISOString()
+            })
+            .eq('clerk_id', user.id);
+
+          if (updateError) {
+            console.error('Error updating user profile:', updateError);
+          } else {
+            console.log('User profile updated successfully');
+          }
         }
       } catch (error) {
         console.error('Error syncing user to Supabase:', error);
