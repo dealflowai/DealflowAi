@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import { ChevronDown, CheckCircle, Star, ArrowRight, Play, Target, Zap, TrendingUp, Shield, Users, Phone, Mail, Menu, X, Sparkles, BarChart3, Globe, Rocket, Brain, DollarSign, Clock, Award, MessageSquare, MapPin } from 'lucide-react';
@@ -11,7 +10,9 @@ import { Link } from 'react-router-dom';
 
 // Animation variants
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: {
+    opacity: 0
+  },
   visible: {
     opacity: 1,
     transition: {
@@ -20,9 +21,11 @@ const containerVariants = {
     }
   }
 };
-
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: {
+    y: 20,
+    opacity: 0
+  },
   visible: {
     y: 0,
     opacity: 1,
@@ -38,20 +41,23 @@ const itemVariants = {
 const OptimizedParticleSystem: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
-  
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
-    const particles: Array<{x: number, y: number, size: number, speedX: number, speedY: number, opacity: number}> = [];
-    
+    const particles: Array<{
+      x: number;
+      y: number;
+      size: number;
+      speedX: number;
+      speedY: number;
+      opacity: number;
+    }> = [];
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
-    
     const initParticles = () => {
       for (let i = 0; i < 20; i++) {
         particles.push({
@@ -64,19 +70,15 @@ const OptimizedParticleSystem: React.FC = () => {
         });
       }
     };
-    
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
       particles.forEach(particle => {
         particle.x += particle.speedX;
         particle.y += particle.speedY;
-        
         if (particle.x > canvas.width) particle.x = 0;
         if (particle.x < 0) particle.x = canvas.width;
         if (particle.y > canvas.height) particle.y = 0;
         if (particle.y < 0) particle.y = canvas.height;
-        
         ctx.save();
         ctx.globalAlpha = particle.opacity;
         ctx.fillStyle = '#10b981';
@@ -85,16 +87,12 @@ const OptimizedParticleSystem: React.FC = () => {
         ctx.fill();
         ctx.restore();
       });
-      
       animationRef.current = requestAnimationFrame(animate);
     };
-    
     resizeCanvas();
     initParticles();
     animate();
-    
     window.addEventListener('resize', resizeCanvas);
-    
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       if (animationRef.current) {
@@ -102,39 +100,41 @@ const OptimizedParticleSystem: React.FC = () => {
       }
     };
   }, []);
-  
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none opacity-30" style={{ zIndex: 1 }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none opacity-30" style={{
+    zIndex: 1
+  }} />;
 };
 
 // Counter Animation Component
-const AnimatedCounter: React.FC<{ end: number; duration?: number; prefix?: string; suffix?: string }> = ({ 
-  end, 
-  duration = 2, 
-  prefix = "", 
-  suffix = "" 
+const AnimatedCounter: React.FC<{
+  end: number;
+  duration?: number;
+  prefix?: string;
+  suffix?: string;
+}> = ({
+  end,
+  duration = 2,
+  prefix = "",
+  suffix = ""
 }) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-  
+  const isInView = useInView(ref, {
+    once: true
+  });
   useEffect(() => {
     if (!isInView) return;
-    
     let startTime: number;
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / (duration * 1000), 1);
-      
       setCount(Math.floor(progress * end));
-      
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
     };
-    
     requestAnimationFrame(animate);
   }, [isInView, end, duration]);
-  
   return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
 };
 
@@ -143,21 +143,18 @@ const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
-  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
-      
+
       // Check which section is currently in view
       const sections = ['hero', 'features', 'marketplace', 'demo', 'pricing', 'testimonials', 'faq'];
       const scrollPosition = window.scrollY + 100;
-      
       for (const section of sections) {
         const element = document.getElementById(section);
         if (element) {
           const offsetTop = element.offsetTop;
           const offsetHeight = element.offsetHeight;
-          
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
             setActiveSection(section);
             break;
@@ -165,51 +162,56 @@ const Navigation: React.FC = () => {
         }
       }
     };
-    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
-  const navItems = [
-    { label: 'AI Features', href: '#features' },
-    { label: 'Marketplace', href: '#marketplace' },
-    { label: 'Demo', href: '#demo' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'Success Stories', href: '#testimonials' },
-    { label: 'FAQ', href: '#faq' }
-  ];
-  
-  return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-lg' 
-          : 'bg-white/10 backdrop-blur-md'
-      }`}
-    >
+  const navItems = [{
+    label: 'AI Features',
+    href: '#features'
+  }, {
+    label: 'Marketplace',
+    href: '#marketplace'
+  }, {
+    label: 'Demo',
+    href: '#demo'
+  }, {
+    label: 'Pricing',
+    href: '#pricing'
+  }, {
+    label: 'Success Stories',
+    href: '#testimonials'
+  }, {
+    label: 'FAQ',
+    href: '#faq'
+  }];
+  return <motion.header initial={{
+    y: -100,
+    opacity: 0
+  }} animate={{
+    y: 0,
+    opacity: 1
+  }} transition={{
+    duration: 0.6,
+    ease: "easeOut"
+  }} className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-lg' : 'bg-white/10 backdrop-blur-md'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center space-x-3"
-          >
-            <motion.div 
-              className="relative w-10 h-10"
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.2 }}
-            >
+          <motion.div whileHover={{
+          scale: 1.05
+        }} className="flex items-center space-x-3">
+            <motion.div className="relative w-10 h-10" whileHover={{
+            scale: 1.1
+          }} transition={{
+            duration: 0.2
+          }}>
               <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-xl shadow-lg flex items-center justify-center">
                 <TrendingUp className="text-white" size={20} strokeWidth={3} />
               </div>
             </motion.div>
             <div className="flex flex-col">
-              <motion.span 
-                className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent"
-                whileHover={{ scale: 1.05 }}
-              >
+              <motion.span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent" whileHover={{
+              scale: 1.05
+            }}>
                 dealflow.ai
               </motion.span>
               <span className="text-xs text-gray-500 font-medium">AI-Powered Wholesaling</span>
@@ -218,89 +220,69 @@ const Navigation: React.FC = () => {
           
           <nav className="hidden md:flex items-center space-x-6">
             {navItems.map((item, index) => {
-              const sectionId = item.href.substring(1);
-              const isActive = activeSection === sectionId;
-              
-              return (
-                <motion.a
-                  key={item.label}
-                  href={item.href}
-                  className={`relative font-medium text-base transition-colors duration-300 px-4 py-2 rounded-lg ${
-                    isActive 
-                      ? 'text-emerald-600 bg-emerald-50'
-                      : scrolled 
-                        ? 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50' 
-                        : 'text-gray-800 hover:text-emerald-600 hover:bg-white/20'
-                  }`}
-                  whileHover={{ y: -1 }}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
+            const sectionId = item.href.substring(1);
+            const isActive = activeSection === sectionId;
+            return <motion.a key={item.label} href={item.href} className={`relative font-medium text-base transition-colors duration-300 px-4 py-2 rounded-lg ${isActive ? 'text-emerald-600 bg-emerald-50' : scrolled ? 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50' : 'text-gray-800 hover:text-emerald-600 hover:bg-white/20'}`} whileHover={{
+              y: -1
+            }} initial={{
+              opacity: 0,
+              y: -10
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              delay: index * 0.1
+            }}>
                   {item.label}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeSection"
-                      className="absolute inset-0 bg-emerald-100 rounded-lg -z-10"
-                      initial={false}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.a>
-              );
-            })}
+                  {isActive && <motion.div layoutId="activeSection" className="absolute inset-0 bg-emerald-100 rounded-lg -z-10" initial={false} transition={{
+                type: "spring",
+                bounce: 0.2,
+                duration: 0.6
+              }} />}
+                </motion.a>;
+          })}
           </nav>
           
           <div className="hidden md:flex items-center space-x-3">
             <Link to="/auth">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className={`${scrolled ? "text-gray-700 hover:bg-gray-100" : "text-gray-800 hover:bg-white/20"} font-medium text-base`}
-              >
+              <Button variant="ghost" size="sm" className={`${scrolled ? "text-gray-700 hover:bg-gray-100" : "text-gray-800 hover:bg-white/20"} font-medium text-base`}>
                 Sign In
               </Button>
             </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }}>
               <Link to="/auth">
-                <Button 
-                  size="sm"
-                  className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg shadow-md font-medium text-base"
-                >
+                <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg shadow-md font-medium text-base">
                   Start Free Trial
                 </Button>
               </Link>
             </motion.div>
           </div>
           
-          <button
-            className={`md:hidden p-2 rounded-lg ${scrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-800 hover:bg-white/20'}`}
-            onClick={() => setIsOpen(!isOpen)}
-          >
+          <button className={`md:hidden p-2 rounded-lg ${scrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-800 hover:bg-white/20'}`} onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
       
       <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-lg border-t border-gray-200"
-          >
+        {isOpen && <motion.div initial={{
+        opacity: 0,
+        height: 0
+      }} animate={{
+        opacity: 1,
+        height: 'auto'
+      }} exit={{
+        opacity: 0,
+        height: 0
+      }} className="md:hidden bg-white/95 backdrop-blur-lg border-t border-gray-200">
             <div className="px-4 py-6 space-y-3">
-              {navItems.map(item => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="block text-gray-700 hover:text-emerald-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-base"
-                  onClick={() => setIsOpen(false)}
-                >
+              {navItems.map(item => <a key={item.label} href={item.href} className="block text-gray-700 hover:text-emerald-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-base" onClick={() => setIsOpen(false)}>
                   {item.label}
-                </a>
-              ))}
+                </a>)}
               <div className="pt-4 space-y-3 border-t border-gray-200">
                 <Link to="/auth">
                   <Button variant="ghost" className="w-full justify-start text-base">Sign In</Button>
@@ -312,34 +294,27 @@ const Navigation: React.FC = () => {
                 </Link>
               </div>
             </div>
-          </motion.div>
-        )}
+          </motion.div>}
       </AnimatePresence>
-    </motion.header>
-  );
+    </motion.header>;
 };
 
 // Hero Section with optimized animations
 const HeroSection: React.FC = () => {
-  const { scrollY } = useScroll();
+  const {
+    scrollY
+  } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 150]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  
-  return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+  return <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-blue-50" />
       <OptimizedParticleSystem />
       
-      <motion.div
-        style={{ y, opacity }}
-        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
-      >
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
+      <motion.div style={{
+      y,
+      opacity
+    }} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
           <motion.div variants={itemVariants}>
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium mb-6">
               <Sparkles className="mr-2" size={16} />
@@ -347,65 +322,46 @@ const HeroSection: React.FC = () => {
             </Badge>
           </motion.div>
           
-          <motion.h1
-            variants={itemVariants}
-            className="text-5xl md:text-7xl font-bold leading-tight"
-          >
-            <span className="bg-gradient-to-r from-gray-900 via-emerald-700 to-blue-700 bg-clip-text text-transparent">
-              Reverse Engineer
-            </span>
+          <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-bold leading-tight">
+            <span className="bg-gradient-to-r from-gray-900 via-emerald-700 to-blue-700 bg-clip-text text-transparent">Find Your Next
+          </span>
             <br />
-            <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">
-              Real Estate Deals
-            </span>
+            <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">Million Dollar Deal</span>
           </motion.h1>
           
-          <motion.p
-            variants={itemVariants}
-            className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed"
-          >
+          <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
             Find buyers first, then reverse-engineer deals to match their demand. Our AI automates the entire wholesaling process - from buyer discovery to contract assignment.
           </motion.p>
           
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
-          >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
+            <motion.div whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }}>
               <Link to="/auth">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-12 py-4 text-lg rounded-full shadow-2xl"
-                >
+                <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-12 py-4 text-lg rounded-full shadow-2xl">
                   Start Free 14-Day Trial
                   <ArrowRight className="ml-2" size={20} />
                 </Button>
               </Link>
             </motion.div>
             
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-8 py-4 text-lg rounded-full"
-                onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-              >
+            <motion.div whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }}>
+              <Button variant="outline" size="lg" className="border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-8 py-4 text-lg rounded-full" onClick={() => document.getElementById('demo')?.scrollIntoView({
+              behavior: 'smooth'
+            })}>
                 <Play className="mr-2" size={20} />
                 Watch Demo
               </Button>
             </motion.div>
           </motion.div>
           
-          <motion.div
-            variants={itemVariants}
-            className="flex items-center justify-center space-x-8 pt-12 text-sm text-gray-500"
-          >
+          <motion.div variants={itemVariants} className="flex items-center justify-center space-x-8 pt-12 text-sm text-gray-500">
             <div className="flex items-center">
               <CheckCircle className="text-emerald-500 mr-2" size={16} />
               No Credit Card Required
@@ -422,20 +378,18 @@ const HeroSection: React.FC = () => {
         </motion.div>
       </motion.div>
       
-      <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
+      <motion.div className="absolute bottom-8 left-1/2 transform -translate-x-1/2" animate={{
+      y: [0, 10, 0]
+    }} transition={{
+      duration: 2,
+      repeat: Infinity
+    }}>
         <ChevronDown size={32} className="text-emerald-500" />
       </motion.div>
-    </section>
-  );
+    </section>;
 };
-
 const Landing = () => {
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       <Navigation />
       <HeroSection />
       
@@ -488,45 +442,37 @@ const Landing = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Users,
-                title: 'AI Buyer Engine',
-                description: 'Scrapes and enriches buyer data from multiple sources. AI voice + SMS/email qualification to build your buyer network automatically.',
-                stats: 'Auto Qualification'
-              },
-              {
-                icon: Target,
-                title: 'Reverse Wholesaling System',
-                description: 'Based on buyer demand, our system finds matching seller leads. GPT analyzes deals with comps, calculations, and LOI generation.',
-                stats: 'Demand-Driven'
-              },
-              {
-                icon: Brain,
-                title: 'GPT Deal Analyzer',
-                description: 'Advanced AI analyzes every deal with market comps, repair estimates, and profit calculations. Auto-generates contracts and LOIs.',
-                stats: 'Smart Analysis'
-              },
-              {
-                icon: MessageSquare,
-                title: 'Assignment Matchmaker',
-                description: 'Matches deals to best buyers via AI filters. Sends deal packages with automated follow-up and conversion tracking.',
-                stats: 'Perfect Matching'
-              },
-              {
-                icon: BarChart3,
-                title: 'CRM Dashboard',
-                description: 'Complete visibility into sellers, buyers, deals, and status tracking. Manage your entire pipeline from one interface.',
-                stats: 'Full Control'
-              },
-              {
-                icon: Globe,
-                title: 'Marketplace Integration',
-                description: 'Post buyer needs and assign deals for fees. Access shared buyer pool and network effects with other wholesalers.',
-                stats: 'Network Effects'
-              }
-            ].map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/70 backdrop-blur-xl">
+            {[{
+            icon: Users,
+            title: 'AI Buyer Engine',
+            description: 'Scrapes and enriches buyer data from multiple sources. AI voice + SMS/email qualification to build your buyer network automatically.',
+            stats: 'Auto Qualification'
+          }, {
+            icon: Target,
+            title: 'Reverse Wholesaling System',
+            description: 'Based on buyer demand, our system finds matching seller leads. GPT analyzes deals with comps, calculations, and LOI generation.',
+            stats: 'Demand-Driven'
+          }, {
+            icon: Brain,
+            title: 'GPT Deal Analyzer',
+            description: 'Advanced AI analyzes every deal with market comps, repair estimates, and profit calculations. Auto-generates contracts and LOIs.',
+            stats: 'Smart Analysis'
+          }, {
+            icon: MessageSquare,
+            title: 'Assignment Matchmaker',
+            description: 'Matches deals to best buyers via AI filters. Sends deal packages with automated follow-up and conversion tracking.',
+            stats: 'Perfect Matching'
+          }, {
+            icon: BarChart3,
+            title: 'CRM Dashboard',
+            description: 'Complete visibility into sellers, buyers, deals, and status tracking. Manage your entire pipeline from one interface.',
+            stats: 'Full Control'
+          }, {
+            icon: Globe,
+            title: 'Marketplace Integration',
+            description: 'Post buyer needs and assign deals for fees. Access shared buyer pool and network effects with other wholesalers.',
+            stats: 'Network Effects'
+          }].map((feature, index) => <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/70 backdrop-blur-xl">
                 <CardHeader>
                   <div className="w-12 h-12 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-lg flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-white" />
@@ -539,62 +485,13 @@ const Landing = () => {
                 <CardContent>
                   <p className="text-gray-600">{feature.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
 
       {/* Market Analysis Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6">Why dealflow.ai Wins</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Compare us with the competition - we're the only platform built around buyer demand
-            </p>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-              <thead className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white">
-                <tr>
-                  <th className="px-6 py-4 text-left">Platform</th>
-                  <th className="px-6 py-4 text-left">Strength</th>
-                  <th className="px-6 py-4 text-left">Weakness</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-emerald-50 border-l-4 border-emerald-500">
-                  <td className="px-6 py-4 font-bold text-emerald-700">dealflow.ai</td>
-                  <td className="px-6 py-4">Buyer-first approach + Full automation</td>
-                  <td className="px-6 py-4 text-gray-500">New to market</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-6 py-4 font-medium">PropStream</td>
-                  <td className="px-6 py-4">Great data</td>
-                  <td className="px-6 py-4">No outreach or deal automation</td>
-                </tr>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <td className="px-6 py-4 font-medium">BatchLeads</td>
-                  <td className="px-6 py-4">Strong texting CRM</td>
-                  <td className="px-6 py-4">Limited deal analysis / buyer tools</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-6 py-4 font-medium">DealMachine</td>
-                  <td className="px-6 py-4">Easy lead sourcing</td>
-                  <td className="px-6 py-4">Weak backend intelligence</td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="px-6 py-4 font-medium">REsimpli</td>
-                  <td className="px-6 py-4">CRM focus</td>
-                  <td className="px-6 py-4">No buyer-side tools</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Target Customers Section */}
       <section id="marketplace" className="py-20 bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -611,41 +508,35 @@ const Landing = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                title: "Solo Wholesalers",
-                needs: "Automation, deals",
-                budget: "$99–$199/mo",
-                painPoints: "Can't scale cold outreach",
-                icon: "👤",
-                color: "from-blue-500 to-cyan-500"
-              },
-              {
-                title: "Virtual Investors",
-                needs: "Remote deal flow",
-                budget: "$199–$299/mo",
-                painPoints: "No buyers in new markets",
-                icon: "🌐",
-                color: "from-emerald-500 to-teal-500"
-              },
-              {
-                title: "High-Volume Wholesalers",
-                needs: "Buyers on-demand",
-                budget: "$299–$499/mo",
-                painPoints: "Manual, slow deal cycle",
-                icon: "📈",
-                color: "from-purple-500 to-pink-500"
-              },
-              {
-                title: "Land Investors",
-                needs: "Buyer matching",
-                budget: "$149–$299/mo",
-                painPoints: "No good data/contacts",
-                icon: "🏞️",
-                color: "from-orange-500 to-red-500"
-              }
-            ].map((segment, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/80 backdrop-blur-xl">
+            {[{
+            title: "Solo Wholesalers",
+            needs: "Automation, deals",
+            budget: "$99–$199/mo",
+            painPoints: "Can't scale cold outreach",
+            icon: "👤",
+            color: "from-blue-500 to-cyan-500"
+          }, {
+            title: "Virtual Investors",
+            needs: "Remote deal flow",
+            budget: "$199–$299/mo",
+            painPoints: "No buyers in new markets",
+            icon: "🌐",
+            color: "from-emerald-500 to-teal-500"
+          }, {
+            title: "High-Volume Wholesalers",
+            needs: "Buyers on-demand",
+            budget: "$299–$499/mo",
+            painPoints: "Manual, slow deal cycle",
+            icon: "📈",
+            color: "from-purple-500 to-pink-500"
+          }, {
+            title: "Land Investors",
+            needs: "Buyer matching",
+            budget: "$149–$299/mo",
+            painPoints: "No good data/contacts",
+            icon: "🏞️",
+            color: "from-orange-500 to-red-500"
+          }].map((segment, index) => <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/80 backdrop-blur-xl">
                 <CardContent className="p-6 text-center">
                   <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${segment.color} rounded-2xl flex items-center justify-center text-2xl`}>
                     {segment.icon}
@@ -657,8 +548,7 @@ const Landing = () => {
                     <div><strong>Pain:</strong> {segment.painPoints}</div>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -671,11 +561,15 @@ const Landing = () => {
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 50
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.8
+        }}>
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-8">
               <Play className="mr-2" size={16} />
               Live Demo
@@ -687,18 +581,18 @@ const Landing = () => {
               Watch how our AI finds buyers first, then reverse-engineers profitable deals to match their exact criteria.
             </p>
             
-            <motion.div
-              className="relative max-w-4xl mx-auto"
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.div className="relative max-w-4xl mx-auto" whileHover={{
+            scale: 1.02
+          }} transition={{
+            duration: 0.3
+          }}>
               <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl overflow-hidden">
                 <div className="w-full h-full flex items-center justify-center">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-24 h-24 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl"
-                  >
+                  <motion.button whileHover={{
+                  scale: 1.1
+                }} whileTap={{
+                  scale: 0.9
+                }} className="w-24 h-24 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
                     <Play size={32} className="text-white ml-1" />
                   </motion.button>
                 </div>
@@ -711,12 +605,15 @@ const Landing = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-20"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 50
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.8
+        }} className="text-center mb-20">
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
               <DollarSign className="mr-2" size={16} />
               SaaS Pricing
@@ -730,47 +627,44 @@ const Landing = () => {
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Starter",
-                price: 99,
-                description: "Perfect for solo wholesalers",
-                features: ["AI Buyer Discovery", "Basic Deal Analysis", "Email Support", "1,000 Contacts/month", "Basic CRM"],
-                popular: false,
-                gradient: "from-gray-500 to-gray-700"
-              },
-              {
-                name: "Professional",
-                price: 199,
-                description: "For active wholesalers",
-                features: ["Everything in Starter", "Advanced AI Analysis", "SMS + Voice Automation", "5,000 Contacts/month", "Priority Support", "Marketplace Access"],
-                popular: true,
-                gradient: "from-emerald-500 to-blue-600"
-              },
-              {
-                name: "Enterprise",
-                price: 299,
-                description: "For high-volume teams",
-                features: ["Everything in Pro", "Unlimited Contacts", "White-label Platform", "Custom AI Training", "Dedicated Support", "API Access"],
-                popular: false,
-                gradient: "from-purple-500 to-pink-600"
-              }
-            ].map((plan, index) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                whileHover={{ y: -10 }}
-                className="relative"
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            {[{
+            name: "Starter",
+            price: 99,
+            description: "Perfect for solo wholesalers",
+            features: ["AI Buyer Discovery", "Basic Deal Analysis", "Email Support", "1,000 Contacts/month", "Basic CRM"],
+            popular: false,
+            gradient: "from-gray-500 to-gray-700"
+          }, {
+            name: "Professional",
+            price: 199,
+            description: "For active wholesalers",
+            features: ["Everything in Starter", "Advanced AI Analysis", "SMS + Voice Automation", "5,000 Contacts/month", "Priority Support", "Marketplace Access"],
+            popular: true,
+            gradient: "from-emerald-500 to-blue-600"
+          }, {
+            name: "Enterprise",
+            price: 299,
+            description: "For high-volume teams",
+            features: ["Everything in Pro", "Unlimited Contacts", "White-label Platform", "Custom AI Training", "Dedicated Support", "API Access"],
+            popular: false,
+            gradient: "from-purple-500 to-pink-600"
+          }].map((plan, index) => <motion.div key={plan.name} initial={{
+            opacity: 0,
+            y: 50
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.6,
+            delay: index * 0.2
+          }} whileHover={{
+            y: -10
+          }} className="relative">
+                {plan.popular && <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2">
                       Most Popular
                     </Badge>
-                  </div>
-                )}
+                  </div>}
                 
                 <Card className={`h-full ${plan.popular ? 'ring-2 ring-emerald-500 shadow-2xl' : 'shadow-xl'} bg-white rounded-3xl overflow-hidden`}>
                   <CardHeader className={`bg-gradient-to-r ${plan.gradient} text-white p-8`}>
@@ -784,31 +678,26 @@ const Landing = () => {
                   
                   <CardContent className="p-8">
                     <ul className="space-y-4 mb-8">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start space-x-3">
+                      {plan.features.map((feature, featureIndex) => <li key={featureIndex} className="flex items-start space-x-3">
                           <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
                           <span className="text-gray-600">{feature}</span>
-                        </li>
-                      ))}
+                        </li>)}
                     </ul>
                     
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div whileHover={{
+                  scale: 1.05
+                }} whileTap={{
+                  scale: 0.95
+                }}>
                       <Link to="/auth">
-                        <Button
-                          className={`w-full py-4 text-lg rounded-full ${
-                            plan.popular
-                              ? 'bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white'
-                              : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                          }`}
-                        >
+                        <Button className={`w-full py-4 text-lg rounded-full ${plan.popular ? 'bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}>
                           Start Free Trial
                         </Button>
                       </Link>
                     </motion.div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ))}
+              </motion.div>)}
           </div>
         </div>
       </section>
@@ -816,12 +705,15 @@ const Landing = () => {
       {/* FAQ Section */}
       <section id="faq" className="py-32 bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-20"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 50
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.8
+        }} className="text-center mb-20">
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
               <MessageSquare className="mr-2" size={16} />
               FAQ
@@ -834,51 +726,41 @@ const Landing = () => {
             </p>
           </motion.div>
           
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
+          <motion.div initial={{
+          opacity: 0
+        }} whileInView={{
+          opacity: 1
+        }} transition={{
+          duration: 0.8,
+          delay: 0.2
+        }}>
             <Accordion type="single" collapsible className="space-y-4">
-              {[
-                {
-                  question: "What makes reverse wholesaling different?",
-                  answer: "Traditional wholesaling finds sellers first, then looks for buyers. We flip this - our AI finds qualified buyers first, learns their exact criteria, then reverse-engineers deals to match their demand. This dramatically increases your close rate."
-                },
-                {
-                  question: "How does the AI buyer discovery work?",
-                  answer: "Our AI scrapes buyer data from multiple sources (Propwire, LinkedIn, Google, etc.), enriches profiles with asset preferences and budgets, then uses voice + SMS/email to qualify their interest automatically."
-                },
-                {
-                  question: "Do I need my own buyers list to start?",
-                  answer: "No! The platform includes access to our shared buyer network. You can also import your existing list to reach both audiences simultaneously through our AI matching system."
-                },
-                {
-                  question: "What markets does this work in?",
-                  answer: "We cover all major U.S. markets. Our AI pulls data from public records, MLS, and other sources to analyze deals nationwide, from major metros to smaller markets."
-                },
-                {
-                  question: "How accurate is the deal analysis?",
-                  answer: "Our GPT-powered analyzer considers 500+ variables including market comps, repair estimates, holding costs, and buyer demand patterns. It generates accurate profit projections and auto-creates contracts."
-                },
-                {
-                  question: "Can this replace my existing tools?",
-                  answer: "Yes - dealflow.ai is designed as an all-in-one platform. It combines the best features of PropStream (data), BatchLeads (CRM), and DealMachine (lead sourcing) with advanced AI automation they don't offer."
-                }
-              ].map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="bg-white rounded-2xl px-6 border-0 shadow-md"
-                >
+              {[{
+              question: "What makes reverse wholesaling different?",
+              answer: "Traditional wholesaling finds sellers first, then looks for buyers. We flip this - our AI finds qualified buyers first, learns their exact criteria, then reverse-engineers deals to match their demand. This dramatically increases your close rate."
+            }, {
+              question: "How does the AI buyer discovery work?",
+              answer: "Our AI scrapes buyer data from multiple sources (Propwire, LinkedIn, Google, etc.), enriches profiles with asset preferences and budgets, then uses voice + SMS/email to qualify their interest automatically."
+            }, {
+              question: "Do I need my own buyers list to start?",
+              answer: "No! The platform includes access to our shared buyer network. You can also import your existing list to reach both audiences simultaneously through our AI matching system."
+            }, {
+              question: "What markets does this work in?",
+              answer: "We cover all major U.S. markets. Our AI pulls data from public records, MLS, and other sources to analyze deals nationwide, from major metros to smaller markets."
+            }, {
+              question: "How accurate is the deal analysis?",
+              answer: "Our GPT-powered analyzer considers 500+ variables including market comps, repair estimates, holding costs, and buyer demand patterns. It generates accurate profit projections and auto-creates contracts."
+            }, {
+              question: "Can this replace my existing tools?",
+              answer: "Yes - dealflow.ai is designed as an all-in-one platform. It combines the best features of PropStream (data), BatchLeads (CRM), and DealMachine (lead sourcing) with advanced AI automation they don't offer."
+            }].map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="bg-white rounded-2xl px-6 border-0 shadow-md">
                   <AccordionTrigger className="text-left font-semibold text-gray-900 hover:no-underline py-6">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-600 leading-relaxed pb-6">
                     {faq.answer}
                   </AccordionContent>
-                </AccordionItem>
-              ))}
+                </AccordionItem>)}
             </Accordion>
           </motion.div>
         </div>
@@ -892,11 +774,15 @@ const Landing = () => {
         </div>
         
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 50
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.8
+        }}>
             <h2 className="text-4xl md:text-6xl font-bold mb-8">
               Ready to Reverse Engineer Success?
             </h2>
@@ -905,15 +791,13 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.div whileHover={{
+              scale: 1.05
+            }} whileTap={{
+              scale: 0.95
+            }}>
                 <Link to="/auth">
-                  <Button
-                    size="lg"
-                    className="bg-white text-emerald-600 hover:bg-gray-100 px-12 py-4 text-lg rounded-full font-bold"
-                  >
+                  <Button size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 px-12 py-4 text-lg rounded-full font-bold">
                     Start Free Trial
                     <ArrowRight className="ml-2" size={20} />
                   </Button>
@@ -990,8 +874,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
