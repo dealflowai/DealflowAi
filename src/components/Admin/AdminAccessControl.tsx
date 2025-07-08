@@ -16,9 +16,7 @@ interface AdminAccessControlProps {
 
 const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessControlProps) => {
   const { user, isLoaded } = useUser();
-  console.log('Clerk ID from useUser():', user?.id);
-  console.log('Supabase profile:', profile);
-
+  
 
   // Check if user has admin role
   const { data: profile, isLoading: profileLoading, error, refetch } = useQuery({
