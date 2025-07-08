@@ -77,6 +77,7 @@ const AdminDataTables = ({ type }: AdminDataTablesProps) => {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Plan</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Created</TableHead>
             <TableHead>Status</TableHead>
@@ -94,7 +95,19 @@ const AdminDataTables = ({ type }: AdminDataTablesProps) => {
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
-                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                {user.selected_plan ? (
+                  <Badge variant="outline" className="text-blue-600 border-blue-200">
+                    {user.selected_plan === 'starter' ? 'Starter Pro' :
+                     user.selected_plan === 'growth' ? 'Growth Elite' :
+                     user.selected_plan === 'enterprise' ? 'Enterprise Max' :
+                     user.selected_plan}
+                  </Badge>
+                ) : (
+                  <span className="text-gray-500">No Plan</span>
+                )}
+              </TableCell>
+              <TableCell>
+                <Badge variant={user.role === 'admin' || user.role === 'super_admin' ? 'default' : 'secondary'}>
                   {user.role || 'user'}
                 </Badge>
               </TableCell>
