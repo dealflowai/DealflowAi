@@ -226,32 +226,52 @@ const BuyerStats = ({ buyers }: BuyerStatsProps) => {
         </Card>
       )}
 
-      {/* Main Stats Grid - Better sizing */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-md transition-all duration-200 group">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className={`p-2 rounded-lg ${stat.bgColor} group-hover:scale-110 transition-transform`}>
+      {/* Main Stats Grid - Mini state when no data */}
+      {totalBuyers === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.slice(0, 4).map((stat, index) => (
+            <Card key={index} className="opacity-60">
+              <CardContent className="p-3">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
                   </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-medium">{stat.title}</p>
+                    <p className="text-lg font-bold text-gray-400">0</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-600 font-medium">{stat.title}</p>
-                  <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+          {stats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-md transition-all duration-200 group">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className={`p-2 rounded-lg ${stat.bgColor} group-hover:scale-110 transition-transform`}>
+                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-medium">{stat.title}</p>
+                    <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">{stat.subtitle}</p>
+                    <p className={`text-xs font-medium mt-1 ${stat.trendColor}`}>
+                      {stat.trend}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500">{stat.subtitle}</p>
-                  <p className={`text-xs font-medium mt-1 ${stat.trendColor}`}>
-                    {stat.trend}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Detailed Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

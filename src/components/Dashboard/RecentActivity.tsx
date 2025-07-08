@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, User, FileText, Calculator } from 'lucide-react';
 
 interface Activity {
@@ -70,6 +70,8 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
   ];
 
   const displayActivities = activities.length > 0 ? activities : defaultActivities;
+  const [showAll, setShowAll] = useState(false);
+  const visibleActivities = showAll ? displayActivities : displayActivities.slice(0, 5);
 
   return (
     <div className="bg-white rounded-xl p-6 border border-gray-200">
@@ -79,7 +81,7 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
       </div>
 
       <div className="space-y-4">
-        {displayActivities.map((activity) => {
+        {visibleActivities.map((activity) => {
           const IconComponent = iconMap[activity.icon as keyof typeof iconMap] || User;
           return (
             <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
@@ -95,6 +97,17 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
           );
         })}
       </div>
+
+      {displayActivities.length > 5 && (
+        <div className="mt-4 text-center">
+          <button 
+            onClick={() => setShowAll(!showAll)}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+          >
+            {showAll ? 'Show less' : `See ${displayActivities.length - 5} more activities`}
+          </button>
+        </div>
+      )}
 
       {activities.length === 0 && (
         <div className="text-center py-4">

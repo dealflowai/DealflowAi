@@ -25,6 +25,7 @@ const Analytics = () => {
   const [selectedMetric, setSelectedMetric] = useState('deals');
   const [viewType, setViewType] = useState('overview');
   const [activeTab, setActiveTab] = useState('overview');
+  const [dataMode, setDataMode] = useState<'actual' | 'projected'>('actual');
 
   // Enhanced mock data with more comprehensive metrics
   const monthlyPerformance = [
@@ -117,6 +118,24 @@ const Analytics = () => {
             <p className="text-gray-600 mt-2">Comprehensive insights and predictive analytics for your real estate portfolio</p>
           </div>
           <div className="flex space-x-3">
+            <div className="flex border rounded-lg bg-background">
+              <Button
+                variant={dataMode === 'actual' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setDataMode('actual')}
+                className="rounded-r-none"
+              >
+                Actual
+              </Button>
+              <Button
+                variant={dataMode === 'projected' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setDataMode('projected')}
+                className="rounded-l-none"
+              >
+                Projected
+              </Button>
+            </div>
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-32">
                 <SelectValue />
