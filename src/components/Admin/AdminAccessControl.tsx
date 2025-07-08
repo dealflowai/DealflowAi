@@ -23,7 +23,7 @@ const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessCon
     queryFn: async () => {
       if (!user?.id) return null;
       
-      console.log('Checking profile for Clerk ID:', user.id);
+      console.log('Checking profile for Clerk ID:', user_2zKkwM0wTI2cEsJNCCoEIEqim9P);
       
       // First, try to get existing profile
       const { data: existingProfile, error: fetchError } = await supabase
