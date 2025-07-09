@@ -277,10 +277,10 @@ const PropwireDeals = () => {
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [-84.3880, 33.7490],
-      zoom: 11,
-      pitch: 0,
+      style: 'mapbox://styles/mapbox/satellite-streets-v12', // More colorful satellite view
+      center: [-98.5795, 39.8283], // Center of USA
+      zoom: 4,
+      pitch: 45,
       bearing: 0
     });
 
