@@ -60,8 +60,8 @@ interface PropwireDeal {
 const PropwireDeals = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
+  const [mapboxToken, setMapboxToken] = useState<string>('pk.eyJ1IjoiZGVhbGZsb3dhaSIsImEiOiJjbWN2cXN4aHcwMWdqMmtwdjR1NHdvb2o0In0.sEatKPAVaufEiTqApmCqgw');
+  const [showTokenInput, setShowTokenInput] = useState(false);
   
   const [filters, setFilters] = useState({
     searchLocation: '',
