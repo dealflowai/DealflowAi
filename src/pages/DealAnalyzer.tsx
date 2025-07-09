@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PropwireDeals from '@/components/DealAnalyzer/PropwireDeals';
 import { Calculator, Upload, Zap, CheckCircle, TrendingUp, Home, DollarSign, Users, FileText, MessageSquare, Phone, Mail, MapPin, Star, Target, Building, Search, Download, Eye, Filter, BarChart3, PieChart, Calendar, Clock, AlertTriangle, RefreshCw, Bot, Settings, Camera, Send, Mic, Video, Globe, TrendingDown, Activity, AlertCircle, Award, Briefcase, ChartLine, Database, FileCheck, HandHeart, Image, Link, Lock, Mail as MailIcon, MessageCircle, PlusCircle, ShieldCheck, Smartphone, Timer, User, Wallet, Wrench } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -690,9 +691,10 @@ const DealAnalyzer = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="analyzer">AI Analyzer</TabsTrigger>
             <TabsTrigger value="scraper">Smart Scraper</TabsTrigger>
+            <TabsTrigger value="propwire">Propwire Deals</TabsTrigger>
             <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
             <TabsTrigger value="matching">Buyer Matching</TabsTrigger>
             <TabsTrigger value="outreach">Outreach Hub</TabsTrigger>
@@ -1550,6 +1552,10 @@ const DealAnalyzer = () => {
                 </Card>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="propwire" className="space-y-6">
+            <PropwireDeals />
           </TabsContent>
 
           <TabsContent value="pipeline" className="space-y-6">
