@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
-import { ChevronDown, CheckCircle, Star, ArrowRight, Play, Target, Zap, TrendingUp, Shield, Users, Phone, Mail, Menu, X, Sparkles, BarChart3, Globe, Rocket, Brain, DollarSign, Clock, Award, MessageSquare, MapPin } from 'lucide-react';
+import { ChevronDown, CheckCircle, Star, ArrowRight, Play, Target, Zap, TrendingUp, Shield, Users, Phone, Mail, Menu, X, Sparkles, BarChart3, Globe, Rocket, Brain, DollarSign, Clock, Award, MessageSquare, MapPin, Building, Search, Database, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -166,10 +166,10 @@ const Navigation: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   const navItems = [{
-    label: 'AI Features',
+    label: 'Property Data',
     href: '#features'
   }, {
-    label: 'Marketplace',
+    label: 'Lead Discovery',
     href: '#marketplace'
   }, {
     label: 'Demo',
@@ -205,16 +205,16 @@ const Navigation: React.FC = () => {
             duration: 0.2
           }}>
               <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-xl shadow-lg flex items-center justify-center">
-                <TrendingUp className="text-white" size={20} strokeWidth={3} />
+                <Building className="text-white" size={20} strokeWidth={3} />
               </div>
             </motion.div>
             <div className="flex flex-col">
               <motion.span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent" whileHover={{
               scale: 1.05
             }}>
-                dealflow.ai
+                PropFlow
               </motion.span>
-              <span className="text-xs text-gray-500 font-medium">AI-Powered Wholesaling</span>
+              <span className="text-xs text-gray-500 font-medium">Real Estate Intelligence</span>
             </div>
           </motion.div>
           
@@ -318,19 +318,19 @@ const HeroSection: React.FC = () => {
           <motion.div variants={itemVariants}>
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium mb-6">
               <Sparkles className="mr-2" size={16} />
-              #1 AI-Powered Wholesaling Platform
+              #1 Real Estate Investment Platform
             </Badge>
           </motion.div>
           
           <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-bold leading-tight">
-            <span className="bg-gradient-to-r from-gray-900 via-emerald-700 to-blue-700 bg-clip-text text-transparent">Find Your Next
+            <span className="bg-gradient-to-r from-gray-900 via-emerald-700 to-blue-700 bg-clip-text text-transparent">Discover Hidden
           </span>
             <br />
-            <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">Million Dollar Deal</span>
+            <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">Investment Opportunities</span>
           </motion.h1>
           
           <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            Find buyers first, then reverse-engineer deals to match their demand. Our AI automates the entire wholesaling process - from buyer discovery to contract assignment.
+            Access nationwide off-market properties, pre-foreclosures, vacant land, cash sales, and auction opportunities. Advanced filtering by location, property type, equity, and ownership status - updated daily.
           </motion.p>
           
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
@@ -388,6 +388,7 @@ const HeroSection: React.FC = () => {
       </motion.div>
     </section>;
 };
+
 const Landing = () => {
   return <div className="min-h-screen bg-white">
       <Navigation />
@@ -399,27 +400,27 @@ const Landing = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="space-y-2">
               <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                <AnimatedCounter end={300000} suffix="+" />
-              </div>
-              <div className="text-gray-600">Active Wholesalers</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                $<AnimatedCounter end={15} />B+
-              </div>
-              <div className="text-gray-600">Market Size</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                <AnimatedCounter end={10000} suffix="+" />
-              </div>
-              <div className="text-gray-600">Deals by 2028</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
                 <AnimatedCounter end={50000} suffix="+" />
               </div>
-              <div className="text-gray-600">Target Users</div>
+              <div className="text-gray-600">Properties Daily</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                <AnimatedCounter end={3100} suffix="+" />
+              </div>
+              <div className="text-gray-600">US Counties</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                <AnimatedCounter end={95} suffix="%" />
+              </div>
+              <div className="text-gray-600">Lead Accuracy</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                <AnimatedCounter end={24} suffix="h" />
+              </div>
+              <div className="text-gray-600">Update Frequency</div>
             </div>
           </div>
         </div>
@@ -430,450 +431,174 @@ const Landing = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
-              <Brain className="mr-2" size={16} />
-              Core AI Features
+              <Database className="mr-2" size={16} />
+              Property Intelligence Platform
             </Badge>
             <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              End-to-End Automation
+              Investment Lead Discovery
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our AI handles every step of wholesaling - from buyer discovery to deal assignment
+              Comprehensive property data aggregation with advanced filtering for serious real estate investors
             </p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[{
-            icon: Users,
-            title: 'AI Buyer Engine',
-            description: 'Scrapes and enriches buyer data from multiple sources. AI voice + SMS/email qualification to build your buyer network automatically.',
-            stats: 'Auto Qualification'
+            icon: MapPin,
+            title: 'Nationwide Property Data',
+            description: 'Access off-market properties, pre-foreclosures, vacant land, estate sales, cash sales, and auction opportunities across all 50 states.',
+            stats: 'Real-time Updates'
           }, {
-            icon: Target,
-            title: 'Reverse Wholesaling System',
-            description: 'Based on buyer demand, our system finds matching seller leads. GPT analyzes deals with comps, calculations, and LOI generation.',
-            stats: 'Demand-Driven'
+            icon: Search,
+            title: 'Advanced Filtering System',
+            description: 'Filter by location (state, county, city), property type, ownership status, equity levels, price ranges, and property condition.',
+            stats: 'Precision Targeting'
           }, {
             icon: Brain,
-            title: 'GPT Deal Analyzer',
-            description: 'Advanced AI analyzes every deal with market comps, repair estimates, and profit calculations. Auto-generates contracts and LOIs.',
+            title: 'AI Lead Qualification',
+            description: 'Machine learning algorithms analyze property details, ownership info, sale history, and market comparables to score investment potential.',
             stats: 'Smart Analysis'
           }, {
-            icon: MessageSquare,
-            title: 'Assignment Matchmaker',
-            description: 'Matches deals to best buyers via AI filters. Sends deal packages with automated follow-up and conversion tracking.',
-            stats: 'Perfect Matching'
+            icon: Users,
+            title: 'Owner Contact Discovery',
+            description: 'Comprehensive owner information including contact details, mailing addresses, ownership history, and motivation indicators.',
+            stats: 'Direct Outreach'
           }, {
             icon: BarChart3,
-            title: 'CRM Dashboard',
-            description: 'Complete visibility into sellers, buyers, deals, and status tracking. Manage your entire pipeline from one interface.',
-            stats: 'Full Control'
+            title: 'Lead Management CRM',
+            description: 'Track leads with custom tags, saved searches, follow-up reminders, and detailed property analytics in one centralized dashboard.',
+            stats: 'Complete Pipeline'
           }, {
             icon: Globe,
-            title: 'Marketplace Integration',
-            description: 'Post buyer needs and assign deals for fees. Access shared buyer pool and network effects with other wholesalers.',
-            stats: 'Network Effects'
-          }].map((feature, index) => <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/70 backdrop-blur-xl">
+            title: 'Export & Integration',
+            description: 'Export leads to Google Sheets, CSV files, or integrate directly with popular CRM systems like Podio, REI Network, and HubSpot.',
+            stats: 'Seamless Workflow'
+          }].map((feature, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/70 backdrop-blur-xl">
                 <CardHeader>
                   <div className="w-12 h-12 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-lg flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  <Badge className="bg-emerald-100 text-emerald-700 w-fit">
+                  <Badge variant="outline" className="w-fit text-xs text-emerald-600 border-emerald-300">
                     {feature.stats}
                   </Badge>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                 </CardContent>
-              </Card>)}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Market Analysis Section */}
-      
-
-      {/* Target Customers Section */}
-      <section id="marketplace" className="py-20 bg-gradient-to-br from-emerald-50 via-white to-blue-50">
-        <div className="container mx-auto px-4">
+      {/* Property Types Section */}
+      <section id="marketplace" className="py-20 px-4 bg-white">
+        <div className="container mx-auto">
           <div className="text-center mb-16">
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
-              <Users className="mr-2" size={16} />
-              Target Customers
+              <Building className="mr-2" size={16} />
+              Investment Opportunities
             </Badge>
-            <h2 className="text-4xl font-bold mb-6">Built for Every Wholesaler</h2>
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Property Types We Track
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From solo operators to high-volume teams, we have the perfect solution for your needs
+              Access the most comprehensive database of investment-grade properties updated daily
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[{
-            title: "Solo Wholesalers",
-            needs: "Automation, deals",
-            budget: "$99–$199/mo",
-            painPoints: "Can't scale cold outreach",
-            icon: "👤",
-            color: "from-blue-500 to-cyan-500"
-          }, {
-            title: "Virtual Investors",
-            needs: "Remote deal flow",
-            budget: "$199–$299/mo",
-            painPoints: "No buyers in new markets",
-            icon: "🌐",
-            color: "from-emerald-500 to-teal-500"
-          }, {
-            title: "High-Volume Wholesalers",
-            needs: "Buyers on-demand",
-            budget: "$299–$499/mo",
-            painPoints: "Manual, slow deal cycle",
-            icon: "📈",
-            color: "from-purple-500 to-pink-500"
-          }, {
-            title: "Land Investors",
-            needs: "Buyer matching",
-            budget: "$149–$299/mo",
-            painPoints: "No good data/contacts",
-            icon: "🏞️",
-            color: "from-orange-500 to-red-500"
-          }].map((segment, index) => <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/80 backdrop-blur-xl">
-                <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${segment.color} rounded-2xl flex items-center justify-center text-2xl`}>
-                    {segment.icon}
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{segment.title}</h3>
-                  <div className="space-y-2 text-sm">
-                    <div><strong>Needs:</strong> {segment.needs}</div>
-                    <div><strong>Budget:</strong> {segment.budget}</div>
-                    <div><strong>Pain:</strong> {segment.painPoints}</div>
-                  </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: 'Pre-Foreclosures',
+                description: 'Properties in financial distress before auction',
+                count: '15,000+',
+                icon: Shield
+              },
+              {
+                title: 'Vacant Land',
+                description: 'Undeveloped lots and acreage nationwide',
+                count: '25,000+',
+                icon: Globe
+              },
+              {
+                title: 'Cash Sales',
+                description: 'Recently sold all-cash properties',
+                count: '8,000+',
+                icon: DollarSign
+              },
+              {
+                title: 'Estate Sales',
+                description: 'Properties from estate liquidations',
+                count: '5,000+',
+                icon: Award
+              },
+              {
+                title: 'Absentee Owners',
+                description: 'Out-of-state property owners',
+                count: '30,000+',
+                icon: MapPin
+              },
+              {
+                title: 'High Equity',
+                description: 'Properties with 50%+ equity',
+                count: '20,000+',
+                icon: TrendingUp
+              },
+              {
+                title: 'Auctions',
+                description: 'Upcoming courthouse auctions',
+                count: '3,000+',
+                icon: Clock
+              },
+              {
+                title: 'Off-Market',
+                description: 'Not listed on MLS',
+                count: '40,000+',
+                icon: Eye
+              }
+            ].map((type, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <type.icon className="w-8 h-8 mx-auto text-emerald-600 mb-2" />
+                  <CardTitle className="text-lg">{type.title}</CardTitle>
+                  <Badge className="bg-emerald-100 text-emerald-800">{type.count}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 text-sm">{type.description}</p>
                 </CardContent>
-              </Card>)}
+              </Card>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* Demo Section */}
-      <section id="demo" className="py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div initial={{
-          opacity: 0,
-          y: 50
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.8
-        }}>
-            <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-8">
-              <Play className="mr-2" size={16} />
-              Live Demo
-            </Badge>
-            <h2 className="text-4xl md:text-6xl font-bold mb-8 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              See Reverse Wholesaling in Action
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-12">
-              Watch how our AI finds buyers first, then reverse-engineers profitable deals to match their exact criteria.
-            </p>
-            
-            <motion.div className="relative max-w-4xl mx-auto" whileHover={{
-            scale: 1.02
-          }} transition={{
-            duration: 0.3
-          }}>
-              <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center">
-                  <motion.button whileHover={{
-                  scale: 1.1
-                }} whileTap={{
-                  scale: 0.9
-                }} className="w-24 h-24 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
-                    <Play size={32} className="text-white ml-1" />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{
-          opacity: 0,
-          y: 50
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.8
-        }} className="text-center mb-20">
-            <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
-              <DollarSign className="mr-2" size={16} />
-              SaaS Pricing
-            </Badge>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Multiple Revenue Streams
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              SaaS subscriptions, microtransactions, data packs, marketplace fees, and affiliate partnerships
-            </p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[{
-            name: "Starter",
-            price: 99,
-            description: "Perfect for solo wholesalers",
-            features: ["AI Buyer Discovery", "Basic Deal Analysis", "Email Support", "1,000 Contacts/month", "Basic CRM"],
-            popular: false,
-            gradient: "from-gray-500 to-gray-700"
-          }, {
-            name: "Professional",
-            price: 199,
-            description: "For active wholesalers",
-            features: ["Everything in Starter", "Advanced AI Analysis", "SMS + Voice Automation", "5,000 Contacts/month", "Priority Support", "Marketplace Access"],
-            popular: true,
-            gradient: "from-emerald-500 to-blue-600"
-          }, {
-            name: "Enterprise",
-            price: 299,
-            description: "For high-volume teams",
-            features: ["Everything in Pro", "Unlimited Contacts", "White-label Platform", "Custom AI Training", "Dedicated Support", "API Access"],
-            popular: false,
-            gradient: "from-purple-500 to-pink-600"
-          }].map((plan, index) => <motion.div key={plan.name} initial={{
-            opacity: 0,
-            y: 50
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.6,
-            delay: index * 0.2
-          }} whileHover={{
-            y: -10
-          }} className="relative">
-                {plan.popular && <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2">
-                      Most Popular
-                    </Badge>
-                  </div>}
-                
-                <Card className={`h-full ${plan.popular ? 'ring-2 ring-emerald-500 shadow-2xl' : 'shadow-xl'} bg-white rounded-3xl overflow-hidden`}>
-                  <CardHeader className={`bg-gradient-to-r ${plan.gradient} text-white p-8`}>
-                    <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
-                    <p className="text-white/80 mb-4">{plan.description}</p>
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-4xl font-bold">${plan.price}</span>
-                      <span className="text-white/80">/month</span>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="p-8">
-                    <ul className="space-y-4 mb-8">
-                      {plan.features.map((feature, featureIndex) => <li key={featureIndex} className="flex items-start space-x-3">
-                          <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                          <span className="text-gray-600">{feature}</span>
-                        </li>)}
-                    </ul>
-                    
-                    <motion.div whileHover={{
-                  scale: 1.05
-                }} whileTap={{
-                  scale: 0.95
-                }}>
-                      <Link to="/auth">
-                        <Button className={`w-full py-4 text-lg rounded-full ${plan.popular ? 'bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}>
-                          Start Free Trial
-                        </Button>
-                      </Link>
-                    </motion.div>
-                  </CardContent>
-                </Card>
-              </motion.div>)}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq" className="py-32 bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{
-          opacity: 0,
-          y: 50
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.8
-        }} className="text-center mb-20">
-            <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
-              <MessageSquare className="mr-2" size={16} />
-              FAQ
-            </Badge>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-xl text-gray-600">
-              Everything you need to know about reverse wholesaling with AI
-            </p>
-          </motion.div>
-          
-          <motion.div initial={{
-          opacity: 0
-        }} whileInView={{
-          opacity: 1
-        }} transition={{
-          duration: 0.8,
-          delay: 0.2
-        }}>
-            <Accordion type="single" collapsible className="space-y-4">
-              {[{
-              question: "What makes reverse wholesaling different?",
-              answer: "Traditional wholesaling finds sellers first, then looks for buyers. We flip this - our AI finds qualified buyers first, learns their exact criteria, then reverse-engineers deals to match their demand. This dramatically increases your close rate."
-            }, {
-              question: "How does the AI buyer discovery work?",
-              answer: "Our AI scrapes buyer data from multiple sources (Propwire, LinkedIn, Google, etc.), enriches profiles with asset preferences and budgets, then uses voice + SMS/email to qualify their interest automatically."
-            }, {
-              question: "Do I need my own buyers list to start?",
-              answer: "No! The platform includes access to our shared buyer network. You can also import your existing list to reach both audiences simultaneously through our AI matching system."
-            }, {
-              question: "What markets does this work in?",
-              answer: "We cover all major U.S. markets. Our AI pulls data from public records, MLS, and other sources to analyze deals nationwide, from major metros to smaller markets."
-            }, {
-              question: "How accurate is the deal analysis?",
-              answer: "Our GPT-powered analyzer considers 500+ variables including market comps, repair estimates, holding costs, and buyer demand patterns. It generates accurate profit projections and auto-creates contracts."
-            }, {
-              question: "Can this replace my existing tools?",
-              answer: "Yes - dealflow.ai is designed as an all-in-one platform. It combines the best features of PropStream (data), BatchLeads (CRM), and DealMachine (lead sourcing) with advanced AI automation they don't offer."
-            }].map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="bg-white rounded-2xl px-6 border-0 shadow-md">
-                  <AccordionTrigger className="text-left font-semibold text-gray-900 hover:no-underline py-6">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-600 leading-relaxed pb-6">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>)}
-            </Accordion>
-          </motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 bg-gradient-to-r from-emerald-600 via-emerald-700 to-blue-600 text-white relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-        </div>
-        
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div initial={{
-          opacity: 0,
-          y: 50
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.8
-        }}>
-            <h2 className="text-4xl md:text-6xl font-bold mb-8">
-              Ready to Reverse Engineer Success?
-            </h2>
-            <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90">
-              Join the future of wholesaling. Find buyers first, then let AI create the perfect deals for them.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <motion.div whileHover={{
-              scale: 1.05
-            }} whileTap={{
-              scale: 0.95
-            }}>
-                <Link to="/auth">
-                  <Button size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 px-12 py-4 text-lg rounded-full font-bold">
-                    Start Free Trial
-                    <ArrowRight className="ml-2" size={20} />
-                  </Button>
-                </Link>
-              </motion.div>
+      <section className="py-20 px-4 bg-gradient-to-r from-emerald-600 to-blue-600 text-white">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            Ready to Find Your Next Deal?
+          </h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+            Join thousands of real estate investors who are using PropFlow to discover hidden opportunities and build wealth through real estate.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link to="/auth">
+              <Button size="lg" variant="secondary" className="bg-white text-emerald-600 hover:bg-gray-100 px-8 py-4 text-lg">
+                Start Free Trial
+                <ArrowRight className="ml-2" size={20} />
+              </Button>
+            </Link>
+            <div className="flex items-center text-sm opacity-90">
+              <CheckCircle className="mr-2" size={16} />
+              14-day free trial • No credit card required
             </div>
-            
-            <div className="mt-12 flex items-center justify-center space-x-8 text-white/80">
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span>14-day free trial</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span>Cancel anytime</span>
-              </div>
-            </div>
-          </motion.div>
+          </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="text-white" size={16} strokeWidth={3} />
-                </div>
-                <h3 className="text-xl font-bold">dealflow.ai</h3>
-              </div>
-              <p className="text-gray-400 mb-4">
-                The first AI-powered reverse wholesaling platform. Find buyers first, then reverse-engineer profitable deals.
-              </p>
-              <p className="text-sm text-gray-500">
-                Mission: Empower real estate investors with AI automation and buyer-first deal sourcing.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>AI Buyer Engine</li>
-                <li>Deal Analyzer</li>
-                <li>Contract Generator</li>
-                <li>CRM Dashboard</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>About Us</li>
-                <li>Vision 2028</li>
-                <li>Careers</li>
-                <li>Contact</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Help Center</li>
-                <li>API Documentation</li>
-                <li>Community</li>
-                <li>System Status</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 dealflow.ai. All rights reserved. | Reverse engineer your success.</p>
-          </div>
-        </div>
-      </footer>
     </div>;
 };
+
 export default Landing;
