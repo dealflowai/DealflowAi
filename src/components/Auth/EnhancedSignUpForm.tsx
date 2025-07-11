@@ -165,7 +165,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         phone: data.phone?.trim()
       };
 
-      // Create user with Clerk - simplified approach
+      // Create user with Clerk - with proper email redirect
       const signUpAttempt = await signUp.create({
         emailAddress: sanitizedData.email,
         password: sanitizedData.password,
@@ -173,17 +173,39 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
       let result = signUpAttempt;
 
-      // If signup requires additional steps or verification
+      // Handle email verification requirement
       if (signUpAttempt.status === 'missing_requirements') {
         console.log('Missing requirements:', signUpAttempt.missingFields);
         
+        // Try to prepare email verification with proper redirect
         if (signUpAttempt.missingFields?.includes('email_address')) {
-          toast({
-            title: "Email Verification Required",
-            description: "Please check your email and click the verification link to continue.",
-          });
-          setIsLoading(false);
-          return;
+          try {
+            await signUp.prepareEmailAddressVerification({
+              strategy: 'email_code'
+            });
+            
+            toast({
+              title: "Check Your Email",
+              description: "We've sent you a verification code. Please check your email (including spam folder) and enter the code below.",
+            });
+            
+            // Show verification step instead of failing
+            setCurrentStep(1.5); // Add verification step
+            setUserData({ email: sanitizedData.email });
+            setIsLoading(false);
+            return;
+          } catch (emailError) {
+            console.error('Email verification preparation failed:', emailError);
+            
+            // If email verification fails, try to continue without it for development
+            toast({
+              title: "Email Verification Issue",
+              description: "There's an issue with email verification. Please contact support or try again later.",
+              variant: "destructive"
+            });
+            setIsLoading(false);
+            return;
+          }
         }
       }
 
@@ -858,10 +880,109 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     </Card>
   );
 
+  const renderEmailVerification = () => {
+    const [verificationCode, setVerificationCode] = useState('');
+
+    const handleVerificationSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!signUp) return;
+      
+      setIsLoading(true);
+      try {
+        const result = await signUp.attemptEmailAddressVerification({
+          code: verificationCode,
+        });
+
+        if (result.status === 'complete' && result.createdSessionId) {
+          await setActive({ session: result.createdSessionId });
+          
+          toast({
+            title: "Email Verified!",
+            description: "Your account has been created successfully.",
+          });
+          
+          // Continue with profile creation
+          setCurrentStep(2);
+        }
+      } catch (error: any) {
+        console.error('Verification error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Invalid code. Please check your email and try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    return (
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle>Verify Your Email</CardTitle>
+          <CardDescription>
+            We've sent a verification code to {userData.email}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleVerificationSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="code">Verification Code</Label>
+              <Input
+                type="text"
+                id="code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter 6-digit code"
+                className="mt-1 text-center text-lg tracking-widest"
+                maxLength={6}
+              />
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading || verificationCode.length < 6}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify Email'
+              )}
+            </Button>
+            
+            <div className="text-center text-sm text-muted-foreground">
+              Didn't receive the code? Check your spam folder or{' '}
+              <Button
+                type="button"
+                variant="link"
+                className="p-0 h-auto text-primary"
+                onClick={() => {
+                  signUp?.prepareEmailAddressVerification({ strategy: 'email_code' });
+                  toast({
+                    title: "Code Resent",
+                    description: "We've sent you a new verification code.",
+                  });
+                }}
+              >
+                resend code
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  };
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
         return renderStep1();
+      case 1.5:
+        return renderEmailVerification();
       case 2:
         if (userData.role === 'buyer') return renderBuyerOnboarding();
         if (userData.role === 'wholesaler') return renderWholesalerOnboarding();
