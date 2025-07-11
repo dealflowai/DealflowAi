@@ -35,7 +35,7 @@ export const useSupabaseSync = () => {
               email: user.primaryEmailAddress?.emailAddress,
               first_name: user.firstName,
               last_name: user.lastName,
-              role: 'super_admin', // Default to super_admin for now
+              role: 'user', // Default to regular user
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             });

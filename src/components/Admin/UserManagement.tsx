@@ -45,8 +45,9 @@ const UserManagement = () => {
   const form = useForm<UserFormData>();
 
   // Fetch users with pagination
-  const { data: usersData, isLoading } = useQuery({
+  const { data: usersData, isLoading, refetch } = useQuery({
     queryKey: ['admin-users', currentPage, searchTerm, roleFilter],
+    refetchInterval: 5000, // Refetch every 5 seconds
     queryFn: async () => {
       let query = supabase
         .from('profiles')
