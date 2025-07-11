@@ -98,24 +98,24 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
               Welcome back, {user?.firstName || 'User'}. Here's your dealflow overview.
             </p>
           </div>
-          <div className="flex space-x-3">
-            <Button variant="outline" data-tour="contracts">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button variant="outline" data-tour="contracts" className="text-xs sm:text-sm">
               Export Report
             </Button>
             <Button 
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
               data-tour="deal-analyzer"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               New Deal
             </Button>
           </div>
@@ -123,15 +123,15 @@ const Dashboard = () => {
 
         {/* Token Warning Banner */}
         {!tokenLoading && tokenBalance && tokenBalance.remainingTokens < 10 && (
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Gem className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-3 sm:p-4 border border-orange-200 dark:border-orange-800">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+              <div className="flex items-start sm:items-center space-x-3">
+                <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400 mt-1 sm:mt-0" />
                 <div>
-                  <h3 className="font-semibold text-orange-900 dark:text-orange-100">
+                  <h3 className="font-semibold text-orange-900 dark:text-orange-100 text-sm sm:text-base">
                     {tokenBalance.remainingTokens === 0 ? 'No Tokens Remaining' : 'Low Token Balance'}
                   </h3>
-                  <p className="text-sm text-orange-700 dark:text-orange-300">
+                  <p className="text-xs sm:text-sm text-orange-700 dark:text-orange-300">
                     {tokenBalance.remainingTokens === 0 
                       ? 'Recharge to continue using AI features' 
                       : `Only ${tokenBalance.remainingTokens} tokens left. AI features will be limited soon.`
@@ -141,9 +141,10 @@ const Dashboard = () => {
               </div>
               <Button 
                 onClick={() => setTokenModalOpen(true)}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
+                className="bg-orange-600 hover:bg-orange-700 text-white text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
               >
-                <Gem className="w-4 h-4 mr-2" />
+                <Gem className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 {tokenBalance.remainingTokens === 0 ? 'Recharge Now' : 'Buy Tokens'}
               </Button>
             </div>
@@ -152,17 +153,17 @@ const Dashboard = () => {
 
         {/* Fresh Insights Card */}
         {insights && insights.length > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+          <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
             <div className="flex items-center space-x-3 mb-3">
-              <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Fresh Insights</h3>
+              <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">Fresh Insights</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {insights.map((insight) => (
                 <div key={insight.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
-                  <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">{insight.title}</h4>
+                  <h4 className="font-medium text-xs sm:text-sm text-gray-900 dark:text-gray-100 mb-1">{insight.title}</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{insight.description}</p>
-                  <Button variant="outline" size="sm" className="text-xs">
+                  <Button variant="outline" size="sm" className="text-xs w-full sm:w-auto">
                     {insight.action}
                   </Button>
                 </div>
@@ -172,7 +173,7 @@ const Dashboard = () => {
         )}
 
         {/* Stats Grid - Improved density and consistency */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           <StatsCard
             title="Total Buyers"
             value={stats.totalBuyers}
@@ -207,22 +208,22 @@ const Dashboard = () => {
 
         {/* Zero State Check */}
         {stats.totalBuyers === 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 text-center">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Buyers Yet</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Import a lead or discover buyers to start building your pipeline.</p>
-              <Button className="bg-primary hover:bg-primary/90" data-tour="buyers-cta">
-                <Bot className="w-4 h-4 mr-2" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 text-center">
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Buyers Yet</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Import a lead or discover buyers to start building your pipeline.</p>
+              <Button className="bg-primary hover:bg-primary/90 text-xs sm:text-sm w-full sm:w-auto" data-tour="buyers-cta">
+                <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 Discover Buyers
               </Button>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 text-center">
-              <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Deals Analyzed</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Import a lead or scrape a listing to start analyzing deals.</p>
-              <Button variant="outline" data-tour="ai-discovery">
-                <Plus className="w-4 h-4 mr-2" />
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 text-center">
+              <Calculator className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Deals Analyzed</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Import a lead or scrape a listing to start analyzing deals.</p>
+              <Button variant="outline" data-tour="ai-discovery" className="text-xs sm:text-sm w-full sm:w-auto">
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 Analyze First Deal
               </Button>
             </div>
@@ -230,12 +231,12 @@ const Dashboard = () => {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
           {/* Pipeline Overview */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Buyer Pipeline</h3>
+          <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">Buyer Pipeline</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">New Buyers</span>
@@ -290,27 +291,27 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group">
-              <Calculator className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">Analyze New Deal</span>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+            <button className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group">
+              <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">Analyze New Deal</span>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group" data-tour="buyers-cta">
-              <Users className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-700 dark:group-hover:text-green-300">Add Buyer</span>
+            <button className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group" data-tour="buyers-cta">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-700 dark:group-hover:text-green-300">Add Buyer</span>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 group">
-              <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-300">Generate Contract</span>
+            <button className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 group">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-300">Generate Contract</span>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200 group">
-              <TrendingUp className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-300">View Analytics</span>
+            <button className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200 group">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-300">View Analytics</span>
             </button>
           </div>
         </div>
