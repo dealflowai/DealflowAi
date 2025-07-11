@@ -911,12 +911,67 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     
     setIsLoading(true);
     
-    // Clean and validate the verification code
-    const cleanCode = verificationCode.trim().replace(/\s/g, '');
-    console.log('Attempting verification with code:', cleanCode);
-    console.log('Original input:', verificationCode);
-    
     try {
+      // Check current signup status first
+      console.log('Current signup status:', signUp.status);
+      console.log('Missing fields:', signUp.missingFields);
+      console.log('Email verification status:', signUp.verifications?.emailAddress?.status);
+      
+      // If email is already verified, complete signup with missing fields
+      if (signUp.verifications?.emailAddress?.status === 'verified') {
+        console.log('Email already verified, completing signup with required fields...');
+        
+        const result = await signUp.update({
+          firstName: userData.firstName || 'User',
+          lastName: userData.lastName || 'User',
+        });
+        
+        console.log('Update result:', result);
+        
+        // After updating, attempt to complete
+        if (result.status === 'complete' && result.createdSessionId) {
+          await setActive({ session: result.createdSessionId });
+          
+          // Store profile data in Supabase after verification
+          const profileData = {
+            clerk_id: result.createdUserId!,
+            email: userData.email,
+            first_name: userData.firstName || 'User',
+            last_name: userData.lastName || 'User',
+            phone: userData.phone || null,
+            user_role: userData.role || 'user',
+            onboarding_step: 2,
+            role: 'user',
+            created_at: new Date().toISOString(),
+            has_completed_onboarding: false
+          };
+
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert(profileData, {
+              onConflict: 'clerk_id'
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
+          
+          toast({
+            title: "Account Created!",
+            description: "Your account has been created successfully.",
+          });
+          
+          // Update userData with Clerk ID and continue to onboarding
+          setUserData({ ...userData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+          return;
+        }
+      }
+      
+      // Otherwise, try verification with code
+      const cleanCode = verificationCode.trim().replace(/\s/g, '');
+      console.log('Attempting verification with code:', cleanCode);
+      
       const result = await signUp.attemptEmailAddressVerification({
         code: cleanCode,
       });
@@ -930,8 +985,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         const profileData = {
           clerk_id: result.createdUserId!,
           email: userData.email,
-          first_name: userData.firstName || '',
-          last_name: userData.lastName || '',
+          first_name: userData.firstName || 'User',
+          last_name: userData.lastName || 'User',
           phone: userData.phone || null,
           user_role: userData.role || 'user',
           onboarding_step: 2,
@@ -961,8 +1016,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       } else {
         console.log('Verification incomplete. Status:', result.status);
         toast({
-          title: "Verification Incomplete",
-          description: "Please try again or contact support.",
+          title: "Verification Failed",
+          description: "Invalid code. Please check your email and try again.",
           variant: "destructive"
         });
       }
