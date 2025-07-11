@@ -1,0 +1,1 @@
+UPDATE profiles SET role = 'super_admin' WHERE clerk_id = 'user_2zKkwM0wTI2cEsJNCCoEIEqim9P';
