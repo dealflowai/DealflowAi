@@ -95,6 +95,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>({});
+  const [verificationCode, setVerificationCode] = useState('');
   const { toast } = useToast();
 
   // Step 1: Basic signup form
@@ -904,41 +905,65 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     </Card>
   );
 
-  const renderEmailVerification = () => {
-    const [verificationCode, setVerificationCode] = useState('');
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signUp) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({
+        code: verificationCode,
+      });
 
-    const handleVerificationSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!signUp) return;
-      
-      setIsLoading(true);
-      try {
-        const result = await signUp.attemptEmailAddressVerification({
-          code: verificationCode,
-        });
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        
+        // Store profile data in Supabase after verification
+        const profileData = {
+          clerk_id: result.createdUserId!,
+          email: userData.email,
+          first_name: userData.firstName || '',
+          last_name: userData.lastName || '',
+          phone: userData.phone || null,
+          user_role: userData.role || 'user',
+          onboarding_step: 2,
+          role: 'user',
+          created_at: new Date().toISOString(),
+          has_completed_onboarding: false
+        };
 
-        if (result.status === 'complete' && result.createdSessionId) {
-          await setActive({ session: result.createdSessionId });
-          
-          toast({
-            title: "Email Verified!",
-            description: "Your account has been created successfully.",
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert(profileData, {
+            onConflict: 'clerk_id'
           });
-          
-          // Continue with profile creation
-          setCurrentStep(2);
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
         }
-      } catch (error: any) {
-        console.error('Verification error:', error);
+        
         toast({
-          title: "Verification Failed",
-          description: "Invalid code. Please check your email and try again.",
-          variant: "destructive"
+          title: "Email Verified!",
+          description: "Your account has been created successfully.",
         });
-      } finally {
-        setIsLoading(false);
+        
+        // Update userData with Clerk ID and continue to onboarding
+        setUserData({ ...userData, clerkId: result.createdUserId });
+        setCurrentStep(2);
       }
-    };
+    } catch (error: any) {
+      console.error('Verification error:', error);
+      toast({
+        title: "Verification Failed",
+        description: "Invalid code. Please check your email and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderEmailVerification = () => {
 
     return (
       <Card>
