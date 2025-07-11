@@ -628,13 +628,13 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[{
-            name: "Free Trial",
-            price: 0,
-            period: "7-14 days",
-            description: "Let them import a few buyers, test AI discovery, analyze 1 deal",
-            features: ["Import limited buyers", "Test AI discovery", "Analyze 1 deal", "Basic support"],
+            name: "Agency",
+            price: 499,
+            period: "/mo",
+            description: "3–5 users + full outreach campaigns, templates",
+            features: ["Everything in Pro", "3-5 user accounts", "Full outreach campaigns", "Custom templates", "Dedicated account manager"],
             popular: false,
-            gradient: "from-gray-500 to-gray-700"
+            gradient: "from-purple-500 to-pink-600"
           }, {
             name: "Starter",
             price: 79,
@@ -701,7 +701,22 @@ const Landing = () => {
                   </CardContent>
                 </Card>
               </motion.div>)}
-          </div>
+           </div>
+          
+          {/* Free Trial Note */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="mt-16 text-center"
+          >
+            <div className="inline-flex items-center px-6 py-3 bg-emerald-50 border border-emerald-200 rounded-full">
+              <CheckCircle className="w-5 h-5 text-emerald-600 mr-2" />
+              <span className="text-emerald-700 font-medium">
+                14-day free trial includes: Import limited buyers • Test AI discovery • Analyze 1 deal • Basic support
+              </span>
+            </div>
+          </motion.div>
         </div>
       </section>
 
