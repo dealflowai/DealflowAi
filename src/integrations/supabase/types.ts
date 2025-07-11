@@ -533,6 +533,66 @@ export type Database = {
         }
         Relationships: []
       }
+      token_purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          status: string
+          stripe_session_id: string | null
+          tokens_purchased: number
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          tokens_purchased: number
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          tokens_purchased?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          remaining_tokens: number | null
+          total_tokens: number
+          updated_at: string
+          used_tokens: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          remaining_tokens?: number | null
+          total_tokens?: number
+          updated_at?: string
+          used_tokens?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          remaining_tokens?: number | null
+          total_tokens?: number
+          updated_at?: string
+          used_tokens?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_usage: {
         Row: {
           ai_analyzer_runs: number | null
@@ -606,6 +666,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_tokens: {
+        Args: { p_user_id: string; p_tokens: number }
+        Returns: boolean
+      }
       debug_current_user: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -614,6 +678,10 @@ export type Database = {
           profile_exists: boolean
           profile_role: string
         }[]
+      }
+      deduct_tokens: {
+        Args: { p_user_id: string; p_tokens: number }
+        Returns: boolean
       }
       get_current_month_usage: {
         Args: { p_user_id: string }
@@ -630,6 +698,14 @@ export type Database = {
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_tokens: {
+        Args: { p_user_id: string }
+        Returns: {
+          total_tokens: number
+          used_tokens: number
+          remaining_tokens: number
+        }[]
       }
       increment_usage: {
         Args: { p_user_id: string; p_usage_type: string; p_increment?: number }

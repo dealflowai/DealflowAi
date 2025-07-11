@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Search } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TokenBalanceDisplay } from '@/components/ui/token-balance-display';
+import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 
 const Header = () => {
   const { user } = useUser();
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
 
   return (
     <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-64 right-0 z-30">
@@ -22,6 +25,8 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          <TokenBalanceDisplay onBuyTokens={() => setTokenModalOpen(true)} />
+          
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="w-5 h-5" />
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -44,6 +49,11 @@ const Header = () => {
           </div>
         </div>
       </div>
+      
+      <TokenPricingModal 
+        open={tokenModalOpen} 
+        onOpenChange={setTokenModalOpen} 
+      />
     </header>
   );
 };
