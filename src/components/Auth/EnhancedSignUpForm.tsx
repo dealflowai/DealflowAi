@@ -45,6 +45,9 @@ const basicSignUpSchema = z.object({
       const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
       return phoneRegex.test(val.replace(/[\s\-\(\)\.]/g, ''));
     }, 'Please enter a valid phone number'),
+  consent: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the terms and privacy policy'
+  })
 });
 
 // Step 2-4: Onboarding schemas based on role
@@ -280,7 +283,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           onboarding_step: 2,
           role: 'user',
           created_at: new Date().toISOString(),
-          has_completed_onboarding: false
+          has_completed_onboarding: false, // Keep false to allow onboarding steps
+          consent_given: true // Store consent from step 1
         };
 
         const { error: profileError } = await supabase
@@ -298,11 +302,11 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             variant: "destructive"
           });
           
-          // Continue with the flow anyway
+          // Continue to onboarding
           setUserData({ ...sanitizedData, clerkId: result.createdUserId });
           setCurrentStep(2);
         } else {
-          // Success - proceed to next step
+          // Success - proceed to onboarding steps
           toast({
             title: "Account Created!",
             description: "Welcome to dealflow.ai. Let's customize your experience.",
@@ -578,7 +582,21 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             )}
           </div>
 
-          <Button 
+          <div className="flex items-start space-x-2">
+            <Checkbox 
+              id="consent"
+              onCheckedChange={(checked) => basicForm.setValue('consent', !!checked)}
+            />
+            <Label htmlFor="consent" className="text-sm leading-relaxed">
+              I agree to the <span className="text-primary cursor-pointer hover:underline">Terms of Service</span> and{' '}
+              <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span> and consent to receive communication via email, phone, and SMS.
+            </Label>
+          </div>
+          {basicForm.formState.errors.consent && (
+            <p className="text-sm text-destructive">{basicForm.formState.errors.consent.message}</p>
+          )}
+
+          <Button
             type="submit" 
             className="w-full h-12 text-base font-semibold"
             disabled={isLoading}
@@ -1005,27 +1023,47 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     </Card>
   );
 
-  const renderConsentStep = () => (
+  const renderCompletionStep = () => (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle>You're All Set!</CardTitle>
-        <CardDescription>Just one final step to complete your registration</CardDescription>
+        <CardTitle className="flex items-center justify-center space-x-2">
+          <CheckCircle className="w-6 h-6 text-emerald-500" />
+          <span>Setup Complete!</span>
+        </CardTitle>
+        <CardDescription>Your account is ready. Let's get started!</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={consentForm.handleSubmit((data) => handleOnboardingSubmit({ consent_given: data.consent }))} className="space-y-6">
-          <div className="flex items-start space-x-2">
-            <Checkbox 
-              id="consent"
-              onCheckedChange={(checked) => consentForm.setValue('consent', !!checked)}
-            />
-            <Label htmlFor="consent" className="text-sm leading-relaxed">
-              I agree to the <span className="text-primary cursor-pointer hover:underline">Terms of Service</span> and{' '}
-              <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span> and consent to receive communication via email, phone, and SMS.
-            </Label>
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
+            <div className="text-center">
+              <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-2">
+                Welcome to dealflow.ai!
+              </h3>
+              <p className="text-emerald-700 dark:text-emerald-300">
+                Your profile has been set up successfully. You can always update your preferences in settings.
+              </p>
+            </div>
           </div>
-          {consentForm.formState.errors.consent && (
-            <p className="text-sm text-destructive">{consentForm.formState.errors.consent.message}</p>
-          )}
+
+          <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
+              <span>Account created</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
+              <span>Email verified</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
+              <span>Profile configured</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
+              <span>Ready to use</span>
+            </div>
+          </div>
 
           <div className="flex gap-4">
             <Button 
@@ -1038,18 +1076,39 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               Back
             </Button>
             <Button 
-              type="submit" 
-              className="flex-1"
+              onClick={async () => {
+                // Mark onboarding as complete
+                if (userData.clerkId) {
+                  await supabase
+                    .from('profiles')
+                    .update({ 
+                      has_completed_onboarding: true, 
+                      onboarding_completed: true,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('clerk_id', userData.clerkId);
+                }
+                
+                toast({
+                  title: "Welcome to dealflow.ai!",
+                  description: "Let's start finding your next deal!",
+                });
+                onSuccess?.();
+              }}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
               disabled={isLoading}
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                'Enter My Dashboard'
+                <>
+                  Enter Dashboard
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
               )}
             </Button>
           </div>
-        </form>
+        </div>
       </CardContent>
     </Card>
   );
@@ -1092,7 +1151,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             onboarding_step: 2,
             role: 'user',
             created_at: new Date().toISOString(),
-            has_completed_onboarding: false
+            has_completed_onboarding: false, // Keep false to allow onboarding steps
+            consent_given: true // Store consent from step 1
           };
 
           const { error: profileError } = await supabase
@@ -1110,9 +1170,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             description: "Your account has been created successfully.",
           });
           
-          // Update userData with Clerk ID and continue to onboarding
-          setUserData({ ...userData, clerkId: result.createdUserId });
-          setCurrentStep(2);
+          // Since consent is already given in step 1, go directly to dashboard
+          onSuccess?.();
           return;
         }
       }
@@ -1126,6 +1185,9 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       });
 
       console.log('Verification result:', result);
+      
+      // Clear the verification code immediately after attempt
+      setVerificationCode('');
       
       if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
@@ -1279,8 +1341,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         // Additional preferences step (optional)
         return renderPreferencesStep();
       case 4:
-        // Final consent step
-        return renderConsentStep();
+        // Final completion step
+        return renderCompletionStep();
       default:
         return renderStep1();
     }
