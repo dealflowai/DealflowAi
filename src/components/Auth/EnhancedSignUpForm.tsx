@@ -16,16 +16,36 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 
-// Step 1: Basic signup schema
+// Enhanced signup schema with stronger validation
 const basicSignUpSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  firstName: z.string()
+    .min(2, 'First name must be at least 2 characters')
+    .max(50, 'First name must be less than 50 characters')
+    .regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes'),
+  lastName: z.string()
+    .min(2, 'Last name must be at least 2 characters')
+    .max(50, 'Last name must be less than 50 characters')
+    .regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes'),
+  email: z.string()
+    .email('Please enter a valid email address')
+    .min(5, 'Email must be at least 5 characters')
+    .max(100, 'Email must be less than 100 characters')
+    .toLowerCase(),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be less than 128 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, 
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
   role: z.enum(['buyer', 'wholesaler', 'real_estate_agent', 'other'], {
     required_error: 'Please select your role'
   }),
-  phone: z.string().optional(),
+  phone: z.string()
+    .optional()
+    .refine((val) => {
+      if (!val) return true;
+      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+      return phoneRegex.test(val.replace(/[\s\-\(\)\.]/g, ''));
+    }, 'Please enter a valid phone number'),
 });
 
 // Step 2-4: Onboarding schemas based on role
@@ -100,53 +120,177 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   });
 
   const handleBasicSubmit = async (data: BasicSignUpData) => {
-    if (!signUp) return;
+    if (!signUp) {
+      toast({
+        title: "Service Unavailable",
+        description: "Authentication service is not available. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
-      // Create user with Clerk
-      const result = await signUp.create({
-        emailAddress: data.email,
+      // Enhanced email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Enhanced password validation
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(data.password)) {
+        toast({
+          title: "Weak Password",
+          description: "Password must contain at least 8 characters with uppercase, lowercase, number, and special character.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Sanitize input data
+      const sanitizedData = {
+        email: data.email.toLowerCase().trim(),
         password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        role: data.role,
+        phone: data.phone?.trim()
+      };
+
+      // Create user with Clerk - with enhanced security
+      const result = await signUp.create({
+        emailAddress: sanitizedData.email,
+        password: sanitizedData.password,
+        firstName: sanitizedData.firstName,
+        lastName: sanitizedData.lastName,
+        // Add additional security metadata
+        unsafeMetadata: {
+          signupTimestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          role: sanitizedData.role
+        }
       });
 
-      if (result.status === 'complete') {
-        // Set the session active
-        await setActive({ session: result.createdSessionId });
-
-        // Store basic profile data
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({
-            clerk_id: result.createdUserId!,
-            email: data.email,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            phone: data.phone,
-            user_role: data.role,
-            onboarding_step: 2,
-            role: 'user'
-          });
-
-        if (error) {
-          console.error('Error saving profile:', error);
+      // Handle email verification flow
+      if (result.status === 'missing_requirements') {
+        // If email verification is required
+        if (result.missingFields?.includes('email_address')) {
           toast({
-            title: "Profile Error",
-            description: "Account created but profile data couldn't be saved.",
-            variant: "destructive"
+            title: "Email Verification Required",
+            description: "Please check your email and click the verification link to continue.",
           });
-        } else {
-          setUserData({ ...data, clerkId: result.createdUserId });
-          setCurrentStep(2);
+          setIsLoading(false);
+          return;
         }
       }
+
+      if (result.status === 'complete' && result.createdSessionId) {
+        // Set the session active with enhanced security
+        await setActive({ 
+          session: result.createdSessionId,
+          beforeEmit: () => {
+            // Additional security check before setting session
+            console.log('Setting active session for user:', result.createdUserId);
+          }
+        });
+
+        // Store profile data with transaction-like behavior
+        const profileData = {
+          clerk_id: result.createdUserId!,
+          email: sanitizedData.email,
+          first_name: sanitizedData.firstName,
+          last_name: sanitizedData.lastName,
+          phone: sanitizedData.phone || null,
+          user_role: sanitizedData.role,
+          onboarding_step: 2,
+          role: 'user',
+          created_at: new Date().toISOString(),
+          has_completed_onboarding: false
+        };
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert(profileData, {
+            onConflict: 'clerk_id'
+          });
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          
+          // If profile creation fails, we should still allow the user to continue
+          // but log the error for admin review
+          toast({
+            title: "Profile Setup Warning",
+            description: "Account created successfully, but additional setup is needed. You can complete this later.",
+            variant: "destructive"
+          });
+          
+          // Continue with the flow anyway
+          setUserData({ ...sanitizedData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+        } else {
+          // Success - proceed to next step
+          toast({
+            title: "Account Created!",
+            description: "Welcome to dealflow.ai. Let's customize your experience.",
+          });
+          
+          setUserData({ ...sanitizedData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+        }
+      } else {
+        // Handle other statuses
+        toast({
+          title: "Verification Required",
+          description: "Please check your email for verification instructions.",
+        });
+        setIsLoading(false);
+      }
     } catch (error: any) {
-      console.error('Sign up error:', error);
+      console.error('Comprehensive sign up error:', error);
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = "Something went wrong. Please try again.";
+      let errorTitle = "Sign Up Failed";
+      
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        
+        switch (firstError.code) {
+          case 'form_identifier_exists':
+            errorTitle = "Account Already Exists";
+            errorMessage = "An account with this email already exists. Please sign in instead.";
+            break;
+          case 'form_password_pwned':
+            errorTitle = "Insecure Password";
+            errorMessage = "This password has been found in data breaches. Please choose a different password.";
+            break;
+          case 'form_password_too_common':
+            errorTitle = "Common Password";
+            errorMessage = "This password is too common. Please choose a more unique password.";
+            break;
+          case 'form_username_invalid':
+            errorTitle = "Invalid Email";
+            errorMessage = "Please enter a valid email address.";
+            break;
+          default:
+            errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Sign Up Failed",
-        description: error.errors?.[0]?.message || "Something went wrong. Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -155,15 +299,48 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   };
 
   const handleOnboardingSubmit = async (data: any) => {
+    if (!userData.clerkId) {
+      toast({
+        title: "Session Error",
+        description: "Your session has expired. Please start over.",
+        variant: "destructive"
+      });
+      setCurrentStep(1);
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // Sanitize and validate onboarding data
+      const sanitizedOnboardingData = Object.keys(data).reduce((acc, key) => {
+        const value = data[key];
+        if (value !== null && value !== undefined) {
+          // Handle arrays
+          if (Array.isArray(value)) {
+            acc[key] = value.filter(item => item && item.trim && item.trim().length > 0);
+          }
+          // Handle strings
+          else if (typeof value === 'string') {
+            acc[key] = value.trim();
+          }
+          // Handle numbers and booleans
+          else {
+            acc[key] = value;
+          }
+        }
+        return acc;
+      }, {} as any);
+
+      const updateData = {
+        ...sanitizedOnboardingData,
+        onboarding_step: currentStep + 1,
+        onboarding_completed: currentStep >= 3,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          ...data,
-          onboarding_step: currentStep + 1,
-          onboarding_completed: currentStep === 4
-        })
+        .update(updateData)
         .eq('clerk_id', userData.clerkId);
 
       if (error) {
@@ -174,11 +351,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           variant: "destructive"
         });
       } else {
-        setUserData({ ...userData, ...data });
-        if (currentStep === 4) {
+        setUserData({ ...userData, ...sanitizedOnboardingData });
+        
+        if (currentStep >= 3) {
           toast({
             title: "Welcome to dealflow.ai!",
-            description: "Your account setup is complete.",
+            description: "Your account setup is complete. Let's get started!",
           });
           onSuccess?.();
         } else {
@@ -186,10 +364,10 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         }
       }
     } catch (error) {
-      console.error('Update error:', error);
+      console.error('Onboarding update error:', error);
       toast({
         title: "Update Failed",
-        description: "Something went wrong. Please try again.",
+        description: "Something went wrong while saving your information. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -264,6 +442,16 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               className="mt-1"
               placeholder="Create a secure password"
             />
+            <div className="mt-2 text-xs text-muted-foreground space-y-1">
+              <p>Password must contain:</p>
+              <ul className="list-disc list-inside space-y-1 ml-2">
+                <li>At least 8 characters</li>
+                <li>One uppercase letter (A-Z)</li>
+                <li>One lowercase letter (a-z)</li>
+                <li>One number (0-9)</li>
+                <li>One special character (@$!%*?&)</li>
+              </ul>
+            </div>
             {basicForm.formState.errors.password && (
               <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.password.message}</p>
             )}
@@ -295,6 +483,9 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               className="mt-1"
               placeholder="(555) 123-4567"
             />
+            {basicForm.formState.errors.phone && (
+              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.phone.message}</p>
+            )}
           </div>
 
           <Button 

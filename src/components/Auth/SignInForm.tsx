@@ -9,9 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+// Enhanced signin schema with better validation
 const signInSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string()
+    .email('Please enter a valid email address')
+    .min(5, 'Email must be at least 5 characters')
+    .max(100, 'Email must be less than 100 characters')
+    .toLowerCase(),
+  password: z.string()
+    .min(1, 'Password is required')
+    .max(128, 'Password is too long'),
 });
 
 type SignInFormData = z.infer<typeof signInSchema>;
@@ -34,28 +41,105 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = async (data: SignInFormData) => {
-    if (!signIn) return;
+    if (!signIn) {
+      toast({
+        title: "Service Unavailable",
+        description: "Authentication service is not available. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
+      // Sanitize input data
+      const sanitizedData = {
+        email: data.email.toLowerCase().trim(),
+        password: data.password
+      };
+
+      // Enhanced email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(sanitizedData.email)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const result = await signIn.create({
-        identifier: data.email,
-        password: data.password,
+        identifier: sanitizedData.email,
+        password: sanitizedData.password,
       });
 
-      if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ 
+          session: result.createdSessionId,
+          beforeEmit: () => {
+            console.log('User signed in successfully');
+          }
+        });
+        
         toast({
           title: "Welcome back!",
           description: "You've been signed in successfully.",
         });
+        
         onSuccess?.();
+      } else if (result.status === 'needs_identifier') {
+        toast({
+          title: "Account Not Found",
+          description: "No account found with this email address. Please check your email or sign up.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Sign In Failed",
+          description: "Unable to complete sign in. Please try again.",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
-      console.error('Sign in error:', error);
+      console.error('Comprehensive sign in error:', error);
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = "Invalid email or password. Please try again.";
+      let errorTitle = "Sign In Failed";
+      
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        
+        switch (firstError.code) {
+          case 'form_identifier_not_found':
+            errorTitle = "Account Not Found";
+            errorMessage = "No account found with this email address. Please check your email or sign up.";
+            break;
+          case 'form_password_incorrect':
+            errorTitle = "Incorrect Password";
+            errorMessage = "The password you entered is incorrect. Please try again.";
+            break;
+          case 'too_many_requests':
+            errorTitle = "Too Many Attempts";
+            errorMessage = "Too many sign-in attempts. Please wait a few minutes before trying again.";
+            break;
+          case 'session_exists':
+            errorTitle = "Already Signed In";
+            errorMessage = "You are already signed in. Redirecting to dashboard.";
+            onSuccess?.();
+            return;
+          default:
+            errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Sign In Failed",
-        description: error.errors?.[0]?.message || "Invalid email or password. Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
