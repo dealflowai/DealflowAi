@@ -425,14 +425,15 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       } else {
         setUserData({ ...userData, ...sanitizedOnboardingData });
         
-        // Check if this is the final step (consent step)
-        if (sanitizedOnboardingData.consent_given || currentStep >= 3) {
+        // Check if this is the consent step and consent was given
+        if (currentStep === 3 && sanitizedOnboardingData.consent_given) {
           toast({
             title: "Welcome to dealflow.ai!",
             description: "Your account setup is complete. Let's get started!",
           });
           onSuccess?.();
         } else {
+          // Move to next step
           setCurrentStep(currentStep + 1);
         }
       }
