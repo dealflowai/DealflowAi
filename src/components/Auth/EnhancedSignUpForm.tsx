@@ -1028,6 +1028,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         setCurrentStep(2);
       } else {
         console.log('Verification incomplete. Status:', result.status);
+        setVerificationCode(''); // Clear the code so user can try again
         toast({
           title: "Verification Failed",
           description: "Invalid code. Please check your email and try again.",
@@ -1036,6 +1037,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       }
     } catch (error: any) {
       console.error('Verification error:', error);
+      setVerificationCode(''); // Clear the code so user can try again
       toast({
         title: "Verification Failed",
         description: "Invalid code. Please check your email and try again.",
@@ -1131,12 +1133,16 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       case 1.5:
         return renderEmailVerification();
       case 2:
+        // Role-specific onboarding step
         if (userData.role === 'buyer') return renderBuyerOnboarding();
         if (userData.role === 'wholesaler') return renderWholesalerOnboarding();
         if (userData.role === 'real_estate_agent') return renderAgentOnboarding();
+        // For 'other' role or fallback, go directly to consent
         return renderConsentStep();
       case 3:
         return renderConsentStep();
+      case 4:
+        return renderConsentStep(); // Final step is always consent
       default:
         return renderStep1();
     }
