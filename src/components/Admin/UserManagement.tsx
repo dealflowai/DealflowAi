@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
@@ -20,7 +21,10 @@ import {
   Trash2, 
   ChevronLeft, 
   ChevronRight,
-  MoreHorizontal
+  MoreHorizontal,
+  Shield,
+  ShieldCheck,
+  User
 } from 'lucide-react';
 
 interface UserFormData {
@@ -185,6 +189,20 @@ const UserManagement = () => {
     if (selectedUsers.length > 0) {
       bulkUpdateRoleMutation.mutate({ userIds: selectedUsers, newRole });
     }
+  };
+
+  const handleRoleChange = (userId: string, newRole: string, userName: string) => {
+    updateUserMutation.mutate({ 
+      id: userId, 
+      role: newRole,
+      email: '', // These won't be updated, just the role
+      first_name: '',
+      last_name: ''
+    });
+    toast({ 
+      title: 'Role Updated', 
+      description: `${userName}'s role has been changed to ${newRole}` 
+    });
   };
 
   const totalPages = Math.ceil((usersData?.total || 0) / pageSize);
@@ -395,12 +413,45 @@ const UserManagement = () => {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={
-                          user.role === 'super_admin' ? 'default' :
-                          user.role === 'admin' ? 'secondary' : 'outline'
-                        }>
-                          {user.role || 'user'}
-                        </Badge>
+                        <Select 
+                          value={user.role || 'user'} 
+                          onValueChange={(newRole) => handleRoleChange(
+                            user.id, 
+                            newRole, 
+                            user.first_name && user.last_name 
+                              ? `${user.first_name} ${user.last_name}`
+                              : user.email?.split('@')[0] || 'Unknown'
+                          )}
+                        >
+                          <SelectTrigger className="w-32">
+                            <div className="flex items-center gap-2">
+                              {user.role === 'super_admin' && <ShieldCheck className="h-4 w-4 text-purple-600" />}
+                              {user.role === 'admin' && <Shield className="h-4 w-4 text-blue-600" />}
+                              {user.role === 'user' && <User className="h-4 w-4 text-gray-600" />}
+                              <SelectValue />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-gray-600" />
+                                User
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="admin">
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-blue-600" />
+                                Admin
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="super_admin">
+                              <div className="flex items-center gap-2">
+                                <ShieldCheck className="h-4 w-4 text-purple-600" />
+                                Super Admin
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
@@ -415,14 +466,33 @@ const UserManagement = () => {
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(user)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => deleteUserMutation.mutate(user.id)}
-                            disabled={deleteUserMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {user.first_name && user.last_name 
+                                    ? `${user.first_name} ${user.last_name}`
+                                    : user.email}? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteUserMutation.mutate(user.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                  disabled={deleteUserMutation.isPending}
+                                >
+                                  {deleteUserMutation.isPending ? 'Deleting...' : 'Delete'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
