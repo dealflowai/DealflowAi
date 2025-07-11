@@ -52,50 +52,44 @@ const Settings = () => {
 
   const plans = [
     {
-      name: "Starter",
-      price: 99,
-      period: "/mo",
-      description: "Solo wholesaler or coach's student",
+      name: "Free Trial",
+      price: 0,
+      period: "",
+      description: "Perfect for testing our platform",
       features: [
-        "Import buyers and analyze deals",
-        "Basic AI discovery",
-        "Email support",
-        "1 user included",
-        "Basic CRM features"
+        "25 free tokens",
+        "All AI features included",
+        "No credit card required"
       ],
       popular: false,
-      gradient: "from-blue-500 to-blue-700",
-      planId: "starter"
+      gradient: "from-emerald-500 to-blue-600",
+      planId: "free"
     },
     {
       name: "Pro",
-      price: 149,
-      period: "/mo", 
-      description: "Mid-level wholesaler doing 2+ deals/month",
+      price: 49,
+      period: "",
+      description: "100 tokens + option to buy more",
       features: [
-        "Advanced AI buyer discovery",
-        "Unlimited deal analysis",
-        "Priority support",
-        "Advanced CRM features",
-        "API access",
-        "Deal automation"
+        "100 tokens included",
+        "Buy additional token packs",
+        "All premium features",
+        "Priority support"
       ],
       popular: true,
-      gradient: "from-emerald-500 to-blue-600",
+      gradient: "from-blue-500 to-purple-600",
       planId: "pro"
     },
     {
       name: "Agency",
-      price: 299,
-      period: "/mo",
-      description: "3–5 users + full outreach campaigns, templates",
+      price: 899,
+      period: "",
+      description: "Team package for small agencies",
       features: [
-        "Everything in Pro",
-        "3-5 user accounts",
-        "Full outreach campaigns",
-        "Custom templates",
-        "Dedicated account manager",
-        "White-label options"
+        "5 seats + 2,000 tokens",
+        "Team collaboration",
+        "Priority support",
+        "Custom branding"
       ],
       popular: false,
       gradient: "from-purple-500 to-pink-600",
