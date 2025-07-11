@@ -1,14 +1,12 @@
 
 import React from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, SignIn, SignUp } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Brain, Zap, Shield, Target, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { SignUpForm } from './SignUpForm';
-import { SignInForm } from './SignInForm';
 
 const AuthPage = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -86,19 +84,31 @@ const AuthPage = () => {
             </TabsList>
             
             <TabsContent value="signup">
-              <Card className="border-0 shadow-xl">
-                <CardContent className="p-6">
-                  <SignUpForm onSuccess={() => window.location.href = '/'} />
-                </CardContent>
-              </Card>
+              <div className="flex justify-center">
+                <SignUp 
+                  appearance={{
+                    elements: {
+                      rootBox: "w-full max-w-md",
+                      card: "border-0 shadow-xl bg-card",
+                    }
+                  }}
+                  redirectUrl="/"
+                />
+              </div>
             </TabsContent>
             
             <TabsContent value="signin">
-              <Card className="border-0 shadow-xl">
-                <CardContent className="p-6">
-                  <SignInForm onSuccess={() => window.location.href = '/'} />
-                </CardContent>
-              </Card>
+              <div className="flex justify-center">
+                <SignIn 
+                  appearance={{
+                    elements: {
+                      rootBox: "w-full max-w-md",
+                      card: "border-0 shadow-xl bg-card",
+                    }
+                  }}
+                  redirectUrl="/"
+                />
+              </div>
             </TabsContent>
           </Tabs>
 
