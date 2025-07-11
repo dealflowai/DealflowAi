@@ -740,7 +740,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[{
             name: "Starter",
-            price: 79,
+            price: 99,
             period: "/mo",
             description: "Solo wholesaler or coach's student",
             features: ["Import buyers and analyze deals", "Basic AI discovery", "Email support", "1 user included"],
@@ -748,7 +748,7 @@ const Landing = () => {
             gradient: "from-blue-500 to-blue-700"
           }, {
             name: "Pro",
-            price: 199,
+            price: 149,
             period: "/mo",
             description: "Mid-level wholesaler doing 2+ deals/month",
             features: ["Advanced AI buyer discovery", "Unlimited deal analysis", "Priority support", "Advanced CRM features", "API access"],
@@ -756,7 +756,7 @@ const Landing = () => {
             gradient: "from-emerald-500 to-blue-600"
           }, {
             name: "Agency",
-            price: 499,
+            price: 299,
             period: "/mo",
             description: "3–5 users + full outreach campaigns, templates",
             features: ["Everything in Pro", "3-5 user accounts", "Full outreach campaigns", "Custom templates", "Dedicated account manager"],

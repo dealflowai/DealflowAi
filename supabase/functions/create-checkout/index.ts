@@ -50,9 +50,9 @@ serve(async (req) => {
 
     // Define pricing for each plan
     const planPricing = {
-      starter: { amount: 7900, name: "Starter Plan" }, // $79
-      pro: { amount: 19900, name: "Pro Plan" },        // $199
-      agency: { amount: 49900, name: "Agency Plan" }   // $499
+      starter: { amount: 9900, name: "Starter Plan" }, // $99
+      pro: { amount: 14900, name: "Pro Plan" },        // $149
+      agency: { amount: 29900, name: "Agency Plan" }   // $299
     };
 
     const selectedPlan = planPricing[plan as keyof typeof planPricing];

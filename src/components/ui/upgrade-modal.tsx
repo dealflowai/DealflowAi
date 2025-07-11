@@ -107,7 +107,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   <Star className="h-5 w-5 text-yellow-500" />
                   <h3 className="text-xl font-semibold">Starter</h3>
                 </div>
-                <div className="text-3xl font-bold">$79<span className="text-sm font-normal">/mo</span></div>
+                <div className="text-3xl font-bold">$99<span className="text-sm font-normal">/mo</span></div>
                 <p className="text-sm text-muted-foreground">Perfect for getting started</p>
               </div>
               
@@ -143,7 +143,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   <Zap className="h-5 w-5 text-blue-500" />
                   <h3 className="text-xl font-semibold">Pro</h3>
                 </div>
-                <div className="text-3xl font-bold">$199<span className="text-sm font-normal">/mo</span></div>
+                <div className="text-3xl font-bold">$149<span className="text-sm font-normal">/mo</span></div>
                 <p className="text-sm text-muted-foreground">Advanced features & automation</p>
               </div>
               
@@ -175,7 +175,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   <Building2 className="h-5 w-5 text-purple-600" />
                   <h3 className="text-xl font-semibold">Agency</h3>
                 </div>
-                <div className="text-3xl font-bold">$499<span className="text-sm font-normal">/mo</span></div>
+                <div className="text-3xl font-bold">$299<span className="text-sm font-normal">/mo</span></div>
                 <p className="text-sm text-muted-foreground">Complete solution for teams</p>
               </div>
               

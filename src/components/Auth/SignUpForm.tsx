@@ -26,8 +26,8 @@ const plans = [
   {
     id: 'starter',
     name: "Starter",
-    price: 79,
-    originalPrice: 99,
+    price: 99,
+    originalPrice: 129,
     description: "Solo wholesaler or coach's student",
     features: [
       "Import buyers and analyze deals",
@@ -40,8 +40,8 @@ const plans = [
   {
     id: 'pro',
     name: "Pro", 
-    price: 199,
-    originalPrice: 249,
+    price: 149,
+    originalPrice: 199,
     description: "Mid-level wholesaler doing 2+ deals/month",
     features: [
       "Advanced AI buyer discovery",
@@ -55,8 +55,8 @@ const plans = [
   {
     id: 'agency',
     name: "Agency",
-    price: 499,
-    originalPrice: 599, 
+    price: 299,
+    originalPrice: 399,
     description: "3–5 users + full outreach campaigns, templates",
     features: [
       "Everything in Pro",
