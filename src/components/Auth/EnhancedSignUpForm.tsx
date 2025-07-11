@@ -910,11 +910,19 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     if (!signUp) return;
     
     setIsLoading(true);
+    
+    // Clean and validate the verification code
+    const cleanCode = verificationCode.trim().replace(/\s/g, '');
+    console.log('Attempting verification with code:', cleanCode);
+    console.log('Original input:', verificationCode);
+    
     try {
       const result = await signUp.attemptEmailAddressVerification({
-        code: verificationCode,
+        code: cleanCode,
       });
 
+      console.log('Verification result:', result);
+      
       if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
         
@@ -950,6 +958,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         // Update userData with Clerk ID and continue to onboarding
         setUserData({ ...userData, clerkId: result.createdUserId });
         setCurrentStep(2);
+      } else {
+        console.log('Verification incomplete. Status:', result.status);
+        toast({
+          title: "Verification Incomplete",
+          description: "Please try again or contact support.",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
       console.error('Verification error:', error);
