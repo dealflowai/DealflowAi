@@ -150,7 +150,7 @@ const Settings = () => {
   const plans = [
     {
       name: "Starter",
-      price: 79,
+      price: 99,
       period: "/mo",
       description: "Solo wholesaler or coach's student",
       features: [
@@ -166,7 +166,7 @@ const Settings = () => {
     },
     {
       name: "Pro",
-      price: 199,
+      price: 149,
       period: "/mo", 
       description: "Mid-level wholesaler doing 2+ deals/month",
       features: [
@@ -183,7 +183,7 @@ const Settings = () => {
     },
     {
       name: "Agency",
-      price: 499,
+      price: 299,
       period: "/mo",
       description: "3–5 users + full outreach campaigns, templates",
       features: [
