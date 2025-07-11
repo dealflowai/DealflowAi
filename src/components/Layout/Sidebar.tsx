@@ -19,6 +19,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const sidebarItems = [
   { icon: Home, label: 'Dashboard', path: '/' },
@@ -38,6 +39,7 @@ interface SidebarProps {
 const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
   const { user } = useUser();
+  const { subscriptionTier, subscribed } = useSubscription();
 
   // Check if user has admin role
   const { data: profile } = useQuery({
@@ -141,15 +143,31 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         })}
       </nav>
 
-      {/* Bottom Upgrade Card */}
+      {/* Bottom Plan Card */}
       {!collapsed && (
         <div className="absolute bottom-6 left-4 right-4">
           <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800">
-            <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">Upgrade to Pro</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">Unlock unlimited AI analysis and premium features</p>
-            <Link to="/settings" className="block w-full bg-gradient-to-r from-emerald-600 to-green-700 text-white text-xs py-2 px-3 rounded-md hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md text-center">
-              Upgrade Now
-            </Link>
+            {subscribed ? (
+              <>
+                <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">
+                  {subscriptionTier?.charAt(0).toUpperCase() + subscriptionTier?.slice(1) || 'Premium'} Plan
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                  You have access to all {subscriptionTier} features
+                </p>
+                <Link to="/settings" className="block w-full bg-gradient-to-r from-emerald-600 to-green-700 text-white text-xs py-2 px-3 rounded-md hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md text-center">
+                  Manage Plan
+                </Link>
+              </>
+            ) : (
+              <>
+                <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">Free Plan</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">Upgrade to unlock AI features and remove limits</p>
+                <Link to="/settings" className="block w-full bg-gradient-to-r from-emerald-600 to-green-700 text-white text-xs py-2 px-3 rounded-md hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md text-center">
+                  Upgrade Now
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
