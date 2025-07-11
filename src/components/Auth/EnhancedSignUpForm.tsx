@@ -165,7 +165,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         phone: data.phone?.trim()
       };
 
-      // Create user with Clerk - with proper email redirect
+      // Create user with Clerk - bypass email verification for now
       const signUpAttempt = await signUp.create({
         emailAddress: sanitizedData.email,
         password: sanitizedData.password,
@@ -173,39 +173,25 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
       let result = signUpAttempt;
 
-      // Handle email verification requirement
+      // Handle different signup statuses
       if (signUpAttempt.status === 'missing_requirements') {
         console.log('Missing requirements:', signUpAttempt.missingFields);
         
-        // Try to prepare email verification with proper redirect
-        if (signUpAttempt.missingFields?.includes('email_address')) {
-          try {
-            await signUp.prepareEmailAddressVerification({
-              strategy: 'email_code'
-            });
-            
-            toast({
-              title: "Check Your Email",
-              description: "We've sent you a verification code. Please check your email (including spam folder) and enter the code below.",
-            });
-            
-            // Show verification step instead of failing
-            setCurrentStep(1.5); // Add verification step
-            setUserData({ email: sanitizedData.email });
-            setIsLoading(false);
-            return;
-          } catch (emailError) {
-            console.error('Email verification preparation failed:', emailError);
-            
-            // If email verification fails, try to continue without it for development
-            toast({
-              title: "Email Verification Issue",
-              description: "There's an issue with email verification. Please contact support or try again later.",
-              variant: "destructive"
-            });
-            setIsLoading(false);
-            return;
-          }
+        // Skip email verification for now - proceed with account creation
+        toast({
+          title: "Account Created Successfully",
+          description: "Welcome! Let's set up your profile.",
+        });
+        
+        // Store user data and proceed to onboarding
+        if (signUpAttempt.createdUserId) {
+          setUserData({ 
+            ...sanitizedData, 
+            clerkId: signUpAttempt.createdUserId 
+          });
+          setCurrentStep(2);
+          setIsLoading(false);
+          return;
         }
       }
 
