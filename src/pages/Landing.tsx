@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
-import { ChevronDown, CheckCircle, Star, ArrowRight, Play, Target, Zap, TrendingUp, Shield, Users, Phone, Mail, Menu, X, Sparkles, BarChart3, Globe, Rocket, Brain, DollarSign, Clock, Award, MessageSquare, MapPin } from 'lucide-react';
+import { ChevronDown, CheckCircle, Star, ArrowRight, Play, Target, Zap, TrendingUp, Shield, Users, Phone, Mail, Menu, X, Sparkles, BarChart3, Globe, Rocket, Brain, DollarSign, Clock, Award, MessageSquare, MapPin, Gem, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 
@@ -726,107 +727,277 @@ const Landing = () => {
           duration: 0.8
         }} className="text-center mb-20">
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
-              <DollarSign className="mr-2" size={16} />
-              SaaS Pricing
+              <Gem className="mr-2" size={16} />
+              Token-Based Pricing
             </Badge>
             <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Multiple Revenue Streams
+              Pay Only For What You Use
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              SaaS subscriptions, microtransactions, data packs, marketplace fees, and affiliate partnerships
+              Start free, then buy tokens as needed. No monthly commitments, no wasted subscriptions.
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[{
-            name: "Starter",
-            price: 99,
-            period: "/mo",
-            description: "Solo wholesaler or coach's student",
-            features: ["Import buyers and analyze deals", "Basic AI discovery", "Email support", "1 user included"],
-            popular: false,
-            gradient: "from-blue-500 to-blue-700"
-          }, {
-            name: "Pro",
-            price: 149,
-            period: "/mo",
-            description: "Mid-level wholesaler doing 2+ deals/month",
-            features: ["Advanced AI buyer discovery", "Unlimited deal analysis", "Priority support", "Advanced CRM features", "API access"],
-            popular: true,
-            gradient: "from-emerald-500 to-blue-600"
-          }, {
-            name: "Agency",
-            price: 299,
-            period: "/mo",
-            description: "3–5 users + full outreach campaigns, templates",
-            features: ["Everything in Pro", "3-5 user accounts", "Full outreach campaigns", "Custom templates", "Dedicated account manager"],
-            popular: false,
-            gradient: "from-purple-500 to-pink-600"
-          }].map((plan, index) => <motion.div key={plan.name} initial={{
-            opacity: 0,
-            y: 50
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.6,
-            delay: index * 0.2
-          }} whileHover={{
-            y: -10
-          }} className="relative">
-                {plan.popular && <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2">
-                      Most Popular
-                    </Badge>
-                  </div>}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Free Trial Plan */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} 
+              whileInView={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.6, delay: 0.1 }}
+              whileHover={{ y: -10 }}
+              className="relative"
+            >
+              <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-gray-500 to-gray-700 text-white p-8">
+                  <CardTitle className="text-2xl font-bold mb-2">Free Trial</CardTitle>
+                  <p className="text-white/80 mb-4">Try our AI features risk-free</p>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-4xl font-bold">25</span>
+                    <span className="text-white/80">free tokens</span>
+                  </div>
+                </CardHeader>
                 
-                <Card className={`h-full ${plan.popular ? 'ring-2 ring-emerald-500 shadow-2xl' : 'shadow-xl'} bg-white rounded-3xl overflow-hidden`}>
-                  <CardHeader className={`bg-gradient-to-r ${plan.gradient} text-white p-8`}>
-                    <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
-                    <p className="text-white/80 mb-4">{plan.description}</p>
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-4xl font-bold">${plan.price}</span>
-                      <span className="text-white/80">{plan.period}</span>
-                    </div>
-                  </CardHeader>
+                <CardContent className="p-8">
+                  <ul className="space-y-4 mb-8">
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">25 free AI tokens</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Test all AI features</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">No credit card required</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Basic support</span>
+                    </li>
+                  </ul>
                   
-                  <CardContent className="p-8">
-                    <ul className="space-y-4 mb-8">
-                      {plan.features.map((feature, featureIndex) => <li key={featureIndex} className="flex items-start space-x-3">
-                          <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                          <span className="text-gray-600">{feature}</span>
-                        </li>)}
-                    </ul>
-                    
-                    <motion.div whileHover={{
-                  scale: 1.05
-                }} whileTap={{
-                  scale: 0.95
-                }}>
-                      <Link to="/auth">
-                        <Button className={`w-full py-4 text-lg rounded-full ${plan.popular ? 'bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}>
-                          Start Free Trial
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link to="/auth">
+                      <Button className="w-full py-4 text-lg rounded-full bg-gray-100 hover:bg-gray-200 text-gray-900">
+                        Start Free Trial
+                      </Button>
+                    </Link>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Pro Plan */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} 
+              whileInView={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.6, delay: 0.2 }}
+              whileHover={{ y: -10 }}
+              className="relative"
+            >
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2">
+                  Most Popular
+                </Badge>
+              </div>
+              
+              <Card className="h-full ring-2 ring-emerald-500 shadow-2xl bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white p-8">
+                  <CardTitle className="text-2xl font-bold mb-2">Pro Starter</CardTitle>
+                  <p className="text-white/80 mb-4">Perfect for getting started</p>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-4xl font-bold">100</span>
+                    <span className="text-white/80">tokens</span>
+                  </div>
+                  <div className="text-sm text-white/70 mt-2">$49 one-time purchase</div>
+                </CardHeader>
+                
+                <CardContent className="p-8">
+                  <ul className="space-y-4 mb-8">
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">100 AI tokens included</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Full AI buyer discovery</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Deal analysis & contracts</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Priority support</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">CRM access</span>
+                    </li>
+                  </ul>
+                  
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link to="/auth">
+                      <Button className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white">
+                        Get Pro Starter
+                      </Button>
+                    </Link>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Token Packs */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} 
+              whileInView={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.6, delay: 0.3 }}
+              whileHover={{ y: -10 }}
+              className="relative"
+            >
+              <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8">
+                  <CardTitle className="text-2xl font-bold mb-2">Token Packs</CardTitle>
+                  <p className="text-white/80 mb-4">Choose your token amount</p>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-4xl font-bold">Custom</span>
+                    <span className="text-white/80">amount</span>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-8">
+                  <ul className="space-y-4 mb-8">
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">500 tokens - $199</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">1000 tokens - $349</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">2000 tokens - $599</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Never expires</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Better value per token</span>
+                    </li>
+                  </ul>
+                  
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white">
+                          Choose Token Pack
+                          <ChevronDown className="ml-2" size={20} />
                         </Button>
-                      </Link>
-                    </motion.div>
-                  </CardContent>
-                </Card>
-              </motion.div>)}
-           </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full min-w-[250px] bg-white border-2 border-gray-200 shadow-xl rounded-xl z-50">
+                        <DropdownMenuItem className="p-4 hover:bg-gray-50 cursor-pointer">
+                          <Link to="/auth" className="flex items-center justify-between w-full">
+                            <span>500 Tokens</span>
+                            <span className="font-bold text-blue-600">$199</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="p-4 hover:bg-gray-50 cursor-pointer">
+                          <Link to="/auth" className="flex items-center justify-between w-full">
+                            <span>1000 Tokens</span>
+                            <span className="font-bold text-purple-600">$349</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="p-4 hover:bg-gray-50 cursor-pointer">
+                          <Link to="/auth" className="flex items-center justify-between w-full">
+                            <span>2000 Tokens</span>
+                            <span className="font-bold text-green-600">$599</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Agency/Custom Plan */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} 
+              whileInView={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.6, delay: 0.4 }}
+              whileHover={{ y: -10 }}
+              className="relative"
+            >
+              <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-8">
+                  <CardTitle className="text-2xl font-bold mb-2">Agency</CardTitle>
+                  <p className="text-white/80 mb-4">Custom solutions for teams</p>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-4xl font-bold">Custom</span>
+                    <span className="text-white/80">pricing</span>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-8">
+                  <ul className="space-y-4 mb-8">
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Unlimited tokens</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Multi-user accounts</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">White-label options</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Dedicated account manager</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Custom integrations</span>
+                    </li>
+                  </ul>
+                  
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                      onClick={() => {
+                        window.open('mailto:sales@dealflow.ai?subject=Agency Plan Inquiry&body=I\'m interested in learning more about the Agency plan for my team.', '_blank');
+                      }}
+                    >
+                      Contact Sales
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
           
-          {/* Free Trial Note */}
+          {/* Token Usage Guide */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
             whileInView={{ opacity: 1, y: 0 }} 
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-16 text-center"
           >
-            <div className="inline-flex items-center px-6 py-3 bg-emerald-50 border border-emerald-200 rounded-full">
-              <CheckCircle className="w-5 h-5 text-emerald-600 mr-2" />
+            <div className="inline-flex items-center px-6 py-3 bg-emerald-50 border border-emerald-200 rounded-full mb-8">
+              <Gem className="w-5 h-5 text-emerald-600 mr-2" />
               <span className="text-emerald-700 font-medium">
-                14-day free trial includes: Import limited buyers • Test AI discovery • Analyze 1 deal • Basic support
+                Token Guide: AI Discovery (5 tokens) • Deal Analysis (3 tokens) • Contract Generation (2 tokens)
               </span>
             </div>
+            
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Tokens never expire and work across all AI features. Start with 25 free tokens, then buy only what you need.
+            </p>
           </motion.div>
         </div>
       </section>
