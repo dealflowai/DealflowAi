@@ -494,61 +494,193 @@ const Landing = () => {
       
 
       {/* Target Customers Section */}
-      <section id="marketplace" className="py-20 bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+      {/* Marketplace Section */}
+      <section id="marketplace" className="py-32 bg-gradient-to-br from-emerald-50 via-white to-blue-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <motion.div initial={{
+            opacity: 0,
+            y: 50
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.8
+          }} className="text-center mb-20">
             <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white px-6 py-2 rounded-full mb-6">
-              <Users className="mr-2" size={16} />
-              Target Customers
+              <Globe className="mr-2" size={16} />
+              AI Marketplace
             </Badge>
-            <h2 className="text-4xl font-bold mb-6">Built for Every Wholesaler</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Connected Dealer Network
+            </h2>
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto">
+              Join thousands of wholesalers sharing deals, buyers, and opportunities. Our AI marketplace creates perfect matches across the entire network.
+            </p>
+          </motion.div>
+
+          {/* Marketplace Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+            {[{
+              icon: Globe,
+              title: "Shared Buyer Network",
+              description: "Access 50,000+ verified cash buyers across all markets. Our AI matches your deals to buyers nationwide automatically.",
+              benefit: "10x more buyers than working alone"
+            }, {
+              icon: Zap,
+              title: "Deal Broadcasting",
+              description: "Instantly share deals with the network. AI identifies the best wholesalers for each property based on their buyer lists.",
+              benefit: "Sell deals 5x faster"
+            }, {
+              icon: DollarSign,
+              title: "Assignment Fees",
+              description: "Earn fees by assigning deals to other wholesalers when you can't close them. Turn every lead into revenue.",
+              benefit: "Zero wasted opportunities"
+            }, {
+              icon: Target,
+              title: "Buyer Posting",
+              description: "Post your buyers' criteria to receive matching deals from the network. Let other wholesalers feed you perfect opportunities.",
+              benefit: "Passive deal flow"
+            }, {
+              icon: BarChart3,
+              title: "Network Analytics",
+              description: "See which markets are hot, what buyers are paying, and trend data across the entire network.",
+              benefit: "Market intelligence edge"
+            }, {
+              icon: Shield,
+              title: "Verified Network",
+              description: "All participants are verified wholesalers and buyers. No tire-kickers or fake leads in our marketplace.",
+              benefit: "Quality guaranteed"
+            }].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+              >
+                <Card className="h-full border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-xl">
+                  <CardHeader className="pb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
+                      <feature.icon className="w-7 h-7 text-white" />
+                    </div>
+                    <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4 leading-relaxed">{feature.description}</p>
+                    <div className="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      {feature.benefit}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Network Stats */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-gradient-to-r from-emerald-600 to-blue-600 rounded-3xl p-12 text-white text-center mb-20"
+          >
+            <h3 className="text-3xl font-bold mb-8">Live Network Activity</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div>
+                <div className="text-4xl font-bold mb-2">
+                  <AnimatedCounter end={847} />
+                </div>
+                <div className="text-white/80">Deals Shared Today</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold mb-2">
+                  $<AnimatedCounter end={2.3} />M
+                </div>
+                <div className="text-white/80">Assignment Fees This Month</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold mb-2">
+                  <AnimatedCounter end={127} />
+                </div>
+                <div className="text-white/80">Markets Connected</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold mb-2">
+                  <AnimatedCounter end={94} suffix="%" />
+                </div>
+                <div className="text-white/80">Network Match Rate</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Target Customer Segments */}
+          <motion.div initial={{
+            opacity: 0,
+            y: 30
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.8
+          }} className="text-center mb-16">
+            <h3 className="text-3xl font-bold mb-6">Built for Every Wholesaler</h3>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
               From solo operators to high-volume teams, we have the perfect solution for your needs
             </p>
-          </div>
+          </motion.div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[{
-            title: "Solo Wholesalers",
-            needs: "Automation, deals",
-            budget: "$99–$199/mo",
-            painPoints: "Can't scale cold outreach",
-            icon: "👤",
-            color: "from-blue-500 to-cyan-500"
-          }, {
-            title: "Virtual Investors",
-            needs: "Remote deal flow",
-            budget: "$199–$299/mo",
-            painPoints: "No buyers in new markets",
-            icon: "🌐",
-            color: "from-emerald-500 to-teal-500"
-          }, {
-            title: "High-Volume Wholesalers",
-            needs: "Buyers on-demand",
-            budget: "$299–$499/mo",
-            painPoints: "Manual, slow deal cycle",
-            icon: "📈",
-            color: "from-purple-500 to-pink-500"
-          }, {
-            title: "Land Investors",
-            needs: "Buyer matching",
-            budget: "$149–$299/mo",
-            painPoints: "No good data/contacts",
-            icon: "🏞️",
-            color: "from-orange-500 to-red-500"
-          }].map((segment, index) => <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/80 backdrop-blur-xl">
-                <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${segment.color} rounded-2xl flex items-center justify-center text-2xl`}>
-                    {segment.icon}
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{segment.title}</h3>
-                  <div className="space-y-2 text-sm">
-                    <div><strong>Needs:</strong> {segment.needs}</div>
-                    <div><strong>Budget:</strong> {segment.budget}</div>
-                    <div><strong>Pain:</strong> {segment.painPoints}</div>
-                  </div>
-                </CardContent>
-              </Card>)}
+              title: "Solo Wholesalers",
+              needs: "Automation, deals",
+              budget: "$99–$199/mo",
+              painPoints: "Can't scale cold outreach",
+              icon: "👤",
+              color: "from-blue-500 to-cyan-500"
+            }, {
+              title: "Virtual Investors",
+              needs: "Remote deal flow",
+              budget: "$199–$299/mo",
+              painPoints: "No buyers in new markets",
+              icon: "🌐",
+              color: "from-emerald-500 to-teal-500"
+            }, {
+              title: "High-Volume Wholesalers",
+              needs: "Buyers on-demand",
+              budget: "$299–$499/mo",
+              painPoints: "Manual, slow deal cycle",
+              icon: "📈",
+              color: "from-purple-500 to-pink-500"
+            }, {
+              title: "Land Investors",
+              needs: "Buyer matching",
+              budget: "$149–$299/mo",
+              painPoints: "No good data/contacts",
+              icon: "🏞️",
+              color: "from-orange-500 to-red-500"
+            }].map((segment, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Card className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-xl">
+                  <CardContent className="p-6 text-center">
+                    <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${segment.color} rounded-2xl flex items-center justify-center text-2xl`}>
+                      {segment.icon}
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">{segment.title}</h3>
+                    <div className="space-y-2 text-sm">
+                      <div><strong>Needs:</strong> {segment.needs}</div>
+                      <div><strong>Budget:</strong> {segment.budget}</div>
+                      <div><strong>Pain:</strong> {segment.painPoints}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
