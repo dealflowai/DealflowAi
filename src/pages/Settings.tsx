@@ -310,6 +310,63 @@ const Settings = () => {
               </CardContent>
             </Card>
 
+            {/* Role and Preferences Card */}
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Target className="w-5 h-5" />
+                  <span>Role & Preferences</span>
+                </CardTitle>
+                <CardDescription>Update your role and business preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="role">Your Role</Label>
+                  <select className="w-full mt-1 p-2 border rounded-md bg-background">
+                    <option value="buyer">Buyer/Investor</option>
+                    <option value="wholesaler">Wholesaler</option>
+                    <option value="real_estate_agent">Real Estate Agent</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="markets">Primary Markets</Label>
+                  <Textarea 
+                    id="markets" 
+                    className="mt-1" 
+                    rows={2}
+                    placeholder="e.g., Austin, Dallas, Houston..."
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="propertyTypes">Property Types of Interest</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {['Single Family', 'Multi Family', 'Vacant Land', 'Commercial'].map((type) => (
+                      <label key={type} className="flex items-center space-x-2">
+                        <input type="checkbox" className="rounded" />
+                        <span className="text-sm">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="budgetMin">Min Budget</Label>
+                    <Input id="budgetMin" type="number" placeholder="$50,000" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="budgetMax">Max Budget</Label>
+                    <Input id="budgetMax" type="number" placeholder="$500,000" className="mt-1" />
+                  </div>
+                </div>
+
+                <Button className="bg-primary hover:bg-primary/90">Update Preferences</Button>
+              </CardContent>
+            </Card>
+
             <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">

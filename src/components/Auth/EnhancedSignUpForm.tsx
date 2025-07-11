@@ -425,8 +425,18 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       } else {
         setUserData({ ...userData, ...sanitizedOnboardingData });
         
-        // Check if this is the consent step and consent was given
-        if (currentStep === 3 && sanitizedOnboardingData.consent_given) {
+        // Check if this is the final consent step (step 4) and consent was given
+        if (currentStep === 4 && sanitizedOnboardingData.consent_given) {
+          // Mark onboarding as complete
+          await supabase
+            .from('profiles')
+            .update({ 
+              has_completed_onboarding: true, 
+              onboarding_completed: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('clerk_id', userData.clerkId);
+          
           toast({
             title: "Welcome to dealflow.ai!",
             description: "Your account setup is complete. Let's get started!",
@@ -688,6 +698,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               Back
             </Button>
             <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCurrentStep(4)}
+              className="flex-1"
+            >
+              Skip For Now
+            </Button>
+            <Button 
               type="submit" 
               className="flex-1"
               disabled={isLoading}
@@ -772,6 +790,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               Back
             </Button>
             <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCurrentStep(4)}
+              className="flex-1"
+            >
+              Skip For Now
+            </Button>
+            <Button 
               type="submit" 
               className="flex-1"
               disabled={isLoading}
@@ -848,6 +874,116 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCurrentStep(4)}
+              className="flex-1"
+            >
+              Skip For Now
+            </Button>
+            <Button 
+              type="submit" 
+              className="flex-1"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+
+  const renderGenericOnboarding = () => (
+    <Card>
+      <CardHeader className="text-center">
+        <CardTitle>Tell us about yourself</CardTitle>
+        <CardDescription>Help us personalize your experience</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={agentForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
+          <div>
+            <Label>Company Name (Optional)</Label>
+            <Input
+              {...agentForm.register('brokerageName')}
+              className="mt-2"
+              placeholder="Your company or organization"
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCurrentStep(1)}
+              className="flex-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Button 
+              type="submit" 
+              className="flex-1"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+
+  const renderPreferencesStep = () => (
+    <Card>
+      <CardHeader className="text-center">
+        <CardTitle>Additional Preferences</CardTitle>
+        <CardDescription>This step is optional - you can skip it and complete it later in settings</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={agentForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
+          <div>
+            <Label>Preferred Markets (Optional)</Label>
+            <Textarea
+              className="mt-2"
+              placeholder="e.g., Austin, Dallas, Houston..."
+              onChange={(e) => agentForm.setValue('marketsServed', e.target.value.split(',').map(m => m.trim()))}
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCurrentStep(currentStep - 1)}
+              className="flex-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCurrentStep(4)}
+              className="flex-1"
+            >
+              Skip This Step
             </Button>
             <Button 
               type="submit" 
@@ -1137,12 +1273,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         if (userData.role === 'buyer') return renderBuyerOnboarding();
         if (userData.role === 'wholesaler') return renderWholesalerOnboarding();
         if (userData.role === 'real_estate_agent') return renderAgentOnboarding();
-        // For 'other' role or fallback, go directly to consent
-        return renderConsentStep();
+        // For 'other' role, show a generic step
+        return renderGenericOnboarding();
       case 3:
-        return renderConsentStep();
+        // Additional preferences step (optional)
+        return renderPreferencesStep();
       case 4:
-        return renderConsentStep(); // Final step is always consent
+        // Final consent step
+        return renderConsentStep();
       default:
         return renderStep1();
     }
