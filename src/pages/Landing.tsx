@@ -626,37 +626,26 @@ const Landing = () => {
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[{
-            name: "Free Trial",
-            price: 0,
-            period: "7-14 days",
-            description: "Let them import a few buyers, test AI discovery, analyze 1 deal",
-            features: ["Import limited buyers", "Test AI discovery", "Analyze 1 deal", "Basic support"],
+            name: "Starter",
+            price: 99,
+            description: "Perfect for solo wholesalers",
+            features: ["AI Buyer Discovery", "Basic Deal Analysis", "Email Support", "1,000 Contacts/month", "Basic CRM"],
             popular: false,
             gradient: "from-gray-500 to-gray-700"
           }, {
-            name: "Starter",
-            price: 79,
-            period: "/mo",
-            description: "Solo wholesaler or coach's student",
-            features: ["Import buyers and analyze deals", "Basic AI discovery", "Email support", "1 user included"],
-            popular: false,
-            gradient: "from-blue-500 to-blue-700"
-          }, {
-            name: "Pro",
+            name: "Professional",
             price: 199,
-            period: "/mo",
-            description: "Mid-level wholesaler doing 2+ deals/month",
-            features: ["Advanced AI buyer discovery", "Unlimited deal analysis", "Priority support", "Advanced CRM features", "API access"],
+            description: "For active wholesalers",
+            features: ["Everything in Starter", "Advanced AI Analysis", "SMS + Voice Automation", "5,000 Contacts/month", "Priority Support", "Marketplace Access"],
             popular: true,
             gradient: "from-emerald-500 to-blue-600"
           }, {
-            name: "Agency",
-            price: 499,
-            period: "/mo",
-            description: "3–5 users + full outreach campaigns, templates",
-            features: ["Everything in Pro", "3-5 user accounts", "Full outreach campaigns", "Custom templates", "Dedicated account manager"],
+            name: "Enterprise",
+            price: 299,
+            description: "For high-volume teams",
+            features: ["Everything in Pro", "Unlimited Contacts", "White-label Platform", "Custom AI Training", "Dedicated Support", "API Access"],
             popular: false,
             gradient: "from-purple-500 to-pink-600"
           }].map((plan, index) => <motion.div key={plan.name} initial={{
@@ -683,7 +672,7 @@ const Landing = () => {
                     <p className="text-white/80 mb-4">{plan.description}</p>
                     <div className="flex items-baseline space-x-2">
                       <span className="text-4xl font-bold">${plan.price}</span>
-                      <span className="text-white/80">{plan.period}</span>
+                      <span className="text-white/80">/month</span>
                     </div>
                   </CardHeader>
                   
@@ -710,30 +699,6 @@ const Landing = () => {
                 </Card>
               </motion.div>)}
           </div>
-          
-          {/* Add-ons Section */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.8 }} className="mt-20">
-            <div className="text-center mb-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Add-ons & Usage-Based Pricing</h3>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Scale your operations with additional AI credits for buyer discovery, voice agents, and advanced scraping
-              </p>
-            </div>
-            
-            <Card className="max-w-2xl mx-auto bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200">
-              <CardContent className="p-8 text-center">
-                <div className="flex items-center justify-center mb-4">
-                  <Zap className="w-8 h-8 text-blue-600 mr-3" />
-                  <h4 className="text-xl font-bold text-gray-900">AI Credits</h4>
-                </div>
-                <div className="text-3xl font-bold text-blue-600 mb-2">+$0.50</div>
-                <div className="text-gray-600 mb-4">per AI credit</div>
-                <div className="text-sm text-gray-500">
-                  Use for: Buyer discovery • Voice agents • Advanced scraping • Property analysis overages
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
       </section>
 
