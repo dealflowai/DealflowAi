@@ -5,8 +5,8 @@ import './index.css'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { TokenProvider } from '@/contexts/TokenContext';
 
-// TODO: Replace with your actual Clerk publishable key
-const PUBLISHABLE_KEY = "pk_test_your_key_here";
+// Clerk publishable key
+const PUBLISHABLE_KEY = "pk_test_ZW5kbGVzcy1tYXJtb3NldC00Ni5jbGVyay5hY2NvdW50cy5kZXYk";
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
