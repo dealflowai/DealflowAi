@@ -852,7 +852,7 @@ const Landing = () => {
               </Card>
             </motion.div>
 
-            {/* Agency Packs */}
+            {/* Agency/Custom Plan */}
             <motion.div 
               initial={{ opacity: 0, y: 50 }} 
               whileInView={{ opacity: 1, y: 0 }} 
@@ -862,58 +862,47 @@ const Landing = () => {
             >
               <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-8">
-                  <CardTitle className="text-2xl font-bold mb-2">Agency Packs</CardTitle>
-                  <p className="text-white/80 mb-4">Pre-paid packages for teams</p>
+                  <CardTitle className="text-2xl font-bold mb-2">Agency</CardTitle>
+                  <p className="text-white/80 mb-4">Custom solutions for teams</p>
                   <div className="flex items-baseline space-x-2">
-                    <span className="text-2xl font-bold">Team</span>
-                    <span className="text-white/80">solutions</span>
+                    <span className="text-4xl font-bold">Custom</span>
+                    <span className="text-white/80">pricing</span>
                   </div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
-                  <div className="space-y-4 mb-8">
-                    <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-semibold text-gray-900">Small Team Pack</span>
-                        <span className="text-lg font-bold text-purple-600">$899</span>
-                      </div>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <div>• 5 team seats</div>
-                        <div>• 2,000 AI tokens</div>
-                        <div>• Team dashboard</div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-semibold text-gray-900">Large Team Pack</span>
-                        <span className="text-lg font-bold text-purple-600">$1,499</span>
-                      </div>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <div>• 10 team seats</div>
-                        <div>• 4,000 AI tokens</div>
-                        <div>• Advanced analytics</div>
-                      </div>
-                    </div>
-                    
-                    <ul className="space-y-2 text-sm text-gray-600">
-                      <li className="flex items-start space-x-2">
-                        <CheckCircle className="text-emerald-500 mt-0.5" size={14} />
-                        <span>Shared token pool</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <CheckCircle className="text-emerald-500 mt-0.5" size={14} />
-                        <span>Priority support</span>
-                      </li>
-                    </ul>
-                  </div>
+                  <ul className="space-y-4 mb-8">
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Unlimited tokens</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Multi-user accounts (5-50 users)</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">White-label options</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Dedicated account manager</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Custom integrations & API</span>
+                    </li>
+                  </ul>
                   
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link to="/auth">
-                      <Button className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white">
-                        Get Agency Pack
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                      onClick={() => {
+                        window.open('mailto:sales@dealflow.ai?subject=Agency Plan Inquiry&body=Hi! I\'m interested in learning more about the Agency plan for my team. Please contact me to discuss custom pricing and features.', '_blank');
+                      }}
+                    >
+                      Contact Sales
+                    </Button>
                   </motion.div>
                 </CardContent>
               </Card>
