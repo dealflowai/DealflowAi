@@ -165,7 +165,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         phone: data.phone?.trim()
       };
 
-      // Create user with Clerk - bypass email verification for now
+      // Create user with Clerk - with proper email verification
       const signUpAttempt = await signUp.create({
         emailAddress: sanitizedData.email,
         password: sanitizedData.password,
@@ -173,25 +173,37 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
       let result = signUpAttempt;
 
-      // Handle different signup statuses
+      // Handle email verification requirement
       if (signUpAttempt.status === 'missing_requirements') {
         console.log('Missing requirements:', signUpAttempt.missingFields);
         
-        // Skip email verification for now - proceed with account creation
-        toast({
-          title: "Account Created Successfully",
-          description: "Welcome! Let's set up your profile.",
-        });
-        
-        // Store user data and proceed to onboarding
-        if (signUpAttempt.createdUserId) {
-          setUserData({ 
-            ...sanitizedData, 
-            clerkId: signUpAttempt.createdUserId 
-          });
-          setCurrentStep(2);
-          setIsLoading(false);
-          return;
+        if (signUpAttempt.missingFields?.includes('email_address')) {
+          try {
+            // Prepare email verification
+            await signUp.prepareEmailAddressVerification({
+              strategy: 'email_code'
+            });
+            
+            toast({
+              title: "Check Your Email",
+              description: "We've sent you a verification code. Please check your email (including spam folder).",
+            });
+            
+            // Show verification step
+            setCurrentStep(1.5);
+            setUserData({ email: sanitizedData.email });
+            setIsLoading(false);
+            return;
+          } catch (emailError) {
+            console.error('Email verification preparation failed:', emailError);
+            toast({
+              title: "Email Setup Issue",
+              description: "Please check Clerk email configuration in dashboard.",
+              variant: "destructive"
+            });
+            setIsLoading(false);
+            return;
+          }
         }
       }
 
