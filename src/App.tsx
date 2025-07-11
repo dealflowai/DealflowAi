@@ -15,7 +15,7 @@ import BuyerCRM from "./pages/BuyerCRM";
 import DealAnalyzer from "./pages/DealAnalyzer";
 import Contracts from "./pages/Contracts";
 import Settings from "./pages/Settings";
-import Pricing from "./pages/Pricing";
+
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
@@ -114,7 +114,7 @@ const AppContent = () => {
             <Settings />
           </ProtectedRoute>
         } />
-        <Route path="/pricing" element={<Pricing />} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

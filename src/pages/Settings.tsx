@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@clerk/clerk-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { motion } from 'framer-motion';
 import { 
   User, 
   Bell, 
@@ -19,12 +23,158 @@ import {
   Mail,
   Phone,
   Building,
-  MapPin
+  MapPin,
+  CheckCircle,
+  Star,
+  ArrowRight,
+  Settings as SettingsIcon,
+  Zap,
+  Users,
+  Target
 } from 'lucide-react';
+
+interface SubscriptionStatus {
+  subscribed: boolean;
+  subscription_tier?: string;
+  subscription_end?: string;
+}
 
 const Settings = () => {
   const { user } = useUser();
   const { isDark, toggleTheme } = useTheme();
+  const { toast } = useToast();
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({ subscribed: false });
+  const [loading, setLoading] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
+
+  const checkSubscription = async () => {
+    try {
+      setCheckingSubscription(true);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (!authUser) return;
+
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) throw error;
+      
+      setSubscriptionStatus(data);
+    } catch (error: any) {
+      console.error('Error checking subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check subscription status",
+        variant: "destructive",
+      });
+    } finally {
+      setCheckingSubscription(false);
+    }
+  };
+
+  useEffect(() => {
+    checkSubscription();
+  }, []);
+
+  const handleSubscribe = async (plan: string) => {
+    try {
+      setLoading(true);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (!authUser) return;
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { plan }
+      });
+      
+      if (error) throw error;
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+    } catch (error: any) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create checkout session",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      // Open customer portal in a new tab
+      window.open(data.url, '_blank');
+    } catch (error: any) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to open customer portal",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const plans = [
+    {
+      name: "Starter",
+      price: 79,
+      period: "/mo",
+      description: "Solo wholesaler or coach's student",
+      features: [
+        "Import buyers and analyze deals",
+        "Basic AI discovery",
+        "Email support",
+        "1 user included",
+        "Basic CRM features"
+      ],
+      popular: false,
+      gradient: "from-blue-500 to-blue-700",
+      planId: "starter"
+    },
+    {
+      name: "Pro",
+      price: 199,
+      period: "/mo", 
+      description: "Mid-level wholesaler doing 2+ deals/month",
+      features: [
+        "Advanced AI buyer discovery",
+        "Unlimited deal analysis",
+        "Priority support",
+        "Advanced CRM features",
+        "API access",
+        "Deal automation"
+      ],
+      popular: true,
+      gradient: "from-emerald-500 to-blue-600",
+      planId: "pro"
+    },
+    {
+      name: "Agency",
+      price: 499,
+      period: "/mo",
+      description: "3–5 users + full outreach campaigns, templates",
+      features: [
+        "Everything in Pro",
+        "3-5 user accounts",
+        "Full outreach campaigns",
+        "Custom templates",
+        "Dedicated account manager",
+        "White-label options"
+      ],
+      popular: false,
+      gradient: "from-purple-500 to-pink-600",
+      planId: "agency"
+    }
+  ];
 
   return (
     <Layout>
@@ -193,17 +343,129 @@ const Settings = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <CreditCard className="w-5 h-5" />
-                  <span>Billing</span>
+                  <span>Billing & Subscription</span>
                 </CardTitle>
+                <CardDescription>Manage your subscription and billing settings</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <p className="font-medium">Free Plan</p>
-                  <p>5 deals analyzed this month</p>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800">
-                  Upgrade to Pro
-                </Button>
+              <CardContent className="space-y-6">
+                {checkingSubscription ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Checking subscription status...</p>
+                  </div>
+                ) : subscriptionStatus.subscribed ? (
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800">
+                      <div className="flex items-center mb-2">
+                        <CheckCircle className="w-5 h-5 text-emerald-600 mr-2" />
+                        <span className="font-medium text-emerald-800 dark:text-emerald-400">
+                          Active: {subscriptionStatus.subscription_tier}
+                        </span>
+                      </div>
+                      <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                        Renews on {subscriptionStatus.subscription_end && 
+                          new Date(subscriptionStatus.subscription_end).toLocaleDateString()
+                        }
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={handleManageSubscription}
+                      disabled={loading}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      <SettingsIcon className="mr-2" size={16} />
+                      Manage Subscription
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center mb-2">
+                        <Zap className="w-5 h-5 text-blue-600 mr-2" />
+                        <span className="font-medium text-blue-800 dark:text-blue-400">Free Plan</span>
+                      </div>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        14-day trial • Limited features • Basic support
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">Choose Your Plan</h4>
+                      {plans.map((plan, index) => {
+                        return (
+                          <motion.div
+                            key={plan.name}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            className="relative"
+                          >
+                            {plan.popular && (
+                              <div className="absolute -top-2 right-2">
+                                <Badge className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs">
+                                  Most Popular
+                                </Badge>
+                              </div>
+                            )}
+                            
+                            <Card className={`${plan.popular ? 'ring-2 ring-emerald-500' : ''} transition-all hover:shadow-md`}>
+                              <CardHeader className={`bg-gradient-to-r ${plan.gradient} text-white rounded-t-lg`}>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <CardTitle className="text-lg">{plan.name}</CardTitle>
+                                    <p className="text-white/80 text-sm">{plan.description}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-2xl font-bold">${plan.price}</span>
+                                    <span className="text-white/80 text-sm">{plan.period}</span>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              
+                              <CardContent className="p-4">
+                                <ul className="space-y-2 mb-4 text-sm">
+                                  {plan.features.slice(0, 3).map((feature, featureIndex) => (
+                                    <li key={featureIndex} className="flex items-start space-x-2">
+                                      <CheckCircle className="text-emerald-500 mt-0.5 flex-shrink-0" size={14} />
+                                      <span className="text-gray-600 dark:text-gray-400">{feature}</span>
+                                    </li>
+                                  ))}
+                                  {plan.features.length > 3 && (
+                                    <li className="text-sm text-gray-500 dark:text-gray-500">
+                                      +{plan.features.length - 3} more features
+                                    </li>
+                                  )}
+                                </ul>
+                                
+                                <Button 
+                                  className={`w-full ${
+                                    plan.popular 
+                                      ? 'bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white' 
+                                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100'
+                                  }`}
+                                  onClick={() => handleSubscribe(plan.planId)}
+                                  disabled={loading}
+                                >
+                                  Start Free Trial
+                                  <ArrowRight className="ml-2" size={16} />
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={checkSubscription}
+                      disabled={checkingSubscription}
+                      className="w-full"
+                    >
+                      {checkingSubscription ? 'Checking...' : 'Refresh Subscription Status'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
