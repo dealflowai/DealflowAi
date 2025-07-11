@@ -584,13 +584,12 @@ const Landing = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="bg-gradient-to-r from-emerald-600 to-blue-600 rounded-3xl p-12 text-white text-center mb-20"
           >
-            <h3 className="text-3xl font-bold mb-8">Live Network Activity</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <h3 className="text-3xl font-bold mb-8">Marketplace Economics</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
               <div>
-                <div className="text-4xl font-bold mb-2">
-                  <AnimatedCounter end={847} />
-                </div>
-                <div className="text-white/80">Deals Shared Today</div>
+                <div className="text-5xl font-bold mb-2">3%</div>
+                <div className="text-white/80">Platform Fee on Deals</div>
+                <div className="text-sm text-white/60 mt-2">Only when you profit</div>
               </div>
               <div>
                 <div className="text-4xl font-bold mb-2">
@@ -600,15 +599,64 @@ const Landing = () => {
               </div>
               <div>
                 <div className="text-4xl font-bold mb-2">
+                  <AnimatedCounter end={94} suffix="%" />
+                </div>
+                <div className="text-white/80">Keep 97% of Every Deal</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
+              <div>
+                <div className="text-3xl font-bold mb-2">
+                  <AnimatedCounter end={847} />
+                </div>
+                <div className="text-white/80">Deals Shared Today</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold mb-2">
                   <AnimatedCounter end={127} />
                 </div>
                 <div className="text-white/80">Markets Connected</div>
               </div>
-              <div>
-                <div className="text-4xl font-bold mb-2">
-                  <AnimatedCounter end={94} suffix="%" />
+            </div>
+            <div className="mt-8 text-center">
+              <p className="text-white/90 text-lg">
+                <strong>No hidden fees.</strong> We only succeed when you do.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Fee Structure Explanation */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100 mb-20"
+          >
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Simple, Fair Pricing</h3>
+              <p className="text-gray-600">Our marketplace only takes a small percentage when deals close successfully</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center p-6 bg-emerald-50 rounded-2xl">
+                <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-white/80">Network Match Rate</div>
+                <h4 className="font-bold text-gray-900 mb-2">Assignment Fees</h4>
+                <p className="text-gray-600 text-sm">3% when you assign deals to other wholesalers</p>
+              </div>
+              <div className="text-center p-6 bg-blue-50 rounded-2xl">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Deal Profits</h4>
+                <p className="text-gray-600 text-sm">3% on successful deal closings through the network</p>
+              </div>
+              <div className="text-center p-6 bg-purple-50 rounded-2xl">
+                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">No Monthly Fees</h4>
+                <p className="text-gray-600 text-sm">Use the marketplace free - pay only on successful transactions</p>
               </div>
             </div>
           </motion.div>
@@ -674,7 +722,7 @@ const Landing = () => {
                     <h3 className="text-xl font-bold mb-3">{segment.title}</h3>
                     <div className="space-y-2 text-sm">
                       <div><strong>Needs:</strong> {segment.needs}</div>
-                      <div><strong>Budget:</strong> {segment.budget}</div>
+                      <div><strong>Marketplace Fee:</strong> {segment.budget}</div>
                       <div><strong>Pain:</strong> {segment.painPoints}</div>
                     </div>
                   </CardContent>
