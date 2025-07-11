@@ -196,7 +196,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           
           // Show verification step
           setCurrentStep(1.5);
-          setUserData({ email: sanitizedData.email });
+          setUserData({ 
+            email: sanitizedData.email,
+            firstName: sanitizedData.firstName,
+            lastName: sanitizedData.lastName,
+            role: sanitizedData.role,
+            phone: sanitizedData.phone
+          });
           setIsLoading(false);
           return;
         } catch (emailError) {
@@ -1079,12 +1085,27 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
                 type="button"
                 variant="link"
                 className="p-0 h-auto text-primary"
-                onClick={() => {
-                  signUp?.prepareEmailAddressVerification({ strategy: 'email_code' });
-                  toast({
-                    title: "Code Resent",
-                    description: "We've sent you a new verification code.",
-                  });
+                onClick={async () => {
+                  try {
+                    await signUp?.prepareEmailAddressVerification({ strategy: 'email_code' });
+                    toast({
+                      title: "Code Resent",
+                      description: "We've sent you a new verification code.",
+                    });
+                  } catch (error: any) {
+                    if (error.errors?.[0]?.code === 'verification_already_verified') {
+                      toast({
+                        title: "Email Already Verified",
+                        description: "Your email is already verified. Click Verify Email to continue.",
+                      });
+                    } else {
+                      toast({
+                        title: "Resend Failed",
+                        description: "Unable to resend code. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
+                  }
                 }}
               >
                 resend code
