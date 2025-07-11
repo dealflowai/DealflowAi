@@ -25,43 +25,44 @@ type SignUpFormData = z.infer<typeof signUpSchema>;
 const plans = [
   {
     id: 'starter',
-    name: "Starter Pro",
-    price: 149,
-    originalPrice: 199,
-    description: "Perfect for new wholesalers",
+    name: "Starter",
+    price: 79,
+    originalPrice: 99,
+    description: "Solo wholesaler or coach's student",
     features: [
-      "1,000 AI-powered leads/month",
-      "Advanced profit calculator", 
-      "5,000 SMS credits included",
-      "Email & chat support"
+      "Import buyers and analyze deals",
+      "Basic AI discovery",
+      "Email support",
+      "1 user included"
     ],
     popular: false,
   },
   {
-    id: 'growth',
-    name: "Growth Elite", 
-    price: 399,
-    originalPrice: 499,
-    description: "For serious real estate pros",
+    id: 'pro',
+    name: "Pro", 
+    price: 199,
+    originalPrice: 249,
+    description: "Mid-level wholesaler doing 2+ deals/month",
     features: [
-      "5,000 AI-powered leads/month",
-      "Unlimited profit analysis",
-      "15,000 SMS credits included", 
-      "Priority support & training",
-      "AI call assistant"
+      "Advanced AI buyer discovery",
+      "Unlimited deal analysis",
+      "Priority support", 
+      "Advanced CRM features",
+      "API access"
     ],
     popular: true,
   },
   {
-    id: 'enterprise',
-    name: "Enterprise Max",
-    price: 799,
-    originalPrice: 999, 
-    description: "For real estate teams & agencies",
+    id: 'agency',
+    name: "Agency",
+    price: 499,
+    originalPrice: 599, 
+    description: "3–5 users + full outreach campaigns, templates",
     features: [
-      "Unlimited AI leads & analysis",
-      "White-label platform access",
-      "Unlimited SMS & voice calls",
+      "Everything in Pro",
+      "3-5 user accounts",
+      "Full outreach campaigns",
+      "Custom templates",
       "Dedicated account manager"
     ],
     popular: false,
@@ -75,7 +76,7 @@ interface SignUpFormProps {
 export const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
   const { signUp, setActive } = useSignUp();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('growth');
+  const [selectedPlan, setSelectedPlan] = useState('pro');
   const { toast } = useToast();
 
   const {
@@ -87,7 +88,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      selectedPlan: 'growth'
+      selectedPlan: 'pro'
     }
   });
 
