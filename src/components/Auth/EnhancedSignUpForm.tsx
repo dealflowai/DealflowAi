@@ -165,24 +165,19 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         phone: data.phone?.trim()
       };
 
-      // Create user with Clerk - with enhanced security
-      const result = await signUp.create({
+      // Create user with Clerk - simplified approach
+      const signUpAttempt = await signUp.create({
         emailAddress: sanitizedData.email,
         password: sanitizedData.password,
-        firstName: sanitizedData.firstName,
-        lastName: sanitizedData.lastName,
-        // Add additional security metadata
-        unsafeMetadata: {
-          signupTimestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          role: sanitizedData.role
-        }
       });
 
-      // Handle email verification flow
-      if (result.status === 'missing_requirements') {
-        // If email verification is required
-        if (result.missingFields?.includes('email_address')) {
+      let result = signUpAttempt;
+
+      // If signup requires additional steps or verification
+      if (signUpAttempt.status === 'missing_requirements') {
+        console.log('Missing requirements:', signUpAttempt.missingFields);
+        
+        if (signUpAttempt.missingFields?.includes('email_address')) {
           toast({
             title: "Email Verification Required",
             description: "Please check your email and click the verification link to continue.",
@@ -192,17 +187,37 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         }
       }
 
+      // If the initial create was successful but not complete, try to update with additional details
+      if (signUpAttempt.createdUserId && signUpAttempt.status !== 'complete') {
+        try {
+          const updateResult = await signUp.update({
+            firstName: sanitizedData.firstName,
+            lastName: sanitizedData.lastName,
+            unsafeMetadata: {
+              role: sanitizedData.role,
+              phone: sanitizedData.phone,
+              signupTimestamp: new Date().toISOString()
+            }
+          });
+          
+          result = updateResult;
+        } catch (updateError) {
+          console.warn('Could not update user details:', updateError);
+          // Continue with basic account - don't fail the signup
+        }
+      }
+
+      // Handle the final result
       if (result.status === 'complete' && result.createdSessionId) {
-        // Set the session active with enhanced security
+        // Set the session active
         await setActive({ 
           session: result.createdSessionId,
           beforeEmit: () => {
-            // Additional security check before setting session
             console.log('Setting active session for user:', result.createdUserId);
           }
         });
 
-        // Store profile data with transaction-like behavior
+        // Store profile data in Supabase
         const profileData = {
           clerk_id: result.createdUserId!,
           email: sanitizedData.email,
@@ -225,8 +240,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         if (profileError) {
           console.error('Profile creation error:', profileError);
           
-          // If profile creation fails, we should still allow the user to continue
-          // but log the error for admin review
           toast({
             title: "Profile Setup Warning",
             description: "Account created successfully, but additional setup is needed. You can complete this later.",
@@ -246,6 +259,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           setUserData({ ...sanitizedData, clerkId: result.createdUserId });
           setCurrentStep(2);
         }
+      } else if (result.status === 'missing_requirements') {
+        // Handle specific missing requirements
+        toast({
+          title: "Additional Information Required",
+          description: "Please check your email for verification instructions.",
+        });
+        setIsLoading(false);
       } else {
         // Handle other statuses
         toast({
