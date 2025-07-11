@@ -40,9 +40,8 @@ const basicSignUpSchema = z.object({
     required_error: 'Please select your role'
   }),
   phone: z.string()
-    .optional()
+    .min(1, 'Phone number is required')
     .refine((val) => {
-      if (!val) return true;
       const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
       return phoneRegex.test(val.replace(/[\s\-\(\)\.]/g, ''));
     }, 'Please enter a valid phone number'),
@@ -555,12 +554,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           </div>
 
           <div>
-            <Label htmlFor="phone">Phone Number (Optional)</Label>
+            <Label htmlFor="phone">Phone Number *</Label>
             <Input
               type="tel"
               {...basicForm.register('phone')}
               className="mt-1"
               placeholder="(555) 123-4567"
+              required
             />
             {basicForm.formState.errors.phone && (
               <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.phone.message}</p>
