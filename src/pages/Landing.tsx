@@ -738,7 +738,7 @@ const Landing = () => {
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Free Trial Plan */}
             <motion.div 
               initial={{ opacity: 0, y: 50 }} 
@@ -775,6 +775,10 @@ const Landing = () => {
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
                       <span className="text-gray-600">Basic support</span>
                     </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Full CRM access</span>
+                    </li>
                   </ul>
                   
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -804,13 +808,13 @@ const Landing = () => {
               
               <Card className="h-full ring-2 ring-emerald-500 shadow-2xl bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white p-8">
-                  <CardTitle className="text-2xl font-bold mb-2">Pro Starter</CardTitle>
-                  <p className="text-white/80 mb-4">Perfect for getting started</p>
+                  <CardTitle className="text-2xl font-bold mb-2">Pro</CardTitle>
+                  <p className="text-white/80 mb-4">Perfect for active wholesalers</p>
                   <div className="flex items-baseline space-x-2">
                     <span className="text-4xl font-bold">100</span>
                     <span className="text-white/80">tokens</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">$49 one-time purchase</div>
+                  <div className="text-sm text-white/70 mt-2">$49 • Buy more anytime</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
@@ -833,92 +837,16 @@ const Landing = () => {
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">CRM access</span>
+                      <span className="text-gray-600">Buy token packs: 500 ($199), 1000 ($349), 2000 ($599)</span>
                     </li>
                   </ul>
                   
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link to="/auth">
                       <Button className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white">
-                        Get Pro Starter
+                        Get Pro Access
                       </Button>
                     </Link>
-                  </motion.div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Token Packs */}
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }} 
-              whileInView={{ opacity: 1, y: 0 }} 
-              transition={{ duration: 0.6, delay: 0.3 }}
-              whileHover={{ y: -10 }}
-              className="relative"
-            >
-              <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8">
-                  <CardTitle className="text-2xl font-bold mb-2">Token Packs</CardTitle>
-                  <p className="text-white/80 mb-4">Choose your token amount</p>
-                  <div className="flex items-baseline space-x-2">
-                    <span className="text-4xl font-bold">Custom</span>
-                    <span className="text-white/80">amount</span>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="p-8">
-                  <ul className="space-y-4 mb-8">
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">500 tokens - $199</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">1000 tokens - $349</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">2000 tokens - $599</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Never expires</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Better value per token</span>
-                    </li>
-                  </ul>
-                  
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white">
-                          Choose Token Pack
-                          <ChevronDown className="ml-2" size={20} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full min-w-[250px] bg-white border-2 border-gray-200 shadow-xl rounded-xl z-50">
-                        <DropdownMenuItem className="p-4 hover:bg-gray-50 cursor-pointer">
-                          <Link to="/auth" className="flex items-center justify-between w-full">
-                            <span>500 Tokens</span>
-                            <span className="font-bold text-blue-600">$199</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="p-4 hover:bg-gray-50 cursor-pointer">
-                          <Link to="/auth" className="flex items-center justify-between w-full">
-                            <span>1000 Tokens</span>
-                            <span className="font-bold text-purple-600">$349</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="p-4 hover:bg-gray-50 cursor-pointer">
-                          <Link to="/auth" className="flex items-center justify-between w-full">
-                            <span>2000 Tokens</span>
-                            <span className="font-bold text-green-600">$599</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </motion.div>
                 </CardContent>
               </Card>
@@ -928,7 +856,7 @@ const Landing = () => {
             <motion.div 
               initial={{ opacity: 0, y: 50 }} 
               whileInView={{ opacity: 1, y: 0 }} 
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
               whileHover={{ y: -10 }}
               className="relative"
             >
@@ -950,7 +878,7 @@ const Landing = () => {
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Multi-user accounts</span>
+                      <span className="text-gray-600">Multi-user accounts (5-50 users)</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -962,7 +890,7 @@ const Landing = () => {
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Custom integrations</span>
+                      <span className="text-gray-600">Custom integrations & API</span>
                     </li>
                   </ul>
                   
@@ -970,7 +898,7 @@ const Landing = () => {
                     <Button 
                       className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
                       onClick={() => {
-                        window.open('mailto:sales@dealflow.ai?subject=Agency Plan Inquiry&body=I\'m interested in learning more about the Agency plan for my team.', '_blank');
+                        window.open('mailto:sales@dealflow.ai?subject=Agency Plan Inquiry&body=Hi! I\'m interested in learning more about the Agency plan for my team. Please contact me to discuss custom pricing and features.', '_blank');
                       }}
                     >
                       Contact Sales
