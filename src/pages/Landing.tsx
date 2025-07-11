@@ -628,14 +628,6 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[{
-            name: "Agency",
-            price: 499,
-            period: "/mo",
-            description: "3–5 users + full outreach campaigns, templates",
-            features: ["Everything in Pro", "3-5 user accounts", "Full outreach campaigns", "Custom templates", "Dedicated account manager"],
-            popular: false,
-            gradient: "from-purple-500 to-pink-600"
-          }, {
             name: "Starter",
             price: 79,
             period: "/mo",
@@ -651,6 +643,14 @@ const Landing = () => {
             features: ["Advanced AI buyer discovery", "Unlimited deal analysis", "Priority support", "Advanced CRM features", "API access"],
             popular: true,
             gradient: "from-emerald-500 to-blue-600"
+          }, {
+            name: "Agency",
+            price: 499,
+            period: "/mo",
+            description: "3–5 users + full outreach campaigns, templates",
+            features: ["Everything in Pro", "3-5 user accounts", "Full outreach campaigns", "Custom templates", "Dedicated account manager"],
+            popular: false,
+            gradient: "from-purple-500 to-pink-600"
           }].map((plan, index) => <motion.div key={plan.name} initial={{
             opacity: 0,
             y: 50
