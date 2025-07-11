@@ -446,7 +446,7 @@ const Settings = () => {
                                   onClick={() => handleSubscribe(plan.planId)}
                                   disabled={loading}
                                 >
-                                  Start Free Trial
+                                  {loading ? 'Processing...' : 'Choose Plan'}
                                   <ArrowRight className="ml-2" size={16} />
                                 </Button>
                               </CardContent>
