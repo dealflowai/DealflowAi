@@ -4,18 +4,22 @@ import Layout from '@/components/Layout/Layout';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import RecentActivity from '@/components/Dashboard/RecentActivity';
 import GuidedTour from '@/components/Onboarding/GuidedTour';
-import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot } from 'lucide-react';
+import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot, Gem } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { useTokens } from '@/contexts/TokenContext';
+import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 
 const Dashboard = () => {
   const { user } = useUser();
   const { stats, recentActivity, isLoading } = useDashboardData();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { tokenBalance, loading: tokenLoading } = useTokens();
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
 
   // Check if user has completed onboarding
   const { data: hasCompletedOnboarding } = useQuery({
@@ -116,6 +120,35 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Token Warning Banner */}
+        {!tokenLoading && tokenBalance && tokenBalance.remainingTokens < 10 && (
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Gem className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <div>
+                  <h3 className="font-semibold text-orange-900 dark:text-orange-100">
+                    {tokenBalance.remainingTokens === 0 ? 'No Tokens Remaining' : 'Low Token Balance'}
+                  </h3>
+                  <p className="text-sm text-orange-700 dark:text-orange-300">
+                    {tokenBalance.remainingTokens === 0 
+                      ? 'Recharge to continue using AI features' 
+                      : `Only ${tokenBalance.remainingTokens} tokens left. AI features will be limited soon.`
+                    }
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setTokenModalOpen(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <Gem className="w-4 h-4 mr-2" />
+                {tokenBalance.remainingTokens === 0 ? 'Recharge Now' : 'Buy Tokens'}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Fresh Insights Card */}
         {insights && insights.length > 0 && (
@@ -286,6 +319,11 @@ const Dashboard = () => {
         <GuidedTour 
           isOpen={showOnboarding}
           onComplete={() => setShowOnboarding(false)}
+        />
+        
+        <TokenPricingModal 
+          open={tokenModalOpen} 
+          onOpenChange={setTokenModalOpen} 
         />
       </div>
     </Layout>

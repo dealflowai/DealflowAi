@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { 
   BarChart3,
@@ -13,13 +13,17 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
-  Shield
+  Shield,
+  Gem,
+  Plus
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
-import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useTokens } from '@/contexts/TokenContext';
+import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
+import { Button } from '@/components/ui/button';
 
 const sidebarItems = [
   { icon: Home, label: 'Dashboard', path: '/' },
@@ -39,7 +43,8 @@ interface SidebarProps {
 const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
   const { user } = useUser();
-  const { subscriptionTier, subscribed } = useSubscription();
+  const { tokenBalance, loading: tokenLoading } = useTokens();
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
 
   // Check if user has admin role
   const { data: profile } = useQuery({
@@ -143,34 +148,64 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         })}
       </nav>
 
-      {/* Bottom Plan Card */}
+      {/* Bottom Token Card */}
       {!collapsed && (
         <div className="absolute bottom-6 left-4 right-4">
-          <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800">
-            {subscribed ? (
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-primary/20">
+            {tokenLoading ? (
+              <div className="animate-pulse">
+                <div className="h-4 bg-muted rounded w-20 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-24 mb-3"></div>
+                <div className="h-8 bg-muted rounded"></div>
+              </div>
+            ) : tokenBalance ? (
               <>
-                <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">
-                  {subscriptionTier?.charAt(0).toUpperCase() + subscriptionTier?.slice(1) || 'Premium'} Plan
-                </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-                  You have access to all {subscriptionTier} features
+                <div className="flex items-center space-x-2 mb-2">
+                  <Gem className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium text-sm text-foreground">
+                    {tokenBalance.remainingTokens} Tokens
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  {tokenBalance.remainingTokens > 0 
+                    ? `${tokenBalance.usedTokens} of ${tokenBalance.totalTokens} used`
+                    : 'Recharge to continue using AI features'
+                  }
                 </p>
-                <Link to="/settings" className="block w-full bg-gradient-to-r from-emerald-600 to-green-700 text-white text-xs py-2 px-3 rounded-md hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md text-center">
-                  Manage Plan
-                </Link>
+                <Button 
+                  onClick={() => setTokenModalOpen(true)}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-2 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
+                  size="sm"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  {tokenBalance.remainingTokens > 0 ? 'Buy More' : 'Recharge'}
+                </Button>
               </>
             ) : (
               <>
-                <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-1">Free Plan</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">Upgrade to unlock AI features and remove limits</p>
-                <Link to="/settings" className="block w-full bg-gradient-to-r from-emerald-600 to-green-700 text-white text-xs py-2 px-3 rounded-md hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md text-center">
-                  Upgrade Now
-                </Link>
+                <div className="flex items-center space-x-2 mb-2">
+                  <Gem className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium text-sm text-foreground">25 Free Tokens</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">Try our AI features with your free tokens</p>
+                <Button 
+                  onClick={() => setTokenModalOpen(true)}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-2 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
+                  size="sm"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Buy Tokens
+                </Button>
               </>
             )}
           </div>
         </div>
       )}
+      
+      <TokenPricingModal 
+        open={tokenModalOpen} 
+        onOpenChange={setTokenModalOpen} 
+      />
     </div>
   );
 };
