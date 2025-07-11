@@ -32,27 +32,24 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
-
-    const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
+    // For Clerk authentication, we'll get user info from the request body
+    const requestBody = await req.json();
+    const { userEmail, userId } = requestBody;
     
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    if (!userEmail || !userId) {
+      throw new Error("User email and ID are required");
+    }
+    
+    logStep("User info received", { userId, userEmail });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
       await supabaseClient.from("subscribers").upsert({
-        email: user.email,
-        user_id: user.id,
+        email: userEmail,
+        user_id: userId,
         stripe_customer_id: null,
         subscribed: false,
         subscription_tier: null,
@@ -100,8 +97,8 @@ serve(async (req) => {
     }
 
     await supabaseClient.from("subscribers").upsert({
-      email: user.email,
-      user_id: user.id,
+      email: userEmail,
+      user_id: userId,
       stripe_customer_id: customerId,
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,

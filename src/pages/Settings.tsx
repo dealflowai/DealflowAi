@@ -52,12 +52,17 @@ const Settings = () => {
     try {
       setCheckingSubscription(true);
       
-      if (!user?.id) {
+      if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
         console.log('No Clerk user found');
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        body: {
+          userEmail: user.primaryEmailAddress.emailAddress,
+          userId: user.id
+        }
+      });
       
       if (error) throw error;
       
@@ -83,7 +88,7 @@ const Settings = () => {
       console.log('handleSubscribe called with plan:', plan);
       setLoading(true);
       
-      if (!user?.id) {
+      if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
         console.log('No Clerk user found');
         toast({
           title: "Authentication Required",
@@ -97,7 +102,11 @@ const Settings = () => {
       console.log('Invoking create-checkout function...');
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { plan }
+        body: { 
+          plan,
+          userEmail: user.primaryEmailAddress.emailAddress,
+          userId: user.id
+        }
       });
       
       console.log('Function response:', { data, error });
@@ -126,7 +135,22 @@ const Settings = () => {
   const handleManageSubscription = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to continue",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        body: {
+          userEmail: user.primaryEmailAddress.emailAddress,
+          userId: user.id
+        }
+      });
       
       if (error) throw error;
       
