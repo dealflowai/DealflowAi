@@ -1,0 +1,22 @@
+-- Extend profiles table to store comprehensive user information
+ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS phone text,
+ADD COLUMN IF NOT EXISTS user_role text CHECK (user_role IN ('buyer', 'wholesaler', 'real_estate_agent', 'other')),
+ADD COLUMN IF NOT EXISTS company_name text,
+ADD COLUMN IF NOT EXISTS license_number text,
+ADD COLUMN IF NOT EXISTS brokerage_name text,
+ADD COLUMN IF NOT EXISTS budget_min integer,
+ADD COLUMN IF NOT EXISTS budget_max integer,
+ADD COLUMN IF NOT EXISTS preferred_markets text[],
+ADD COLUMN IF NOT EXISTS property_types text[],
+ADD COLUMN IF NOT EXISTS roi_target numeric,
+ADD COLUMN IF NOT EXISTS financing_type text,
+ADD COLUMN IF NOT EXISTS timeline_to_close text,
+ADD COLUMN IF NOT EXISTS primary_markets text[],
+ADD COLUMN IF NOT EXISTS deal_types text[],
+ADD COLUMN IF NOT EXISTS monthly_deal_volume text,
+ADD COLUMN IF NOT EXISTS markets_served text[],
+ADD COLUMN IF NOT EXISTS typical_clients text[],
+ADD COLUMN IF NOT EXISTS consent_given boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS onboarding_step integer DEFAULT 1,
+ADD COLUMN IF NOT EXISTS onboarding_completed boolean DEFAULT false;

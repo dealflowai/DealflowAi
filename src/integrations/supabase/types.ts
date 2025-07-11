@@ -400,40 +400,100 @@ export type Database = {
       }
       profiles: {
         Row: {
+          brokerage_name: string | null
+          budget_max: number | null
+          budget_min: number | null
           clerk_id: string
+          company_name: string | null
+          consent_given: boolean | null
           created_at: string | null
+          deal_types: string[] | null
           email: string | null
+          financing_type: string | null
           first_name: string | null
           has_completed_onboarding: boolean | null
           id: string
           last_name: string | null
+          license_number: string | null
+          markets_served: string[] | null
+          monthly_deal_volume: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          phone: string | null
+          preferred_markets: string[] | null
+          primary_markets: string[] | null
+          property_types: string[] | null
+          roi_target: number | null
           role: string | null
           selected_plan: string | null
+          timeline_to_close: string | null
+          typical_clients: string[] | null
           updated_at: string | null
+          user_role: string | null
         }
         Insert: {
+          brokerage_name?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           clerk_id: string
+          company_name?: string | null
+          consent_given?: boolean | null
           created_at?: string | null
+          deal_types?: string[] | null
           email?: string | null
+          financing_type?: string | null
           first_name?: string | null
           has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
+          license_number?: string | null
+          markets_served?: string[] | null
+          monthly_deal_volume?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          phone?: string | null
+          preferred_markets?: string[] | null
+          primary_markets?: string[] | null
+          property_types?: string[] | null
+          roi_target?: number | null
           role?: string | null
           selected_plan?: string | null
+          timeline_to_close?: string | null
+          typical_clients?: string[] | null
           updated_at?: string | null
+          user_role?: string | null
         }
         Update: {
+          brokerage_name?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           clerk_id?: string
+          company_name?: string | null
+          consent_given?: boolean | null
           created_at?: string | null
+          deal_types?: string[] | null
           email?: string | null
+          financing_type?: string | null
           first_name?: string | null
           has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
+          license_number?: string | null
+          markets_served?: string[] | null
+          monthly_deal_volume?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          phone?: string | null
+          preferred_markets?: string[] | null
+          primary_markets?: string[] | null
+          property_types?: string[] | null
+          roi_target?: number | null
           role?: string | null
           selected_plan?: string | null
+          timeline_to_close?: string | null
+          typical_clients?: string[] | null
           updated_at?: string | null
+          user_role?: string | null
         }
         Relationships: []
       }
