@@ -174,36 +174,62 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       let result = signUpAttempt;
 
       // Handle email verification requirement
+      console.log('SignUp attempt status:', signUpAttempt.status);
+      console.log('SignUp attempt object:', signUpAttempt);
+      
       if (signUpAttempt.status === 'missing_requirements') {
         console.log('Missing requirements:', signUpAttempt.missingFields);
         
-        if (signUpAttempt.missingFields?.includes('email_address')) {
-          try {
-            // Prepare email verification
-            await signUp.prepareEmailAddressVerification({
-              strategy: 'email_code'
-            });
-            
-            toast({
-              title: "Check Your Email",
-              description: "We've sent you a verification code. Please check your email (including spam folder).",
-            });
-            
-            // Show verification step
-            setCurrentStep(1.5);
-            setUserData({ email: sanitizedData.email });
-            setIsLoading(false);
-            return;
-          } catch (emailError) {
-            console.error('Email verification preparation failed:', emailError);
-            toast({
-              title: "Email Setup Issue",
-              description: "Please check Clerk email configuration in dashboard.",
-              variant: "destructive"
-            });
-            setIsLoading(false);
-            return;
-          }
+        // Try to prepare email verification regardless of missing fields
+        try {
+          console.log('Attempting to prepare email verification...');
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          console.log('Email verification prepared successfully');
+          toast({
+            title: "Check Your Email",
+            description: "We've sent you a verification code. Please check your email (including spam folder).",
+          });
+          
+          // Show verification step
+          setCurrentStep(1.5);
+          setUserData({ email: sanitizedData.email });
+          setIsLoading(false);
+          return;
+        } catch (emailError) {
+          console.error('Email verification preparation failed:', emailError);
+          toast({
+            title: "Email Setup Issue",
+            description: `Email verification failed: ${emailError}`,
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Check if we need email verification in other status cases
+      if (signUpAttempt.status !== 'complete') {
+        console.log('Non-complete status, attempting email verification...');
+        try {
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          console.log('Email verification prepared for non-complete status');
+          toast({
+            title: "Check Your Email", 
+            description: "We've sent you a verification code.",
+          });
+          
+          setCurrentStep(1.5);
+          setUserData({ email: sanitizedData.email });
+          setIsLoading(false);
+          return;
+        } catch (emailError) {
+          console.error('Email verification failed for non-complete status:', emailError);
         }
       }
 
