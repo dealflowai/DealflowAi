@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ClerkProvider, useUser } from "@clerk/clerk-react";
+import { TokenProvider } from "@/contexts/TokenContext";
 import { useSupabaseSync } from "@/hooks/useSupabaseSync";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
@@ -124,17 +125,19 @@ const AppContent = () => {
 
 const App = () => (
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <SubscriptionProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppContent />
-          </TooltipProvider>
-        </SubscriptionProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <TokenProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <SubscriptionProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AppContent />
+            </TooltipProvider>
+          </SubscriptionProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </TokenProvider>
   </ClerkProvider>
 );
 
