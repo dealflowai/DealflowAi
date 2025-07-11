@@ -13,6 +13,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { UsageMeter } from '@/components/ui/usage-meter';
+import { UpgradeModal } from '@/components/ui/upgrade-modal';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -44,44 +47,20 @@ const Settings = () => {
   const { user } = useUser();
   const { isDark, toggleTheme } = useTheme();
   const { toast } = useToast();
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({ subscribed: false });
+  const { 
+    subscriptionTier, 
+    subscribed, 
+    limits, 
+    usage, 
+    loading: subscriptionLoading,
+    refreshSubscription
+  } = useSubscription();
   const [loading, setLoading] = useState(false);
-  const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
-  const checkSubscription = async () => {
-    try {
-      setCheckingSubscription(true);
-      
-      if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
-        console.log('No Clerk user found');
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        body: {
-          userEmail: user.primaryEmailAddress.emailAddress,
-          userId: user.id
-        }
-      });
-      
-      if (error) throw error;
-      
-      setSubscriptionStatus(data);
-    } catch (error: any) {
-      console.error('Error checking subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check subscription status",
-        variant: "destructive",
-      });
-    } finally {
-      setCheckingSubscription(false);
-    }
+  const handleUpgrade = (feature?: string) => {
+    setUpgradeModalOpen(true);
   };
-
-  useEffect(() => {
-    checkSubscription();
-  }, []);
 
   const handleSubscribe = async (plan: string) => {
     try {
@@ -357,33 +336,32 @@ const Settings = () => {
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
+            {/* Current Plan Status */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <CreditCard className="w-5 h-5" />
-                  <span>Subscription & Billing</span>
+                  <span>Current Plan</span>
                 </CardTitle>
-                <CardDescription>Manage your subscription and billing settings</CardDescription>
+                <CardDescription>Your current subscription status and plan details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {checkingSubscription ? (
+                {subscriptionLoading ? (
                   <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Checking subscription status...</p>
+                    <p className="text-gray-600 dark:text-gray-400">Loading subscription status...</p>
                   </div>
-                ) : subscriptionStatus.subscribed ? (
+                ) : subscribed ? (
                   <div className="space-y-6">
                     <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
                       <div className="flex items-center mb-4">
                         <CheckCircle className="w-6 h-6 text-emerald-600 mr-3" />
                         <div>
                           <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-400">
-                            Active Subscription: {subscriptionStatus.subscription_tier}
+                            Active Subscription: {subscriptionTier?.charAt(0).toUpperCase() + subscriptionTier?.slice(1) || 'Premium'}
                           </h3>
                           <p className="text-emerald-700 dark:text-emerald-300">
-                            Renews on {subscriptionStatus.subscription_end && 
-                              new Date(subscriptionStatus.subscription_end).toLocaleDateString()
-                            }
+                            You have access to all {subscriptionTier} features
                           </p>
                         </div>
                       </div>
@@ -475,15 +453,83 @@ const Settings = () => {
                       <div className="text-center">
                         <Button 
                           variant="outline" 
-                          onClick={checkSubscription}
-                          disabled={checkingSubscription}
+                          onClick={refreshSubscription}
+                          disabled={subscriptionLoading}
                         >
-                          {checkingSubscription ? 'Checking...' : 'Refresh Subscription Status'}
+                          {subscriptionLoading ? 'Checking...' : 'Refresh Subscription Status'}
                         </Button>
                       </div>
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Usage Meters */}
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Target className="w-5 h-5" />
+                  <span>Usage & Limits</span>
+                </CardTitle>
+                <CardDescription>Track your current usage and plan limits</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <UsageMeter
+                    title="AI Analyzer Runs"
+                    current={usage.ai_analyzer_runs}
+                    limit={limits.aiAnalyzerRuns}
+                    unit="runs"
+                    showUpgrade={usage.ai_analyzer_runs >= limits.aiAnalyzerRuns}
+                    onUpgrade={() => handleUpgrade('AI Analyzer')}
+                  />
+                  
+                  <UsageMeter
+                    title="AI Buyer Matching"
+                    current={usage.ai_matching_runs}
+                    limit={limits.aiMatchingRuns}
+                    unit="runs"
+                    showUpgrade={usage.ai_matching_runs >= limits.aiMatchingRuns}
+                    onUpgrade={() => handleUpgrade('AI Buyer Matching')}
+                  />
+                  
+                  <UsageMeter
+                    title="AI Discovery"
+                    current={usage.ai_discovery_runs}
+                    limit={limits.aiDiscoveryRuns}
+                    unit="runs"
+                    showUpgrade={usage.ai_discovery_runs >= limits.aiDiscoveryRuns}
+                    onUpgrade={() => handleUpgrade('AI Discovery')}
+                  />
+                  
+                  <UsageMeter
+                    title="Buyer Contacts"
+                    current={usage.buyer_contacts}
+                    limit={limits.buyerContacts}
+                    unit="contacts"
+                    showUpgrade={usage.buyer_contacts >= limits.buyerContacts}
+                    onUpgrade={() => handleUpgrade('Buyer Contacts')}
+                  />
+                  
+                  <UsageMeter
+                    title="Seller Contacts"
+                    current={usage.seller_contacts}
+                    limit={limits.sellerContacts}
+                    unit="contacts"
+                    showUpgrade={usage.seller_contacts >= limits.sellerContacts}
+                    onUpgrade={() => handleUpgrade('Seller Contacts')}
+                  />
+                  
+                  <UsageMeter
+                    title="Contracts Created"
+                    current={usage.contracts_created}
+                    limit={limits.contracts}
+                    unit="contracts"
+                    showUpgrade={usage.contracts_created >= limits.contracts}
+                    onUpgrade={() => handleUpgrade('Contracts')}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -576,6 +622,12 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <UpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        currentPlan={subscriptionTier || 'free'}
+      />
     </Layout>
   );
 };

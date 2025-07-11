@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ClerkProvider, useUser } from "@clerk/clerk-react";
 import { useSupabaseSync } from "@/hooks/useSupabaseSync";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import AuthPage from "./components/Auth/AuthPage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -125,11 +126,13 @@ const App = () => (
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AppContent />
-        </TooltipProvider>
+        <SubscriptionProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AppContent />
+          </TooltipProvider>
+        </SubscriptionProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </ClerkProvider>

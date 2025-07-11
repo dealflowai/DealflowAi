@@ -473,6 +473,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_usage: {
+        Row: {
+          ai_analyzer_runs: number | null
+          ai_discovery_runs: number | null
+          ai_matching_runs: number | null
+          buyer_contacts: number | null
+          contracts_created: number | null
+          created_at: string | null
+          id: string
+          marketplace_listings: number | null
+          month_year: string
+          seller_contacts: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_analyzer_runs?: number | null
+          ai_discovery_runs?: number | null
+          ai_matching_runs?: number | null
+          buyer_contacts?: number | null
+          contracts_created?: number | null
+          created_at?: string | null
+          id?: string
+          marketplace_listings?: number | null
+          month_year: string
+          seller_contacts?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_analyzer_runs?: number | null
+          ai_discovery_runs?: number | null
+          ai_matching_runs?: number | null
+          buyer_contacts?: number | null
+          contracts_created?: number | null
+          created_at?: string | null
+          id?: string
+          marketplace_listings?: number | null
+          month_year?: string
+          seller_contacts?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       admin_deals_stats: {
@@ -510,9 +555,25 @@ export type Database = {
           profile_role: string
         }[]
       }
+      get_current_month_usage: {
+        Args: { p_user_id: string }
+        Returns: {
+          ai_analyzer_runs: number
+          ai_matching_runs: number
+          ai_discovery_runs: number
+          contracts_created: number
+          buyer_contacts: number
+          seller_contacts: number
+          marketplace_listings: number
+        }[]
+      }
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      increment_usage: {
+        Args: { p_user_id: string; p_usage_type: string; p_increment?: number }
+        Returns: boolean
       }
     }
     Enums: {
