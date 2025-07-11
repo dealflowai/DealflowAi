@@ -426,7 +426,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       } else {
         setUserData({ ...userData, ...sanitizedOnboardingData });
         
-        if (currentStep >= 3) {
+        // Check if this is the final step (consent step)
+        if (sanitizedOnboardingData.consent_given || currentStep >= 3) {
           toast({
             title: "Welcome to dealflow.ai!",
             description: "Your account setup is complete. Let's get started!",
@@ -448,24 +449,29 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     }
   };
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
-      {[1, 2, 3, 4].map((step) => (
-        <div key={step} className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-            step <= currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-          }`}>
-            {step < currentStep ? <Check className="w-4 h-4" /> : step}
+  const renderStepIndicator = () => {
+    // Adjust display step for UI (1.5 should show as step 2)
+    const displayStep = currentStep === 1.5 ? 2 : Math.ceil(currentStep);
+    
+    return (
+      <div className="flex items-center justify-center mb-8">
+        {[1, 2, 3, 4].map((step) => (
+          <div key={step} className="flex items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+              step <= displayStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              {step < displayStep ? <Check className="w-4 h-4" /> : step}
+            </div>
+            {step < 4 && (
+              <div className={`w-16 h-1 mx-2 ${
+                step < displayStep ? 'bg-primary' : 'bg-muted'
+              }`} />
+            )}
           </div>
-          {step < 4 && (
-            <div className={`w-16 h-1 mx-2 ${
-              step < currentStep ? 'bg-primary' : 'bg-muted'
-            }`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
+        ))}
+      </div>
+    );
+  };
 
   const renderStep1 = () => (
     <Card>
