@@ -77,24 +77,43 @@ const Settings = () => {
 
   const handleSubscribe = async (plan: string) => {
     try {
+      console.log('handleSubscribe called with plan:', plan);
       setLoading(true);
       const { data: { user: authUser } } = await supabase.auth.getUser();
       
-      if (!authUser) return;
+      console.log('Current user:', authUser);
+      
+      if (!authUser) {
+        console.log('No authenticated user found');
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to continue",
+          variant: "destructive",
+        });
+        return;
+      }
 
+      console.log('Invoking create-checkout function...');
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { plan }
       });
       
+      console.log('Function response:', { data, error });
+      
       if (error) throw error;
       
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      if (data?.url) {
+        console.log('Opening checkout URL:', data.url);
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error: any) {
       console.error('Error creating checkout:', error);
       toast({
         title: "Error",
-        description: "Failed to create checkout session",
+        description: error.message || "Failed to create checkout session",
         variant: "destructive",
       });
     } finally {
