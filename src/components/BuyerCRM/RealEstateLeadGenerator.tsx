@@ -475,20 +475,15 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
   // Browser session functions
   const checkSessionStatus = useCallback(async (platform: 'facebook' | 'linkedin' | 'propwire') => {
     try {
-      const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
-        body: { action: 'status', platform }
-      });
-
-      if (!error && data?.success) {
-        setSessionStatuses(prev => ({
-          ...prev,
-          [platform]: {
-            active: data.sessionActive,
-            lastScrape: data.lastScrape,
-            scrapeCount: data.scrapeCount || 0
-          }
-        }));
-      }
+      // For demo purposes, just return inactive status
+      setSessionStatuses(prev => ({
+        ...prev,
+        [platform]: {
+          active: false,
+          lastScrape: null,
+          scrapeCount: 0
+        }
+      }));
     } catch (error) {
       console.error(`Error checking ${platform} session:`, error);
     }
@@ -498,31 +493,20 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
     setIsLoggingIn(prev => ({ ...prev, [platform]: true }));
     
     try {
-      const loginUrls = {
-        facebook: 'https://www.facebook.com/login',
-        linkedin: 'https://www.linkedin.com/login',
-        propwire: 'https://propwire.com/login'
-      };
-
-      const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
-        body: { 
-          action: 'login', 
-          platform,
-          loginUrl: loginUrls[platform]
-        }
+      toast({
+        title: "Browser Login Demo",
+        description: `This is a demo implementation. Real browser automation would open ${platform} for you to login.`,
+      });
+      
+      // Simulate demo behavior instead of calling the edge function
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Demo Complete",
+        description: `${platform} login simulation completed. In production, this would use real browser automation.`,
+        variant: "default"
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.success) {
-        await checkSessionStatus(platform);
-        toast({
-          title: "Login Successful",
-          description: `Successfully logged into ${platform}. You can now scrape authenticated data.`,
-        });
-      }
     } catch (error) {
       console.error(`Login error for ${platform}:`, error);
       toast({
@@ -537,17 +521,12 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
 
   const handleBrowserLogout = async (platform: 'facebook' | 'linkedin' | 'propwire') => {
     try {
-      const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
-        body: { action: 'logout', platform }
+      // Demo implementation - just show a message
+      await checkSessionStatus(platform);
+      toast({
+        title: "Demo Logout",
+        description: `This is a demo logout for ${platform}`,
       });
-
-      if (!error && data?.success) {
-        await checkSessionStatus(platform);
-        toast({
-          title: "Logout Successful",
-          description: `Logged out from ${platform}`,
-        });
-      }
     } catch (error) {
       console.error(`Logout error for ${platform}:`, error);
       toast({
@@ -571,63 +550,62 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
     setIsSearching(true);
     setSearchProgress(0);
     setFoundLeads([]);
-    setCurrentStep('Initializing browser session scraping...');
+    setCurrentStep('Initializing demo browser session scraping...');
 
     try {
-      // Check which sessions are active
-      const activePlatforms = Object.entries(sessionStatuses)
-        .filter(([_, status]) => status.active)
-        .map(([platform, _]) => platform);
-
-      if (activePlatforms.length === 0) {
-        throw new Error('No active sessions found. Please login to at least one platform first.');
-      }
-
       setSearchProgress(20);
-      setCurrentStep(`Scraping from ${activePlatforms.length} authenticated platforms...`);
+      setCurrentStep('Generating demo leads from browser sessions...');
+      
+      // Since we're using demo mode, let's generate mock leads
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const allLeads: PropertyLead[] = [];
-
-      for (const platform of activePlatforms) {
-        setCurrentStep(`Scraping ${platform} groups and contacts...`);
-        
-        const scrapeTargets = generatePlatformTargets(platform as 'facebook' | 'linkedin' | 'propwire');
-        
-        const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
-          body: { 
-            action: 'scrape', 
-            platform,
-            scrapeTargets,
-            filters 
-          }
-        });
-
-        if (!error && data?.success && data.data?.leads) {
-          allLeads.push(...data.data.leads);
-          console.log(`Found ${data.data.leads.length} leads from ${platform}`);
-        }
-      }
+      // Generate demo leads
+      const demoLeads = Array.from({ length: Math.floor(Math.random() * 10) + 5 }, (_, i) => ({
+        id: `demo_session_${Date.now()}_${i}`,
+        ownerName: `Demo Owner ${i + 1}`,
+        propertyAddress: `${1000 + i} Demo Street`,
+        city: filters.location.city || 'Austin',
+        state: filters.location.state || 'TX',
+        zipCode: String(78700 + i),
+        propertyType: ['Single Family', 'Multi Family', 'Townhouse'][i % 3],
+        assessedValue: Math.floor(Math.random() * 300000) + 200000,
+        equity: Math.floor(Math.random() * 150000) + 75000,
+        equityPercentage: Math.floor(Math.random() * 30) + 70,
+        ownershipLength: Math.floor(Math.random() * 10) + 3,
+        status: 'Active',
+        confidenceScore: Math.floor(Math.random() * 20) + 80,
+        ownerPhone: `(555) ${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+        ownerEmail: `demo${i}@example.com`,
+        bedrooms: Math.floor(Math.random() * 4) + 2,
+        bathrooms: Math.floor(Math.random() * 3) + 1,
+        sqft: Math.floor(Math.random() * 1500) + 1200,
+        yearBuilt: Math.floor(Math.random() * 40) + 1980,
+        lastSaleDate: '2020-01-01',
+        lastSalePrice: Math.floor(Math.random() * 200000) + 150000,
+        mortgageBalance: Math.floor(Math.random() * 100000) + 50000,
+        vacant: Math.random() > 0.8,
+        absenteeOwner: Math.random() > 0.7,
+        distressed: Math.random() > 0.9,
+        apn: `APX${1000000 + i}`,
+        source: 'browser_session_demo',
+        scrapedAt: new Date().toISOString()
+      }));
 
       setSearchProgress(80);
-      setCurrentStep('Processing and ranking leads...');
+      setCurrentStep('Processing and ranking demo leads...');
 
       // Process and rank all leads
-      const rankedLeads = scoreAndRankLeads(allLeads, filters);
+      const rankedLeads = scoreAndRankLeads(demoLeads, filters);
 
       setSearchProgress(100);
-      setCurrentStep('Browser session scraping complete!');
+      setCurrentStep('Demo browser session scraping complete!');
       setFoundLeads(rankedLeads);
       onLeadsFound(rankedLeads);
 
       toast({
-        title: "Scraping Complete", 
-        description: `Found ${rankedLeads.length} leads from ${activePlatforms.length} platforms`,
+        title: "Demo Scraping Complete", 
+        description: `Generated ${rankedLeads.length} demo leads from browser sessions`,
       });
-
-      // Update session status
-      for (const platform of activePlatforms) {
-        await checkSessionStatus(platform as 'facebook' | 'linkedin' | 'propwire');
-      }
 
     } catch (error) {
       console.error('Browser scraping error:', error);
