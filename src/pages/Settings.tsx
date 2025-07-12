@@ -192,7 +192,7 @@ const Settings = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value

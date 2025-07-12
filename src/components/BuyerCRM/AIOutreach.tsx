@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ interface OutreachActivity {
     next_actions: string[];
   };
   transcript?: string;
-  response_data?: any;
+  response_data?: Record<string, unknown>;
   scheduled_at: string;
   completed_at?: string;
 }
@@ -116,14 +116,8 @@ const AIOutreach = ({ buyers, onRefresh }: AIOutreachProps) => {
     qualifiedLeads: 0
   });
 
-  // Load campaigns and activities
-  useEffect(() => {
-    loadCampaigns();
-    loadActivities();
-    loadRealTimeStats();
-  }, [user?.id]);
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async () => {
     // Mock data - replace with actual Supabase queries
     const mockCampaigns: OutreachCampaign[] = [
       {
@@ -166,9 +160,9 @@ const AIOutreach = ({ buyers, onRefresh }: AIOutreachProps) => {
       }
     ];
     setCampaigns(mockCampaigns);
-  };
+  }, []);
 
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     // Mock recent activities
     const mockActivities: OutreachActivity[] = [
       {
@@ -189,16 +183,25 @@ const AIOutreach = ({ buyers, onRefresh }: AIOutreachProps) => {
       }
     ];
     setActivities(mockActivities);
-  };
+  }, []);
 
-  const loadRealTimeStats = async () => {
+  const loadRealTimeStats = useCallback(async () => {
     setRealTimeStats({
       activeOutreach: 3,
       todayContacts: 12,
       responseRate: 76,
       qualifiedLeads: 8
     });
-  };
+  }, []);
+
+  // Load campaigns and activities with proper dependencies
+  useEffect(() => {
+    if (user?.id) {
+      loadCampaigns();
+      loadActivities();
+      loadRealTimeStats();
+    }
+  }, [user?.id, loadCampaigns, loadActivities, loadRealTimeStats]);
 
   const createCampaign = async () => {
     if (!campaignName.trim() || selectedBuyers.length === 0) {

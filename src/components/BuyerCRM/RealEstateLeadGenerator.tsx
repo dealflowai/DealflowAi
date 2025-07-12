@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -326,14 +326,14 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
     }
   };
 
-  const processPropertyData = async (scrapedData: any, filters: SearchFilters): Promise<PropertyLead[]> => {
+  const processPropertyData = async (scrapedData: unknown, filters: SearchFilters): Promise<PropertyLead[]> => {
     // Process actual scraped data from real estate websites
-    if (!scrapedData || !scrapedData.leads) {
+    if (!scrapedData || typeof scrapedData !== 'object' || !('leads' in scrapedData) || !Array.isArray((scrapedData as any).leads)) {
       throw new Error('No real property data was scraped. Please ensure your Firecrawl API key is configured correctly.');
     }
 
     // Return the actual leads from the edge function
-    return scrapedData.leads || [];
+    return (scrapedData as { leads: PropertyLead[] }).leads || [];
   };
 
   const enhanceWithContactData = async (leads: PropertyLead[]): Promise<PropertyLead[]> => {
@@ -473,7 +473,7 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
   };
 
   // Browser session functions
-  const checkSessionStatus = async (platform: 'facebook' | 'linkedin' | 'propwire') => {
+  const checkSessionStatus = useCallback(async (platform: 'facebook' | 'linkedin' | 'propwire') => {
     try {
       const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
         body: { action: 'status', platform }
@@ -492,7 +492,7 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
     } catch (error) {
       console.error(`Error checking ${platform} session:`, error);
     }
-  };
+  }, []);
 
   const handleBrowserLogin = async (platform: 'facebook' | 'linkedin' | 'propwire') => {
     setIsLoggingIn(prev => ({ ...prev, [platform]: true }));
@@ -677,7 +677,7 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
       checkSessionStatus('linkedin');
       checkSessionStatus('propwire');
     }
-  }, [user?.id]);
+  }, [user?.id, checkSessionStatus]);
 
   return (
     <div className="space-y-6">

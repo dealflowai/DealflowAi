@@ -27,12 +27,22 @@ serve(async (req) => {
     );
 
     // Get user from JWT
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabaseClient.auth.getUser(token);
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header missing' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    if (!user) {
-      throw new Error('Unauthorized');
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const body: ScrapingRequest = await req.json();
