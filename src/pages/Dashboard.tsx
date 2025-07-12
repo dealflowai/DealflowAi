@@ -133,7 +133,7 @@ const Dashboard = () => {
               Export Report
             </Button>
             <Button 
-              onClick={() => window.location.href = '/deal-analyzer'}
+              onClick={() => window.location.href = '/analyzer'}
               className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
               data-tour="deal-analyzer"
             >
@@ -185,7 +185,12 @@ const Dashboard = () => {
                 <div key={insight.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
                   <h4 className="font-medium text-xs sm:text-sm text-gray-900 dark:text-gray-100 mb-1">{insight.title}</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{insight.description}</p>
-                  <Button variant="outline" size="sm" className="text-xs w-full sm:w-auto">
+                  <Button 
+                    onClick={() => window.location.href = insight.actionUrl}
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs w-full sm:w-auto"
+                  >
                     {insight.action}
                   </Button>
                 </div>
@@ -235,7 +240,11 @@ const Dashboard = () => {
               <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Buyers Yet</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Import a lead or discover buyers to start building your pipeline.</p>
-              <Button className="bg-primary hover:bg-primary/90 text-xs sm:text-sm w-full sm:w-auto" data-tour="buyers-cta">
+              <Button 
+                onClick={() => window.location.href = '/buyers'}
+                className="bg-primary hover:bg-primary/90 text-xs sm:text-sm w-full sm:w-auto" 
+                data-tour="buyers-cta"
+              >
                 <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 Discover Buyers
               </Button>
@@ -244,7 +253,12 @@ const Dashboard = () => {
               <Calculator className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Deals Analyzed</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Import a lead or scrape a listing to start analyzing deals.</p>
-              <Button variant="outline" data-tour="ai-discovery" className="text-xs sm:text-sm w-full sm:w-auto">
+              <Button 
+                onClick={() => window.location.href = '/analyzer'}
+                variant="outline" 
+                data-tour="ai-discovery" 
+                className="text-xs sm:text-sm w-full sm:w-auto"
+              >
                 <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 Analyze First Deal
               </Button>
@@ -317,7 +331,7 @@ const Dashboard = () => {
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
             <button 
-              onClick={() => window.location.href = '/deal-analyzer'}
+              onClick={() => window.location.href = '/analyzer'}
               className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group"
             >
               <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
