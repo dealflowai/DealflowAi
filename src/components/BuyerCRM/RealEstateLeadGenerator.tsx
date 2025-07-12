@@ -287,18 +287,23 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
   };
 
   const scrapeRealEstateData = async (targets: string[]) => {
-    const { data, error } = await supabase.functions.invoke('ai-buyer-discovery', {
-      body: {
-        searchCriteria: {
-          targets: targets,
-          filters: filters,
-          searchType: 'real_estate_leads'
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-buyer-discovery', {
+        body: {
+          searchCriteria: {
+            targets: targets,
+            filters: filters,
+            searchType: 'real_estate_leads'
+          }
         }
-      }
-    });
+      });
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Scraping error:', error);
+      throw error;
+    }
   };
 
   const processPropertyData = async (scrapedData: any, filters: SearchFilters): Promise<PropertyLead[]> => {
