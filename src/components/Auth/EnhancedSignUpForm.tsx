@@ -109,15 +109,49 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     try {
       console.log('Starting signup process...');
       
-      // Create the initial signup with email redirect
-      const redirectUrl = `${window.location.origin}/auth`;
+      // Security check before allowing signup
+      const userIP = '127.0.0.1'; // This would be the actual IP in production
+      const emailDomain = data.email.split('@')[1];
       
+      const { data: securityCheck } = await supabase.rpc('check_signup_security', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
+      });
+      
+      const securityResult = securityCheck as { allowed: boolean; reason?: string };
+      
+      if (!securityResult.allowed) {
+        toast({
+          title: "Signup Blocked",
+          description: securityResult.reason || "Security check failed",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Create the initial signup with email redirect
+      const redirectUrl = `${window.location.origin}/`;
+      
+      // Log signup attempt for security tracking
+      await supabase.rpc('log_signup_attempt', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone,
+        p_success: false
+      });
+
       // Try creating account with minimal metadata to avoid verification issues
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName
+        lastName: data.lastName,
+        unsafeMetadata: {
+          phone: data.phone,
+          role: data.role
+        }
       });
 
       console.log('Signup result:', result);

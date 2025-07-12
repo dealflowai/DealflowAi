@@ -644,6 +644,45 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_security: {
+        Row: {
+          attempts_count: number
+          block_reason: string | null
+          blocked_until: string | null
+          created_at: string
+          device_fingerprint: string | null
+          email_domain: string
+          id: string
+          ip_address: unknown
+          phone_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts_count?: number
+          block_reason?: string | null
+          blocked_until?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          email_domain: string
+          id?: string
+          ip_address: unknown
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts_count?: number
+          block_reason?: string | null
+          blocked_until?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          email_domain?: string
+          id?: string
+          ip_address?: unknown
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -832,6 +871,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_signup_security: {
+        Args: {
+          p_ip_address: unknown
+          p_email_domain: string
+          p_device_fingerprint?: string
+          p_phone_number?: string
+        }
+        Returns: Json
+      }
       cleanup_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -899,6 +947,16 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: string
+      }
+      log_signup_attempt: {
+        Args: {
+          p_ip_address: unknown
+          p_email_domain: string
+          p_device_fingerprint?: string
+          p_phone_number?: string
+          p_success?: boolean
+        }
+        Returns: undefined
       }
       reset_monthly_tokens: {
         Args: { p_user_id: string }
