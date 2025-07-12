@@ -37,7 +37,7 @@ const basicSignUpSchema = z.object({
   }),
   phone: z.string()
     .min(10, 'Phone number must be at least 10 digits')
-    .regex(/^[\+]?[1-9][\d]{9,14}$/, 'Please enter a valid phone number'),
+    .regex(/^[\+]?[\d\s\(\)\-]{10,}$/, 'Please enter a valid phone number'),
   consent: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy'
   })
@@ -137,29 +137,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             description: "We've sent you a verification code to complete your registration.",
           });
         } catch (verificationError) {
-          console.log('Verification preparation failed, trying alternative flow');
-          // If verification fails, try to complete without it
-          try {
-            const completionResult = await signUp.update({
-              firstName: data.firstName,
-              lastName: data.lastName,
-            });
-            
-            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-              await setActive({ session: completionResult.createdSessionId });
-              await createUserProfile(completionResult.createdUserId!, data);
-              
-              setUserData({ ...data, clerkId: completionResult.createdUserId });
-              setCurrentStep(2);
-              
-              toast({
-                title: "Account Created!",
-                description: "Welcome! Let's customize your experience.",
-              });
-            }
-          } catch (updateError) {
-            throw verificationError; // Fall back to original error
-          }
+          console.log('Verification preparation failed:', verificationError);
+          toast({
+            title: "Verification Issue",
+            description: "There's a temporary issue with email verification. Please check your email or try again.",
+            variant: "destructive"
+          });
         }
       } else if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
@@ -560,7 +543,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
             <div>
               <Label htmlFor="role">Your Role</Label>
-              <Select onValueChange={(value) => basicForm.setValue('role', value as any)}>
+              <Select 
+                onValueChange={(value) => {
+                  basicForm.setValue('role', value as any);
+                  basicForm.trigger('role');
+                }}
+                {...basicForm.register('role')}
+              >
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
@@ -593,7 +582,11 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             <div className="flex items-start space-x-3">
               <Checkbox
                 id="consent"
-                onCheckedChange={(checked) => basicForm.setValue('consent', !!checked)}
+                onCheckedChange={(checked) => {
+                  basicForm.setValue('consent', !!checked);
+                  basicForm.trigger('consent');
+                }}
+                {...basicForm.register('consent')}
               />
               <div className="flex-1">
                 <Label htmlFor="consent" className="text-sm leading-relaxed cursor-pointer">
@@ -616,7 +609,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             <Button 
               type="submit" 
               className="w-full h-12 text-base font-semibold"
-              disabled={isLoading || !allRequirementsMet}
+              disabled={isLoading || !basicForm.formState.isValid}
             >
               {isLoading ? (
                 <>
@@ -831,7 +824,20 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               <Button 
                 type="button"
                 variant="outline"
-                onClick={() => setCurrentStep(3)}
+                onClick={async () => {
+                  // Mark onboarding as complete even if skipped
+                  if (userData.clerkId) {
+                    try {
+                      await supabase
+                        .from('profiles')
+                        .update({ has_completed_onboarding: true })
+                        .eq('clerk_id', userData.clerkId);
+                    } catch (error) {
+                      console.error('Profile update error:', error);
+                    }
+                  }
+                  setCurrentStep(3);
+                }}
                 className="flex-1"
               >
                 Skip For Now
