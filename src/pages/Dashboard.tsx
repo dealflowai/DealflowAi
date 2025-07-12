@@ -17,6 +17,111 @@ import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Export functionality
+const exportDashboardReport = (stats: any, trends: any, activities: any[], user: any, toast: any) => {
+  const reportData = {
+    generatedAt: new Date().toLocaleString(),
+    user: user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.emailAddresses?.[0]?.emailAddress || 'Unknown User',
+    
+    // Key Metrics
+    totalBuyers: stats.totalBuyers,
+    activeBuyers: stats.activeBuyers,
+    newBuyers: stats.newBuyers,
+    totalDeals: stats.totalDeals,
+    activeDeals: stats.activeDeals,
+    closedDeals: stats.closedDeals,
+    totalContracts: stats.totalContracts,
+    signedContracts: stats.signedContracts,
+    
+    // Financial Metrics
+    totalBuyingPower: stats.totalBuyingPower,
+    averageBudget: stats.averageBudget,
+    averageDealValue: stats.averageDealValue,
+    totalDealValue: stats.totalDealValue,
+    
+    // Performance Metrics
+    activationRate: trends.activationRate.toFixed(2) + '%',
+    conversionRate: trends.conversionRate.toFixed(2) + '%',
+    buyersGrowth: trends.buyersGrowth.toFixed(2) + '%',
+    
+    // Token Usage
+    totalTokens: stats.totalTokens,
+    usedTokens: stats.usedTokens,
+    remainingTokens: stats.remainingTokens,
+    
+    // Recent Activity Summary
+    recentActivityCount: activities.length,
+    recentActivity: activities.slice(0, 10).map(activity => ({
+      type: activity.type,
+      title: activity.title,
+      description: activity.description,
+      time: activity.time
+    }))
+  };
+
+  // Convert to CSV format
+  const csvContent = generateCSVReport(reportData);
+  
+  // Create and download file
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `dealflow-dashboard-report-${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Show success toast
+  toast({
+    title: "Report Exported Successfully",
+    description: "Your dashboard report has been downloaded as a CSV file.",
+  });
+};
+
+const generateCSVReport = (data: any) => {
+  const lines = [
+    'DealFlow AI - Dashboard Report',
+    `Generated: ${data.generatedAt}`,
+    `User: ${data.user}`,
+    '',
+    'KEY METRICS',
+    `Total Buyers,${data.totalBuyers}`,
+    `Active Buyers,${data.activeBuyers}`,
+    `New Buyers,${data.newBuyers}`,
+    `Total Deals,${data.totalDeals}`,
+    `Active Deals,${data.activeDeals}`,
+    `Closed Deals,${data.closedDeals}`,
+    `Total Contracts,${data.totalContracts}`,
+    `Signed Contracts,${data.signedContracts}`,
+    '',
+    'FINANCIAL METRICS',
+    `Total Buying Power,$${data.totalBuyingPower.toLocaleString()}`,
+    `Average Budget,$${data.averageBudget.toLocaleString()}`,
+    `Average Deal Value,$${data.averageDealValue.toLocaleString()}`,
+    `Total Deal Value,$${data.totalDealValue.toLocaleString()}`,
+    '',
+    'PERFORMANCE METRICS',
+    `Activation Rate,${data.activationRate}`,
+    `Conversion Rate,${data.conversionRate}`,
+    `Buyers Growth,${data.buyersGrowth}`,
+    '',
+    'TOKEN USAGE',
+    `Total Tokens,${data.totalTokens}`,
+    `Used Tokens,${data.usedTokens}`,
+    `Remaining Tokens,${data.remainingTokens}`,
+    '',
+    'RECENT ACTIVITY',
+    'Type,Title,Description,Time',
+    ...data.recentActivity.map((activity: any) => 
+      `${activity.type},"${activity.title}","${activity.description}",${activity.time}`
+    )
+  ];
+  
+  return lines.join('\n');
+};
+
 const Dashboard = () => {
   const { user } = useUser();
   const { stats, trends, recentActivity, buyerChartData, marketInsights, isLoading } = useDashboardData();
@@ -131,7 +236,12 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Button variant="outline" data-tour="contracts" className="text-xs sm:text-sm">
+            <Button 
+              variant="outline" 
+              onClick={() => exportDashboardReport(stats, trends, recentActivity, user, toast)}
+              data-tour="contracts" 
+              className="text-xs sm:text-sm"
+            >
               Export Report
             </Button>
             <Button 
