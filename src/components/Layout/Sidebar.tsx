@@ -57,11 +57,20 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
     queryFn: async () => {
       if (!user?.id) return null;
       
+      // First get the user's profile to get the UUID
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profileData?.id) return null;
+      
       const { data, error } = await supabase
         .from('subscribers')
         .select('subscription_tier')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', profileData.id)
+        .single();
       
       if (error) {
         console.error('Error fetching subscription:', error);
