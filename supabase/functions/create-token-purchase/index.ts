@@ -63,7 +63,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment", // One-time payment for tokens
-      success_url: `${req.headers.get("origin")}/dashboard?token_purchase=success`,
+      success_url: `${req.headers.get("origin")}/token-purchase-success`,
       cancel_url: `${req.headers.get("origin")}/dashboard?token_purchase=canceled`,
       metadata: {
         type: "token_purchase",

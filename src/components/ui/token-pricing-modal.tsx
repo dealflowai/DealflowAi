@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,7 @@ import { Gem, Star, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from '@/hooks/use-toast';
+import { useTokens } from '@/contexts/TokenContext';
 
 interface TokenPricingModalProps {
   open: boolean;
@@ -99,7 +100,27 @@ const TOKEN_PACKAGES = [
 
 export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps) {
   const { user } = useUser();
+  const { refreshTokenBalance } = useTokens();
   const [loadingPackage, setLoadingPackage] = useState<string | null>(null);
+
+  // Listen for successful token purchases
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token_purchase_success' && e.newValue === 'true') {
+        // Payment was successful, refresh tokens and close modal
+        refreshTokenBalance();
+        onOpenChange(false);
+        localStorage.removeItem('token_purchase_success');
+        toast({
+          title: "Tokens Added Successfully!",
+          description: "Your tokens have been added to your account.",
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshTokenBalance, onOpenChange]);
 
   const handlePurchase = async (packageData: typeof TOKEN_PACKAGES[0]) => {
     if (!user) return;
@@ -118,6 +139,8 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
       if (error) throw error;
 
       if (data?.url) {
+        // Store package info for after payment
+        localStorage.setItem('pending_token_purchase', JSON.stringify(packageData));
         window.open(data.url, '_blank');
       }
     } catch (error) {

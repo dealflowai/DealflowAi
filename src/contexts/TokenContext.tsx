@@ -15,6 +15,8 @@ interface TokenContextType {
   refreshTokenBalance: () => Promise<void>;
   deductTokens: (amount: number, feature: string) => Promise<boolean>;
   showTokenUpgradeModal: (feature: string, cost: number) => void;
+  showTokenPricingModal: boolean;
+  setShowTokenPricingModal: (show: boolean) => void;
 }
 
 const TokenContext = createContext<TokenContextType | undefined>(undefined);
@@ -33,6 +35,7 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showTokenPricingModal, setShowTokenPricingModal] = useState(false);
 
   const refreshTokenBalance = async () => {
     if (!user) return;
@@ -118,9 +121,10 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
   };
 
   const showTokenUpgradeModal = (feature: string, cost: number) => {
+    setShowTokenPricingModal(true);
     toast({
       title: "Insufficient Tokens",
-      description: `You need ${cost} tokens to use ${feature}. Please purchase more tokens to continue.`,
+      description: `You need ${cost} tokens to use ${feature}. Opening token purchase options...`,
       variant: "destructive",
     });
   };
@@ -138,6 +142,8 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
       refreshTokenBalance,
       deductTokens,
       showTokenUpgradeModal,
+      showTokenPricingModal,
+      setShowTokenPricingModal,
     }}>
       {children}
     </TokenContext.Provider>
