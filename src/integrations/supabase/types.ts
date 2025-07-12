@@ -420,6 +420,7 @@ export type Database = {
           onboarding_completed: boolean | null
           onboarding_step: number | null
           phone: string | null
+          plan_tokens: number | null
           preferred_markets: string[] | null
           primary_markets: string[] | null
           property_types: string[] | null
@@ -452,6 +453,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           phone?: string | null
+          plan_tokens?: number | null
           preferred_markets?: string[] | null
           primary_markets?: string[] | null
           property_types?: string[] | null
@@ -484,6 +486,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           phone?: string | null
+          plan_tokens?: number | null
           preferred_markets?: string[] | null
           primary_markets?: string[] | null
           property_types?: string[] | null
@@ -567,6 +570,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          monthly_allowance: number | null
+          monthly_reset_date: string | null
           remaining_tokens: number | null
           total_tokens: number
           updated_at: string
@@ -576,6 +581,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          monthly_allowance?: number | null
+          monthly_reset_date?: string | null
           remaining_tokens?: number | null
           total_tokens?: number
           updated_at?: string
@@ -585,6 +592,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          monthly_allowance?: number | null
+          monthly_reset_date?: string | null
           remaining_tokens?: number | null
           total_tokens?: number
           updated_at?: string
@@ -709,6 +718,10 @@ export type Database = {
       }
       increment_usage: {
         Args: { p_user_id: string; p_usage_type: string; p_increment?: number }
+        Returns: boolean
+      }
+      reset_monthly_tokens: {
+        Args: { p_user_id: string }
         Returns: boolean
       }
     }
