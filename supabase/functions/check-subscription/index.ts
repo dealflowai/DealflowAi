@@ -125,32 +125,29 @@ serve(async (req) => {
 
     // If user has active subscription and no subscription start date, set it
     if (hasActiveSub && profile?.id && !profile.subscription_start_date) {
+      const planTokens = subscriptionTier?.toLowerCase() === 'pro' || subscriptionTier?.toLowerCase() === 'starter' ? 100 : 25;
+      
       await supabaseClient
         .from('profiles')
         .update({
           subscription_start_date: new Date().toISOString().split('T')[0], // Today's date
           last_token_grant_date: new Date().toISOString().split('T')[0],
           next_token_grant_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-          plan_tokens: subscriptionTier?.toLowerCase() === 'pro' || subscriptionTier?.toLowerCase() === 'starter' ? 100 : 25
+          plan_tokens: planTokens
         })
         .eq('id', profile.id);
       
       // Grant initial tokens for new core/pro subscribers
-      if (hasActiveSub && profile?.id && !profile.subscription_start_date) {
-        const planTokens = subscriptionTier?.toLowerCase() === 'pro' || subscriptionTier?.toLowerCase() === 'starter' ? 100 : 25;
-        
-        // Grant initial tokens
-        await supabaseClient.rpc('grant_tokens_to_user', {
-          p_user_id: profile.id,
-          p_tokens: planTokens
-        });
-        
-        logStep("Granted initial tokens to new subscriber", { 
-          userId: profile.id, 
-          tokensGranted: planTokens,
-          subscriptionTier 
-        });
-      }
+      await supabaseClient.rpc('grant_tokens_to_user', {
+        p_user_id: profile.id,
+        p_tokens: planTokens
+      });
+      
+      logStep("Set up new subscriber with initial tokens", { 
+        userId: profile.id, 
+        tokensGranted: planTokens,
+        subscriptionTier 
+      });
     }
 
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
