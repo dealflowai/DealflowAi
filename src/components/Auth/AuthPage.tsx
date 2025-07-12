@@ -75,13 +75,13 @@ const AuthPage = () => {
           <div className="text-center mb-8">
             <Badge className="mb-4">
               <Clock className="w-4 h-4 mr-2" />
-              14-Day Free Trial • No Credit Card Required
+              Free Forever • No Credit Card Required
             </Badge>
           </div>
 
           <Tabs defaultValue="signup" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="signup">Start Free Trial</TabsTrigger>
+              <TabsTrigger value="signup">Start Free Now</TabsTrigger>
               <TabsTrigger value="signin">Sign In</TabsTrigger>
             </TabsList>
             

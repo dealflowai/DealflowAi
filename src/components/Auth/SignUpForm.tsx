@@ -286,7 +286,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
               Creating Account...
             </>
           ) : (
-            `Start Free Trial - ${selectedPlanData?.name}`
+            `Start Free Now - ${selectedPlanData?.name}`
           )}
         </Button>
       </form>

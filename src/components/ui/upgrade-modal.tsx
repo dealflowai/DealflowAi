@@ -202,7 +202,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
         <div className="text-center mt-6 pt-6 border-t">
           <p className="text-sm text-muted-foreground">
-            All plans include a 14-day free trial. Cancel anytime.
+            All plans are free to start. No credit card required.
           </p>
         </div>
       </DialogContent>
