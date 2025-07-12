@@ -289,69 +289,71 @@ const Settings = () => {
           </TabsContent>
 
           {/* Billing Tab */}
-          <TabsContent value="billing" className="space-y-6">
+          <TabsContent value="billing" className="space-y-4">
             {/* Token Balance */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <Gem className="w-5 h-5 text-primary" />
                   <span>Token Balance</span>
                 </CardTitle>
-                <CardDescription>Pay only for what you use with our token-based system</CardDescription>
+                <CardDescription className="text-sm">Pay only for what you use with our token-based system</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 {tokenLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading token balance...</p>
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Loading token balance...</p>
                   </div>
                 ) : tokenBalance ? (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-primary/10 to-blue-50 dark:from-primary/20 dark:to-blue-900/20 rounded-xl p-6 border border-primary/20">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-primary/10 to-blue-50 dark:from-primary/20 dark:to-blue-900/20 rounded-lg p-4 border border-primary/20">
+                      <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="text-center">
-                          <div className="text-3xl font-bold text-primary mb-1">
+                          <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
                             {tokenBalance.remainingTokens}
                           </div>
-                          <div className="text-sm text-muted-foreground">Tokens Remaining</div>
+                          <div className="text-xs text-muted-foreground">Remaining</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-3xl font-bold text-gray-600 mb-1">
+                          <div className="text-xl sm:text-2xl font-bold text-gray-600 mb-1">
                             {tokenBalance.usedTokens}
                           </div>
-                          <div className="text-sm text-muted-foreground">Tokens Used</div>
+                          <div className="text-xs text-muted-foreground">Used</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-3xl font-bold text-gray-800 mb-1">
+                          <div className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
                             {tokenBalance.totalTokens}
                           </div>
-                          <div className="text-sm text-muted-foreground">Total Purchased</div>
+                          <div className="text-xs text-muted-foreground">Total</div>
                         </div>
                       </div>
                       
                       <Button 
                         onClick={() => setTokenModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-white w-full"
+                        className="bg-primary hover:bg-primary/90 text-white w-full h-10"
+                        size="sm"
                       >
-                        <Gem className="mr-2" size={16} />
+                        <Gem className="mr-2" size={14} />
                         Buy More Tokens
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center mb-2">
-                      <Gem className="w-6 h-6 text-blue-600 mr-3" />
-                      <h3 className="text-xl font-bold text-blue-800 dark:text-blue-400">25 Free Tokens</h3>
+                  <div className="bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center mb-3">
+                      <Gem className="w-5 h-5 text-blue-600 mr-2" />
+                      <h3 className="text-lg font-bold text-blue-800 dark:text-blue-400">25 Free Tokens</h3>
                     </div>
-                    <p className="text-blue-700 dark:text-blue-300">
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                       Perfect for testing our AI features • No credit card required
                     </p>
                     <Button 
                       onClick={() => setTokenModalOpen(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white mt-4"
+                      className="bg-blue-600 hover:bg-blue-700 text-white w-full h-10"
+                      size="sm"
                     >
-                      <Gem className="mr-2" size={16} />
+                      <Gem className="mr-2" size={14} />
                       Buy Tokens
                     </Button>
                   </div>
@@ -361,22 +363,22 @@ const Settings = () => {
 
             {/* Token Usage Guide */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <Target className="w-5 h-5" />
                   <span>Token Usage Guide</span>
                 </CardTitle>
-                <CardDescription>See how tokens are used across different features</CardDescription>
+                <CardDescription className="text-sm">See how tokens are used across different features</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(TOKEN_COSTS).map(([feature, cost]) => (
-                    <div key={feature} className="flex items-center justify-between p-4 border rounded-lg dark:border-gray-700">
-                      <div className="flex items-center space-x-3">
-                        <Gem className="w-4 h-4 text-primary" />
-                        <span className="font-medium">{feature}</span>
+                    <div key={feature} className="flex items-center justify-between p-3 border rounded-lg dark:border-gray-700 bg-muted/20">
+                      <div className="flex items-center space-x-2">
+                        <Gem className="w-3 h-3 text-primary flex-shrink-0" />
+                        <span className="font-medium text-sm truncate">{feature}</span>
                       </div>
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">
                         {cost} token{cost > 1 ? 's' : ''}
                       </Badge>
                     </div>
