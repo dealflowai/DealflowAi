@@ -1129,29 +1129,78 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     setIsLoading(true);
     
     try {
-      // Check current signup status first
-      console.log('Current signup status:', signUp.status);
-      console.log('Missing fields:', signUp.missingFields);
-      console.log('Email verification status:', signUp.verifications?.emailAddress?.status);
+      // Clean the verification code
+      const cleanCode = verificationCode.trim().replace(/\s/g, '');
       
-      // If email is already verified, complete signup with missing fields
-      if (signUp.verifications?.emailAddress?.status === 'verified') {
-        console.log('Email already verified, completing signup with required fields...');
-        
-        const result = await signUp.update({
-          firstName: userData.firstName || 'User',
-          lastName: userData.lastName || 'User',
+      if (!cleanCode || cleanCode.length < 6) {
+        toast({
+          title: "Invalid Code",
+          description: "Please enter a valid 6-digit verification code.",
+          variant: "destructive"
         });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Current signup status:', signUp.status);
+      console.log('Email verification status:', signUp.verifications?.emailAddress?.status);
+      console.log('Attempting verification with code:', cleanCode);
+      
+      // Attempt email verification with the code
+      const verificationResult = await signUp.attemptEmailAddressVerification({
+        code: cleanCode,
+      });
+
+      console.log('Verification attempt result:', verificationResult);
+      
+      // Clear the verification code after attempt
+      setVerificationCode('');
+      
+      // Check if verification was successful
+      if (verificationResult.verifications?.emailAddress?.status === 'verified') {
+        console.log('Email verification successful');
         
-        console.log('Update result:', result);
+        // Now complete the signup process
+        let finalResult = verificationResult;
         
-        // After updating, attempt to complete
-        if (result.status === 'complete' && result.createdSessionId) {
-          await setActive({ session: result.createdSessionId });
+        // If signup is not complete, update with user details
+        if (finalResult.status !== 'complete') {
+          console.log('Completing signup with user details...');
           
-          // Store profile data in Supabase after verification
+          finalResult = await signUp.update({
+            firstName: userData.firstName || 'User',
+            lastName: userData.lastName || 'User',
+            unsafeMetadata: {
+              role: userData.role,
+              phone: userData.phone,
+              signupTimestamp: new Date().toISOString()
+            }
+          });
+          
+          console.log('Update result:', finalResult);
+        }
+        
+        // If still not complete, try one more time to complete
+        if (finalResult.status !== 'complete') {
+          console.log('Attempting final completion...');
+          try {
+            const completionAttempt = await signUp.create({});
+            if (completionAttempt.status === 'complete') {
+              finalResult = completionAttempt;
+            }
+          } catch (completionError) {
+            console.log('Completion attempt failed, but verification was successful');
+            // Continue with current result even if completion fails
+          }
+        }
+        
+        // Set the session active if we have one
+        if (finalResult.status === 'complete' && finalResult.createdSessionId) {
+          await setActive({ session: finalResult.createdSessionId });
+          
+          // Store profile data in Supabase
           const profileData = {
-            clerk_id: result.createdUserId!,
+            clerk_id: finalResult.createdUserId!,
             email: userData.email,
             first_name: userData.firstName || 'User',
             last_name: userData.lastName || 'User',
@@ -1160,8 +1209,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             onboarding_step: 2,
             role: 'user',
             created_at: new Date().toISOString(),
-            has_completed_onboarding: false, // Keep false to allow onboarding steps
-            consent_given: true // Store consent from step 1
+            has_completed_onboarding: false,
+            consent_given: true
           };
 
           const { error: profileError } = await supabase
@@ -1179,75 +1228,49 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             description: "Your account has been created successfully.",
           });
           
-          // Since consent is already given in step 1, go directly to dashboard
+          // Continue to onboarding or redirect to success
           onSuccess?.();
           return;
-        }
-      }
-      
-      // Otherwise, try verification with code
-      const cleanCode = verificationCode.trim().replace(/\s/g, '');
-      console.log('Attempting verification with code:', cleanCode);
-      
-      const result = await signUp.attemptEmailAddressVerification({
-        code: cleanCode,
-      });
-
-      console.log('Verification result:', result);
-      
-      // Clear the verification code immediately after attempt
-      setVerificationCode('');
-      
-      if (result.status === 'complete' && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
-        
-        // Store profile data in Supabase after verification
-        const profileData = {
-          clerk_id: result.createdUserId!,
-          email: userData.email,
-          first_name: userData.firstName || 'User',
-          last_name: userData.lastName || 'User',
-          phone: userData.phone || null,
-          user_role: userData.role || 'user',
-          onboarding_step: 2,
-          role: 'user',
-          created_at: new Date().toISOString(),
-          has_completed_onboarding: false
-        };
-
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert(profileData, {
-            onConflict: 'clerk_id'
+        } else {
+          // Email verified but signup not complete - continue to next step
+          console.log('Email verified, continuing to onboarding...');
+          setUserData({ ...userData, clerkId: finalResult.createdUserId });
+          setCurrentStep(2);
+          
+          toast({
+            title: "Email Verified!",
+            description: "Please complete your profile setup.",
           });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
         }
-        
-        toast({
-          title: "Email Verified!",
-          description: "Your account has been created successfully.",
-        });
-        
-        // Update userData with Clerk ID and continue to onboarding
-        setUserData({ ...userData, clerkId: result.createdUserId });
-        setCurrentStep(2);
       } else {
-        console.log('Verification incomplete. Status:', result.status);
-        setVerificationCode(''); // Clear the code so user can try again
+        // Verification failed
+        console.log('Email verification failed. Status:', verificationResult.verifications?.emailAddress?.status);
         toast({
           title: "Verification Failed",
-          description: "Invalid code. Please check your email and try again.",
+          description: "Invalid verification code. Please check your email and try again.",
           variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('Verification error:', error);
       setVerificationCode(''); // Clear the code so user can try again
+      
+      let errorMessage = "Verification failed. Please try again.";
+      
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        if (firstError.code === 'form_code_incorrect') {
+          errorMessage = "The verification code is incorrect. Please check your email and try again.";
+        } else if (firstError.code === 'verification_expired') {
+          errorMessage = "The verification code has expired. Please request a new one.";
+        } else {
+          errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        }
+      }
+      
       toast({
         title: "Verification Failed",
-        description: "Invalid code. Please check your email and try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
