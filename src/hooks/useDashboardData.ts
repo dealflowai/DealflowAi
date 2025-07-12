@@ -94,24 +94,33 @@ export const useDashboardData = () => {
     enabled: !!profile?.id,
   });
 
-  // Get token usage data
+  // Get token usage data - Use auth.uid() from profiles
   const { data: tokenUsage, isLoading: tokenUsageLoading } = useQuery({
-    queryKey: ['token-usage', profile?.id],
+    queryKey: ['token-usage', user?.id],
     queryFn: async () => {
-      if (!profile?.id) return null;
+      if (!user?.id) return null;
+      
+      // First get the profile to get the proper UUID
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profileData?.id) return null;
       
       const { data, error } = await supabase.rpc('get_user_tokens', {
-        p_user_id: profile.id
+        p_user_id: profileData.id
       });
       
       if (error) {
         console.error('Error fetching token usage:', error);
-        return null;
+        return { total_tokens: 25, used_tokens: 0, remaining_tokens: 25 };
       }
       
-      return data?.[0] || null;
+      return data?.[0] || { total_tokens: 25, used_tokens: 0, remaining_tokens: 25 };
     },
-    enabled: !!profile?.id,
+    enabled: !!user?.id,
   });
 
   // Calculate advanced stats

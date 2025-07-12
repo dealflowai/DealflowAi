@@ -136,13 +136,22 @@ const Dashboard = () => {
   const [showDemoBanner, setShowDemoBanner] = useState(false);
   const { toast } = useToast();
 
-  // Check if user should see demo banner
+  // Check if user should see demo banner and onboarding prompts
   useEffect(() => {
     const hasSeenDemo = localStorage.getItem('hasSeenDemoBanner');
+    const hideOnboardingUntil = localStorage.getItem('hideOnboardingPrompts');
     const totalActivity = stats.totalBuyers + stats.totalDeals + stats.totalContracts;
     
     if (!hasSeenDemo && totalActivity === 0) {
       setShowDemoBanner(true);
+    }
+    
+    // Check if onboarding prompts should be hidden
+    if (hideOnboardingUntil) {
+      const hideUntilDate = new Date(hideOnboardingUntil);
+      if (new Date() < hideUntilDate) {
+        // Hide onboarding prompts until the specified time
+      }
     }
   }, [stats]);
 
@@ -307,15 +316,58 @@ const Dashboard = () => {
               setShowDemoBanner(false);
               localStorage.setItem('hasSeenDemoBanner', 'true');
             }}
-            onImportDemo={() => {
-              // Mock demo data import
-              toast({
-                title: "Demo Data Imported",
-                description: "Sample buyer data has been added to showcase platform features.",
-              });
-              setShowDemoBanner(false);
-              localStorage.setItem('hasSeenDemoBanner', 'true');
-              // In real app, this would import actual demo data
+            onImportDemo={async () => {
+              // Import actual demo data to the database
+              try {
+                // First get the user's profile to get the owner_id
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('id')
+                  .eq('clerk_id', user?.id)
+                  .single();
+
+                if (!profileData?.id) {
+                  throw new Error('Profile not found. Please complete your profile setup first.');
+                }
+
+                const demoData = {
+                  owner_id: profileData.id,
+                  name: 'Michael Rodriguez',
+                  email: 'michael.rodriguez@example.com',
+                  phone: '(512) 555-0123',
+                  city: 'Austin',
+                  state: 'TX',
+                  budget_min: 400000,
+                  budget_max: 600000,
+                  status: 'qualified',
+                  markets: ['Austin', 'Round Rock', 'Cedar Park'],
+                  property_type_interest: ['Single Family', 'Duplex'],
+                  financing_type: 'Cash',
+                  source: 'Demo Import'
+                };
+
+                const { error } = await supabase.from('buyers').insert([demoData]);
+                
+                if (error) throw error;
+
+                toast({
+                  title: "Demo Data Imported",
+                  description: "Sample buyer Michael Rodriguez has been added to your pipeline.",
+                });
+                
+                setShowDemoBanner(false);
+                localStorage.setItem('hasSeenDemoBanner', 'true');
+                
+                // Refresh the data
+                window.location.reload();
+              } catch (error) {
+                console.error('Error importing demo data:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to import demo data. Please try again.",
+                  variant: "destructive"
+                });
+              }
             }}
           />
         )}
@@ -421,16 +473,27 @@ const Dashboard = () => {
         </div>
 
         {/* Onboarding Prompts for New Users */}
-        {(stats.totalBuyers === 0 || stats.totalDeals === 0 || stats.totalContracts === 0) && (
-          <OnboardingPrompts stats={stats} />
-        )}
+        {(() => {
+          const hideOnboardingUntil = localStorage.getItem('hideOnboardingPrompts');
+          const shouldHide = hideOnboardingUntil && new Date() < new Date(hideOnboardingUntil);
+          const hasActivity = stats.totalBuyers > 0 || stats.totalDeals > 0 || stats.totalContracts > 0;
+          
+          return (!shouldHide && !hasActivity) ? (
+            <OnboardingPrompts 
+              stats={stats} 
+              onDismiss={() => {
+                localStorage.setItem('hideOnboardingPrompts', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+                window.location.reload(); // Refresh to hide the prompts
+              }}
+            />
+          ) : null;
+        })()}
 
         {/* Tabbed Content Area */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview" className="space-y-4">
@@ -507,41 +570,6 @@ const Dashboard = () => {
               stats={stats}
               trends={trends}
             />
-          </TabsContent>
-
-          <TabsContent value="activity">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <RecentActivity activities={recentActivity} />
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => window.location.href = '/analyzer'}
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Calculator className="w-4 h-4 mr-2" />
-                    Analyze New Deal
-                  </Button>
-                  <Button 
-                    onClick={() => window.location.href = '/buyers'}
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Add New Buyer
-                  </Button>
-                  <Button 
-                    onClick={() => window.location.href = '/contracts'}
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Generate Contract
-                  </Button>
-                </div>
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
 
