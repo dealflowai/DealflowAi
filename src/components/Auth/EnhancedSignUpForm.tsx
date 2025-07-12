@@ -120,8 +120,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         unsafeMetadata: {
           role: data.role,
           phone: data.phone,
-          signupTimestamp: new Date().toISOString(),
-          emailRedirectTo: redirectUrl
+          signupTimestamp: new Date().toISOString()
         }
       });
 
@@ -157,20 +156,39 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       console.error('Signup error:', error);
       
       let errorMessage = "An error occurred during signup. Please try again.";
+      let errorTitle = "Signup Failed";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        if (firstError.code === 'form_identifier_exists') {
-          errorMessage = "An account with this email already exists. Please sign in instead.";
-        } else if (firstError.code === 'form_password_pwned') {
-          errorMessage = "This password has been found in a data breach. Please choose a different password.";
-        } else {
-          errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        
+        switch (firstError.code) {
+          case 'form_identifier_exists':
+            errorTitle = "Account Already Exists";
+            errorMessage = "An account with this email already exists. Please sign in instead.";
+            break;
+          case 'form_password_pwned':
+            errorTitle = "Weak Password";
+            errorMessage = "This password has been found in a data breach. Please choose a different password.";
+            break;
+          case 'captcha_invalid':
+          case 'captcha_failed':
+            errorTitle = "Verification Failed";
+            errorMessage = "Please try again. If this continues, try using a different browser or disabling browser extensions.";
+            break;
+          case 'too_many_requests':
+            errorTitle = "Too Many Attempts";
+            errorMessage = "Too many signup attempts. Please wait a few minutes before trying again.";
+            break;
+          default:
+            errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
+      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
+        errorTitle = "Verification Required";
+        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
       }
       
       toast({
-        title: "Signup Failed",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive"
       });
