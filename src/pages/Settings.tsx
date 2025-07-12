@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, UserProfile } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
@@ -208,10 +208,14 @@ const Settings = () => {
           transition={{ delay: 0.2 }}
         >
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-50 dark:bg-gray-800 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-5 mb-8 bg-gray-50 dark:bg-gray-800 p-1 rounded-xl">
               <TabsTrigger value="profile" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="account" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
+                <SettingsIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Account</span>
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
                 <CreditCard className="w-4 h-4" />
@@ -432,7 +436,47 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            </TabsContent>
+            {/* Account Management Tab */}
+            <TabsContent value="account" className="space-y-8 mt-8">
+              <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
+                <CardHeader className="pb-6">
+                  <CardTitle className="flex items-center space-x-3 text-xl">
+                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-lg">
+                      <SettingsIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <span>Account Management</span>
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Manage your account settings, change password, and update security preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <UserProfile
+                      appearance={{
+                        elements: {
+                          card: "shadow-none border-0",
+                          navbar: "hidden",
+                          header: "hidden",
+                          profileSectionPrimaryButton: "bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700",
+                          formButtonPrimary: "bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700",
+                          page: "p-6"
+                        },
+                        variables: {
+                          colorPrimary: "hsl(var(--primary))",
+                          colorText: "hsl(var(--foreground))",
+                          colorTextSecondary: "hsl(var(--muted-foreground))",
+                          colorBackground: "hsl(var(--background))",
+                          colorInputBackground: "hsl(var(--background))",
+                          borderRadius: "0.75rem"
+                        }
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-8 mt-8">
@@ -713,7 +757,7 @@ const Settings = () => {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+          </Tabs>
         </motion.div>
       </div>
       

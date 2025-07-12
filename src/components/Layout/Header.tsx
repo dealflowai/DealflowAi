@@ -76,6 +76,8 @@ const Header = () => {
                   borderRadius: "0.75rem"
                 }
               }}
+              userProfileUrl="/settings"
+              afterSignOutUrl="/"
             />
           </div>
         </div>
