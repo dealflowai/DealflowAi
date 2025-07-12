@@ -90,6 +90,15 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
   const [expandedLead, setExpandedLead] = useState<string | null>(null);
   const [zapierWebhook, setZapierWebhook] = useState('');
   
+  // Browser session states
+  const [sessionStatuses, setSessionStatuses] = useState({
+    facebook: { active: false, lastScrape: null, scrapeCount: 0 },
+    linkedin: { active: false, lastScrape: null, scrapeCount: 0 },
+    propwire: { active: false, lastScrape: null, scrapeCount: 0 }
+  });
+  const [isLoggingIn, setIsLoggingIn] = useState({ facebook: false, linkedin: false, propwire: false });
+  const [scrapingMethod, setScrapingMethod] = useState<'traditional' | 'session'>('session');
+  
   const [filters, setFilters] = useState<SearchFilters>({
     location: {
       state: '',
@@ -463,6 +472,213 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
     }
   };
 
+  // Browser session functions
+  const checkSessionStatus = async (platform: 'facebook' | 'linkedin' | 'propwire') => {
+    try {
+      const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
+        body: { action: 'status', platform }
+      });
+
+      if (!error && data?.success) {
+        setSessionStatuses(prev => ({
+          ...prev,
+          [platform]: {
+            active: data.sessionActive,
+            lastScrape: data.lastScrape,
+            scrapeCount: data.scrapeCount || 0
+          }
+        }));
+      }
+    } catch (error) {
+      console.error(`Error checking ${platform} session:`, error);
+    }
+  };
+
+  const handleBrowserLogin = async (platform: 'facebook' | 'linkedin' | 'propwire') => {
+    setIsLoggingIn(prev => ({ ...prev, [platform]: true }));
+    
+    try {
+      const loginUrls = {
+        facebook: 'https://www.facebook.com/login',
+        linkedin: 'https://www.linkedin.com/login',
+        propwire: 'https://propwire.com/login'
+      };
+
+      const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
+        body: { 
+          action: 'login', 
+          platform,
+          loginUrl: loginUrls[platform]
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.success) {
+        await checkSessionStatus(platform);
+        toast({
+          title: "Login Successful",
+          description: `Successfully logged into ${platform}. You can now scrape authenticated data.`,
+        });
+      }
+    } catch (error) {
+      console.error(`Login error for ${platform}:`, error);
+      toast({
+        title: "Login Failed",
+        description: `Failed to login to ${platform}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoggingIn(prev => ({ ...prev, [platform]: false }));
+    }
+  };
+
+  const handleBrowserLogout = async (platform: 'facebook' | 'linkedin' | 'propwire') => {
+    try {
+      const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
+        body: { action: 'logout', platform }
+      });
+
+      if (!error && data?.success) {
+        await checkSessionStatus(platform);
+        toast({
+          title: "Logout Successful",
+          description: `Logged out from ${platform}`,
+        });
+      }
+    } catch (error) {
+      console.error(`Logout error for ${platform}:`, error);
+      toast({
+        title: "Logout Failed",
+        description: `Failed to logout from ${platform}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const scrapeFromBrowserSessions = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to scrape leads",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchProgress(0);
+    setFoundLeads([]);
+    setCurrentStep('Initializing browser session scraping...');
+
+    try {
+      // Check which sessions are active
+      const activePlatforms = Object.entries(sessionStatuses)
+        .filter(([_, status]) => status.active)
+        .map(([platform, _]) => platform);
+
+      if (activePlatforms.length === 0) {
+        throw new Error('No active sessions found. Please login to at least one platform first.');
+      }
+
+      setSearchProgress(20);
+      setCurrentStep(`Scraping from ${activePlatforms.length} authenticated platforms...`);
+
+      const allLeads: PropertyLead[] = [];
+
+      for (const platform of activePlatforms) {
+        setCurrentStep(`Scraping ${platform} groups and contacts...`);
+        
+        const scrapeTargets = generatePlatformTargets(platform as 'facebook' | 'linkedin' | 'propwire');
+        
+        const { data, error } = await supabase.functions.invoke('browser-session-scraper', {
+          body: { 
+            action: 'scrape', 
+            platform,
+            scrapeTargets,
+            filters 
+          }
+        });
+
+        if (!error && data?.success && data.data?.leads) {
+          allLeads.push(...data.data.leads);
+          console.log(`Found ${data.data.leads.length} leads from ${platform}`);
+        }
+      }
+
+      setSearchProgress(80);
+      setCurrentStep('Processing and ranking leads...');
+
+      // Process and rank all leads
+      const rankedLeads = scoreAndRankLeads(allLeads, filters);
+
+      setSearchProgress(100);
+      setCurrentStep('Browser session scraping complete!');
+      setFoundLeads(rankedLeads);
+      onLeadsFound(rankedLeads);
+
+      toast({
+        title: "Scraping Complete", 
+        description: `Found ${rankedLeads.length} leads from ${activePlatforms.length} platforms`,
+      });
+
+      // Update session status
+      for (const platform of activePlatforms) {
+        await checkSessionStatus(platform as 'facebook' | 'linkedin' | 'propwire');
+      }
+
+    } catch (error) {
+      console.error('Browser scraping error:', error);
+      toast({
+        title: "Scraping Failed",
+        description: error instanceof Error ? error.message : "An error occurred during scraping",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+      setCurrentStep('');
+    }
+  };
+
+  const generatePlatformTargets = (platform: 'facebook' | 'linkedin' | 'propwire') => {
+    const targets = [];
+    
+    switch (platform) {
+      case 'facebook':
+        targets.push(
+          'Real Estate Investors Group',
+          'Wholesaling Properties',
+          'Fix and Flip Network',
+          'Real Estate Deals Network'
+        );
+        break;
+      case 'linkedin':
+        targets.push(
+          'Real Estate Professionals',
+          'Commercial Real Estate Investors',
+          'REI Network',
+          'Property Investment Group'
+        );
+        break;
+      case 'propwire':
+        targets.push('buyers', 'investors', 'wholesalers', 'flippers');
+        break;
+    }
+    
+    return targets;
+  };
+
+  // Load session statuses on component mount
+  useEffect(() => {
+    if (user?.id) {
+      checkSessionStatus('facebook');
+      checkSessionStatus('linkedin');
+      checkSessionStatus('propwire');
+    }
+  }, [user?.id]);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -477,13 +693,264 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="search" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="sessions" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="sessions">Browser Sessions</TabsTrigger>
           <TabsTrigger value="search">Search Filters</TabsTrigger>
           <TabsTrigger value="presets">Quick Presets</TabsTrigger>
           <TabsTrigger value="results">Results ({foundLeads.length})</TabsTrigger>
           <TabsTrigger value="export">Export & Integrate</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="sessions" className="space-y-6">
+          {/* Browser Session Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Browser Session Management
+              </CardTitle>
+              <CardDescription>
+                Login to Facebook, LinkedIn, and Propwire to scrape authenticated data from groups and networks
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Platform Sessions */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Facebook */}
+                <Card className={`border-2 ${sessionStatuses.facebook.active ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm font-bold">f</div>
+                        Facebook
+                      </h3>
+                      <Badge variant={sessionStatuses.facebook.active ? "default" : "secondary"}>
+                        {sessionStatuses.facebook.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-sm space-y-1">
+                      <p>Groups: Real Estate Investors, Wholesalers</p>
+                      <p>Last scrape: {sessionStatuses.facebook.lastScrape ? new Date(sessionStatuses.facebook.lastScrape).toLocaleDateString() : 'Never'}</p>
+                      <p>Total scrapes: {sessionStatuses.facebook.scrapeCount}</p>
+                    </div>
+                    <div className="space-y-2">
+                      {sessionStatuses.facebook.active ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleBrowserLogout('facebook')}
+                          className="w-full"
+                        >
+                          Disconnect
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleBrowserLogin('facebook')}
+                          disabled={isLoggingIn.facebook}
+                          className="w-full"
+                        >
+                          {isLoggingIn.facebook ? 'Logging in...' : 'Login to Facebook'}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* LinkedIn */}
+                <Card className={`border-2 ${sessionStatuses.linkedin.active ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-700 rounded flex items-center justify-center text-white text-sm font-bold">in</div>
+                        LinkedIn
+                      </h3>
+                      <Badge variant={sessionStatuses.linkedin.active ? "default" : "secondary"}>
+                        {sessionStatuses.linkedin.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-sm space-y-1">
+                      <p>Groups: Real Estate Professionals, REI Network</p>
+                      <p>Last scrape: {sessionStatuses.linkedin.lastScrape ? new Date(sessionStatuses.linkedin.lastScrape).toLocaleDateString() : 'Never'}</p>
+                      <p>Total scrapes: {sessionStatuses.linkedin.scrapeCount}</p>
+                    </div>
+                    <div className="space-y-2">
+                      {sessionStatuses.linkedin.active ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleBrowserLogout('linkedin')}
+                          className="w-full"
+                        >
+                          Disconnect
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleBrowserLogin('linkedin')}
+                          disabled={isLoggingIn.linkedin}
+                          className="w-full"
+                        >
+                          {isLoggingIn.linkedin ? 'Logging in...' : 'Login to LinkedIn'}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Propwire */}
+                <Card className={`border-2 ${sessionStatuses.propwire.active ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center text-white text-sm font-bold">P</div>
+                        Propwire
+                      </h3>
+                      <Badge variant={sessionStatuses.propwire.active ? "default" : "secondary"}>
+                        {sessionStatuses.propwire.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-sm space-y-1">
+                      <p>Categories: Buyers, Investors, Wholesalers</p>
+                      <p>Last scrape: {sessionStatuses.propwire.lastScrape ? new Date(sessionStatuses.propwire.lastScrape).toLocaleDateString() : 'Never'}</p>
+                      <p>Total scrapes: {sessionStatuses.propwire.scrapeCount}</p>
+                    </div>
+                    <div className="space-y-2">
+                      {sessionStatuses.propwire.active ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleBrowserLogout('propwire')}
+                          className="w-full"
+                        >
+                          Disconnect
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleBrowserLogin('propwire')}
+                          disabled={isLoggingIn.propwire}
+                          className="w-full"
+                        >
+                          {isLoggingIn.propwire ? 'Logging in...' : 'Login to Propwire'}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Scraping Method Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Scraping Method
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${scrapingMethod === 'session' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                         onClick={() => setScrapingMethod('session')}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="h-5 w-5" />
+                        <h3 className="font-medium">Browser Sessions (Recommended)</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Scrape from authenticated Facebook groups, LinkedIn networks, and Propwire platforms for highest quality leads
+                      </p>
+                    </div>
+                    <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${scrapingMethod === 'traditional' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                         onClick={() => setScrapingMethod('traditional')}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe className="h-5 w-5" />
+                        <h3 className="font-medium">Traditional Web Scraping</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Scrape public real estate websites like Realtor.com, Zillow, and county records
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Start Scraping Button */}
+              <div className="space-y-4">
+                {scrapingMethod === 'session' && (
+                  <Button 
+                    onClick={scrapeFromBrowserSessions}
+                    disabled={isSearching || Object.values(sessionStatuses).every(status => !status.active)}
+                    size="lg"
+                    className="w-full"
+                  >
+                    {isSearching ? (
+                      <>
+                        <Pause className="mr-2 h-4 w-4" />
+                        Scraping from sessions... {searchProgress}%
+                      </>
+                    ) : (
+                      <>
+                        <Users className="mr-2 h-4 w-4" />
+                        Scrape from Browser Sessions
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {scrapingMethod === 'traditional' && (
+                  <Button 
+                    onClick={startAdvancedSearch}
+                    disabled={isSearching}
+                    size="lg"
+                    className="w-full"
+                  >
+                    {isSearching ? (
+                      <>
+                        <Pause className="mr-2 h-4 w-4" />
+                        Traditional scraping... {searchProgress}%
+                      </>
+                    ) : (
+                      <>
+                        <Search className="mr-2 h-4 w-4" />
+                        Start Traditional Search
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {scrapingMethod === 'session' && Object.values(sessionStatuses).every(status => !status.active) && (
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Please login to at least one platform to use browser session scraping
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Search Progress */}
+              {isSearching && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>{currentStep}</span>
+                        <span>{searchProgress}%</span>
+                      </div>
+                      <Progress value={searchProgress} />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="search" className="space-y-6">
           {/* Location Filters */}

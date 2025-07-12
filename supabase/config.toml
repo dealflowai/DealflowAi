@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.ai-contract-generator]
 verify_jwt = true
+
+[functions.browser-session-scraper]
+verify_jwt = true

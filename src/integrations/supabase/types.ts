@@ -653,6 +653,99 @@ export type Database = {
         }
         Relationships: []
       }
+      scraping_preferences: {
+        Row: {
+          auto_scrape_enabled: boolean | null
+          created_at: string
+          facebook_groups: string[] | null
+          id: string
+          last_scrape_at: string | null
+          linkedin_groups: string[] | null
+          next_scrape_at: string | null
+          platform: string
+          propwire_categories: string[] | null
+          scrape_count: number | null
+          scrape_frequency_hours: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_scrape_enabled?: boolean | null
+          created_at?: string
+          facebook_groups?: string[] | null
+          id?: string
+          last_scrape_at?: string | null
+          linkedin_groups?: string[] | null
+          next_scrape_at?: string | null
+          platform: string
+          propwire_categories?: string[] | null
+          scrape_count?: number | null
+          scrape_frequency_hours?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_scrape_enabled?: boolean | null
+          created_at?: string
+          facebook_groups?: string[] | null
+          id?: string
+          last_scrape_at?: string | null
+          linkedin_groups?: string[] | null
+          next_scrape_at?: string | null
+          platform?: string
+          propwire_categories?: string[] | null
+          scrape_count?: number | null
+          scrape_frequency_hours?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scraping_sessions: {
+        Row: {
+          cookies: Json | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          last_used: string | null
+          local_storage: Json | null
+          platform: string
+          session_storage: Json | null
+          session_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cookies?: Json | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          last_used?: string | null
+          local_storage?: Json | null
+          platform: string
+          session_storage?: Json | null
+          session_token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cookies?: Json | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used?: string | null
+          local_storage?: Json | null
+          platform?: string
+          session_storage?: Json | null
+          session_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       signup_security: {
         Row: {
           attempts_count: number
