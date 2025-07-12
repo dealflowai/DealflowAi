@@ -74,24 +74,24 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
   const visibleActivities = showAll ? displayActivities : displayActivities.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-xl p-6 border border-gray-200">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-        <Clock className="w-5 h-5 text-gray-400" />
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
+        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {visibleActivities.map((activity) => {
           const IconComponent = iconMap[activity.icon as keyof typeof iconMap] || User;
           return (
-            <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-              <div className={`p-2 rounded-lg ${activity.bgColor}`}>
-                <IconComponent className={`w-4 h-4 ${activity.color}`} />
+            <div key={activity.id} className="flex items-start space-x-3 p-2 sm:p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${activity.bgColor} dark:${activity.bgColor.replace('50', '900/20')}`}>
+                <IconComponent className={`w-3 h-3 sm:w-4 sm:h-4 ${activity.color} dark:${activity.color.replace('600', '400')}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">{activity.title}</p>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{activity.description}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{activity.time}</p>
               </div>
             </div>
           );
@@ -99,10 +99,10 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
       </div>
 
       {displayActivities.length > 5 && (
-        <div className="mt-4 text-center">
+        <div className="mt-3 sm:mt-4 text-center">
           <button 
             onClick={() => setShowAll(!showAll)}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+            className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200"
           >
             {showAll ? 'Show less' : `See ${displayActivities.length - 5} more activities`}
           </button>
@@ -111,11 +111,11 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
 
       {activities.length === 0 && (
         <div className="text-center py-4">
-          <p className="text-sm text-gray-500">No recent activity. Add some buyers to get started!</p>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">No recent activity. Add some buyers to get started!</p>
         </div>
       )}
 
-      <button className="w-full mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200">
+      <button className="w-full mt-3 sm:mt-4 text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200">
         View all activity
       </button>
     </div>

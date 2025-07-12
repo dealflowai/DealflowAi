@@ -171,8 +171,20 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!user) return;
 
     try {
+      // Get profile UUID from Clerk ID first
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        console.log('Profile not found for usage fetch');
+        return;
+      }
+
       const { data, error } = await supabase
-        .rpc('get_current_month_usage', { p_user_id: user.id });
+        .rpc('get_current_month_usage', { p_user_id: profile.id });
 
       if (error) throw error;
 
