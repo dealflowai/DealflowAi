@@ -219,10 +219,19 @@ const DealAnalyzer = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
+      // Get the profile to get the proper UUID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profile?.id) return [];
+      
       const { data, error } = await supabase
         .from('deals')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id', profile.id)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -241,10 +250,19 @@ const DealAnalyzer = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
+      // Get the profile to get the proper UUID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profile?.id) return [];
+      
       const { data, error } = await supabase
         .from('buyers')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id', profile.id)
         .eq('status', 'active');
       
       if (error) {

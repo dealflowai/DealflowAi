@@ -221,9 +221,18 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!user) return;
 
     try {
+      // Get the profile to get the proper UUID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profile?.id) return;
+
       const { error } = await supabase
         .rpc('increment_usage', {
-          p_user_id: user.id,
+          p_user_id: profile.id,
           p_usage_type: usageType,
           p_increment: increment
         });

@@ -67,10 +67,26 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
     setIsSubmitting(true);
 
     try {
+      // Get the profile to get the proper UUID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profile?.id) {
+        toast({
+          title: "Error",
+          description: "Profile not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('buyers')
         .insert({
-          owner_id: user.id,
+          owner_id: profile.id,
           name: formData.name || null,
           email: formData.email || null,
           phone: formData.phone || null,

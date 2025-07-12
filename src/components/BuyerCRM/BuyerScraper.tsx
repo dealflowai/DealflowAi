@@ -219,9 +219,21 @@ const BuyerScraper = ({ onBuyersImported }: BuyerScraperProps) => {
     try {
       toast.info("Importing buyers to database...");
       
+      // Get the profile to get the proper UUID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      if (!profile?.id) {
+        toast.error("Profile not found");
+        return;
+      }
+      
       // Prepare data for Supabase
       const buyersToInsert = selected.map(buyer => ({
-        owner_id: user.id,
+        owner_id: profile.id,
         name: buyer.name,
         email: buyer.email,
         phone: buyer.phone,
