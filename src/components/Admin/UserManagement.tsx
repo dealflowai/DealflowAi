@@ -32,6 +32,7 @@ interface UserFormData {
   first_name: string;
   last_name: string;
   role: string;
+  selected_plan: string;
 }
 
 const UserManagement = () => {
@@ -88,7 +89,8 @@ const UserManagement = () => {
           email: userData.email,
           first_name: userData.first_name,
           last_name: userData.last_name,
-          role: userData.role
+          role: userData.role,
+          selected_plan: userData.selected_plan
         }]);
       
       if (error) throw error;
@@ -176,12 +178,13 @@ const UserManagement = () => {
 
   const handleEdit = (user: any) => {
     setEditingUser(user);
-    form.reset({
-      email: user.email,
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      role: user.role
-    });
+      form.reset({
+        email: user.email,
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        role: user.role,
+        selected_plan: user.selected_plan || 'free'
+      });
     setIsEditDialogOpen(true);
   };
 
@@ -197,7 +200,8 @@ const UserManagement = () => {
       role: newRole,
       email: '', // These won't be updated, just the role
       first_name: '',
-      last_name: ''
+      last_name: '',
+      selected_plan: 'free'
     });
     toast({ 
       title: 'Role Updated', 
@@ -271,30 +275,54 @@ const UserManagement = () => {
                       />
                     </div>
                     
-                    <FormField
-                      control={form.control}
-                      name="role"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Role</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select role" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="user">User</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="super_admin">Super Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="flex gap-2 pt-4">
+                     <FormField
+                       control={form.control}
+                       name="role"
+                       render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>Role</FormLabel>
+                           <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <FormControl>
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select role" />
+                               </SelectTrigger>
+                             </FormControl>
+                             <SelectContent>
+                               <SelectItem value="user">User</SelectItem>
+                               <SelectItem value="admin">Admin</SelectItem>
+                               <SelectItem value="super_admin">Super Admin</SelectItem>
+                             </SelectContent>
+                           </Select>
+                           <FormMessage />
+                         </FormItem>
+                       )}
+                     />
+
+                     <FormField
+                       control={form.control}
+                       name="selected_plan"
+                       render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>Plan</FormLabel>
+                           <Select onValueChange={field.onChange} defaultValue={field.value || 'free'}>
+                             <FormControl>
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select plan" />
+                               </SelectTrigger>
+                             </FormControl>
+                             <SelectContent>
+                               <SelectItem value="free">Free</SelectItem>
+                               <SelectItem value="starter">Starter</SelectItem>
+                               <SelectItem value="pro">Pro</SelectItem>
+                               <SelectItem value="agency">Agency</SelectItem>
+                             </SelectContent>
+                           </Select>
+                           <FormMessage />
+                         </FormItem>
+                       )}
+                     />
+                     
+                     <div className="flex gap-2 pt-4">
                       <Button type="submit" disabled={addUserMutation.isPending}>
                         {addUserMutation.isPending ? 'Adding...' : 'Add User'}
                       </Button>
@@ -383,6 +411,7 @@ const UserManagement = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Plan</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -450,6 +479,35 @@ const UserManagement = () => {
                                 Super Admin
                               </div>
                             </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select 
+                          value={user.selected_plan || 'free'} 
+                          onValueChange={(newPlan) => {
+                            updateUserMutation.mutate({ 
+                              id: user.id, 
+                              selected_plan: newPlan,
+                              email: user.email,
+                              first_name: user.first_name || '',
+                              last_name: user.last_name || '',
+                              role: user.role
+                            });
+                            toast({ 
+                              title: 'Plan Updated', 
+                              description: `User's plan has been changed to ${newPlan}` 
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="free">Free</SelectItem>
+                            <SelectItem value="starter">Starter</SelectItem>
+                            <SelectItem value="pro">Pro</SelectItem>
+                            <SelectItem value="agency">Agency</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -604,30 +662,54 @@ const UserManagement = () => {
                   />
                 </div>
                 
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="super_admin">Super Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex gap-2 pt-4">
+                 <FormField
+                   control={form.control}
+                   name="role"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Role</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder="Select role" />
+                           </SelectTrigger>
+                         </FormControl>
+                         <SelectContent>
+                           <SelectItem value="user">User</SelectItem>
+                           <SelectItem value="admin">Admin</SelectItem>
+                           <SelectItem value="super_admin">Super Admin</SelectItem>
+                         </SelectContent>
+                       </Select>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+
+                 <FormField
+                   control={form.control}
+                   name="selected_plan"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Plan</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value || 'free'}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder="Select plan" />
+                           </SelectTrigger>
+                         </FormControl>
+                         <SelectContent>
+                           <SelectItem value="free">Free</SelectItem>
+                           <SelectItem value="starter">Starter</SelectItem>
+                           <SelectItem value="pro">Pro</SelectItem>
+                           <SelectItem value="agency">Agency</SelectItem>
+                         </SelectContent>
+                       </Select>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+                 
+                 <div className="flex gap-2 pt-4">
                   <Button type="submit" disabled={updateUserMutation.isPending}>
                     {updateUserMutation.isPending ? 'Updating...' : 'Update User'}
                   </Button>
