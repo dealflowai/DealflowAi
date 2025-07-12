@@ -76,23 +76,6 @@ const AuthPage = () => {
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
               Close More Deals with AI Automation
             </h2>
-            <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
-              Join 12,000+ investors using our AI to automate deal flow, qualify buyers, and close profitable wholesale deals faster than ever.
-            </p>
-            <div className="grid grid-cols-3 gap-6 max-w-md mx-auto">
-              <div className="text-center">
-                <div className="text-2xl font-bold">12K+</div>
-                <div className="text-white/80 text-sm">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">$450M+</div>
-                <div className="text-white/80 text-sm">Deals Closed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">96.3%</div>
-                <div className="text-white/80 text-sm">Success Rate</div>
-              </div>
-            </div>
           </motion.div>
         </div>
       </div>
