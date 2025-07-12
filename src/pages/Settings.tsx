@@ -842,14 +842,20 @@ const Settings = () => {
                         </div>
                       </div>
                       
-                      <Button 
-                        onClick={() => setTokenModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-white w-full h-10"
-                        size="sm"
-                      >
-                        <Gem className="mr-2" size={14} />
-                        Buy More Tokens
-                      </Button>
+                      {getCurrentPlan() === 'free' ? (
+                        <div className="w-full bg-muted text-muted-foreground text-sm py-3 px-4 rounded-md text-center">
+                          Upgrade to buy tokens
+                        </div>
+                      ) : (
+                        <Button 
+                          onClick={() => setTokenModalOpen(true)}
+                          className="bg-primary hover:bg-primary/90 text-white w-full h-10"
+                          size="sm"
+                        >
+                          <Gem className="mr-2" size={14} />
+                          Buy More Tokens
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -861,14 +867,20 @@ const Settings = () => {
                     <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                       Perfect for testing our AI features • No credit card required
                     </p>
-                    <Button 
-                      onClick={() => setTokenModalOpen(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white w-full h-10"
-                      size="sm"
-                    >
-                      <Gem className="mr-2" size={14} />
-                      Buy Tokens
-                    </Button>
+                    {getCurrentPlan() === 'free' ? (
+                      <div className="w-full bg-muted text-muted-foreground text-sm py-3 px-4 rounded-md text-center">
+                        Upgrade to buy tokens
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={() => setTokenModalOpen(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white w-full h-10"
+                        size="sm"
+                      >
+                        <Gem className="mr-2" size={14} />
+                        Buy Tokens
+                      </Button>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -994,6 +1006,7 @@ const Settings = () => {
       <TokenPricingModal
         open={tokenModalOpen}
         onOpenChange={setTokenModalOpen}
+        userPlan={getCurrentPlan()}
       />
     </Layout>
   );
