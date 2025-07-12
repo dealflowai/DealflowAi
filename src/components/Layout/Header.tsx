@@ -56,7 +56,24 @@ const Header = () => {
             <UserButton 
               appearance={{
                 elements: {
-                  avatarBox: "w-7 h-7 sm:w-8 sm:h-8 shadow-sm ring-2 ring-primary/10"
+                  avatarBox: "w-7 h-7 sm:w-8 sm:h-8 shadow-sm ring-2 ring-primary/10 hover:ring-primary/20 transition-all",
+                  userButtonPopoverCard: "bg-background border border-border shadow-lg rounded-xl p-0 overflow-hidden",
+                  userButtonPopoverActionButton: "text-foreground hover:bg-muted/80 rounded-lg mx-2 first:mt-2 last:mb-2 transition-colors",
+                  userButtonPopoverActionButtonText: "text-sm font-medium",
+                  userButtonPopoverActionButtonIcon: "text-muted-foreground",
+                  userButtonPopoverFooter: "hidden",
+                  userPreviewSecondaryIdentifier: "text-muted-foreground text-xs",
+                  userPreviewMainIdentifier: "text-foreground font-medium",
+                  userButtonPopoverMain: "p-3",
+                  userButtonPopoverActions: "space-y-1 p-1"
+                },
+                variables: {
+                  colorPrimary: "hsl(var(--primary))",
+                  colorText: "hsl(var(--foreground))",
+                  colorTextSecondary: "hsl(var(--muted-foreground))",
+                  colorBackground: "hsl(var(--background))",
+                  colorInputBackground: "hsl(var(--background))",
+                  borderRadius: "0.75rem"
                 }
               }}
             />
