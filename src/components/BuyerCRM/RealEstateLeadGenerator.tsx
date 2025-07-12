@@ -217,7 +217,14 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
       setSearchProgress(30);
       setCurrentStep('Scraping real estate data sources...');
       
-      const scrapedData = await scrapeRealEstateData(searchTargets);
+      let scrapedData;
+      try {
+        scrapedData = await scrapeRealEstateData(searchTargets);
+      } catch (error) {
+        console.warn('Edge function failed, using fallback data generation:', error);
+        setCurrentStep('Using local data generation...');
+        scrapedData = { leads: [] }; // Will trigger fallback in processPropertyData
+      }
       
       // Step 4: Process and analyze data
       setSearchProgress(60);
@@ -288,6 +295,12 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
 
   const scrapeRealEstateData = async (targets: string[]) => {
     try {
+      console.log('Calling edge function with data:', {
+        targets: targets,
+        filters: filters,
+        searchType: 'real_estate_leads'
+      });
+
       const { data, error } = await supabase.functions.invoke('ai-buyer-discovery', {
         body: {
           searchCriteria: {
@@ -298,7 +311,12 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(`Edge function error: ${error.message || JSON.stringify(error)}`);
+      }
       return data;
     } catch (error) {
       console.error('Scraping error:', error);
