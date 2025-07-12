@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout/Layout';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import RecentActivity from '@/components/Dashboard/RecentActivity';
+import AdvancedCharts from '@/components/Dashboard/AdvancedCharts';
 import GuidedTour from '@/components/Onboarding/GuidedTour';
-import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot, Gem } from 'lucide-react';
+import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot, Gem, BarChart3, Activity, Award, Zap } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,10 +15,11 @@ import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useTokens } from '@/contexts/TokenContext';
 import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Dashboard = () => {
   const { user } = useUser();
-  const { stats, recentActivity, isLoading } = useDashboardData();
+  const { stats, trends, recentActivity, buyerChartData, marketInsights, isLoading } = useDashboardData();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { tokenBalance, loading: tokenLoading } = useTokens();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
@@ -199,37 +201,69 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Stats Grid - Improved density and consistency */}
+        {/* Enhanced Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           <StatsCard
             title="Total Buyers"
             value={stats.totalBuyers}
-            change={`${stats.newBuyers} new this month`}
-            changeType="positive"
+            change={trends.buyersGrowth > 0 ? `+${trends.buyersGrowth.toFixed(1)}% growth` : `${stats.newBuyers} new this month`}
+            changeType={trends.buyersGrowth > 0 ? "positive" : "neutral"}
             icon={Users}
             data-tour="buyers-cta"
           />
           <StatsCard
-            title="Active Buyers"
-            value={stats.activeBuyers}
-            change={`${Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}% active rate`}
+            title="Active Deals"
+            value={stats.activeDeals}
+            change={`${stats.totalDeals} total deals`}
             changeType="positive"
             icon={Calculator}
           />
           <StatsCard
-            title="Average Budget"
-            value={`$${stats.averageBudget.toLocaleString()}`}
-            change="Based on buyer data"
-            changeType="neutral"
+            title="Buying Power"
+            value={`$${(stats.totalBuyingPower / 1000000).toFixed(1)}M`}
+            change={`Avg: $${stats.averageBudget.toLocaleString()}`}
+            changeType="positive"
             icon={DollarSign}
             gradient={true}
           />
           <StatsCard
-            title="New Buyers"
-            value={stats.newBuyers}
-            change="Need qualification"
-            changeType="neutral"
+            title="Conversion Rate"
+            value={`${trends.conversionRate.toFixed(1)}%`}
+            change={`${stats.closedDeals} closed deals`}
+            changeType={trends.conversionRate > 0 ? "positive" : "neutral"}
+            icon={TrendingUp}
+          />
+        </div>
+
+        {/* Additional KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+          <StatsCard
+            title="Contracts"
+            value={stats.totalContracts}
+            change={`${stats.signedContracts} signed`}
+            changeType="positive"
             icon={FileText}
+          />
+          <StatsCard
+            title="Token Usage"
+            value={`${stats.usedTokens}/${stats.totalTokens}`}
+            change={`${stats.remainingTokens} remaining`}
+            changeType={stats.remainingTokens > 10 ? "positive" : "negative"}
+            icon={Zap}
+          />
+          <StatsCard
+            title="Activation Rate"
+            value={`${trends.activationRate.toFixed(1)}%`}
+            change={`${stats.activeBuyers} active buyers`}
+            changeType={trends.activationRate > 50 ? "positive" : "neutral"}
+            icon={Activity}
+          />
+          <StatsCard
+            title="This Week"
+            value={marketInsights.recentTrends.newBuyersThisWeek}
+            change={`${marketInsights.recentTrends.dealsThisWeek} deals added`}
+            changeType="positive"
+            icon={Award}
           />
         </div>
 
@@ -266,65 +300,117 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-          {/* Pipeline Overview */}
-          <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">Buyer Pipeline</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">New Buyers</span>
-                  <Target className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+        {/* Tabbed Content Area */}
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="space-y-4">
+            {/* Pipeline Overview */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+              <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">Pipeline Overview</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">New Leads</span>
+                      <Target className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">{stats.newBuyers}</p>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Need qualification</p>
+                  </div>
+                  
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Active Pipeline</span>
+                      <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.activeBuyers}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Ready for deals</p>
+                  </div>
+                  
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-green-800 dark:text-green-300">Under Contract</span>
+                      <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.underContractDeals}</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">In progress</p>
+                  </div>
                 </div>
-                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">{stats.newBuyers}</p>
-                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Need qualification</p>
+
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Pipeline Health</span>
+                    <div className="flex items-center space-x-2">
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                      <span className="font-medium text-green-600 dark:text-green-400">
+                        {trends.activationRate.toFixed(1)}% active
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min(trends.activationRate, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Active Buyers</span>
-                  <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+
+              {/* Recent Activity */}
+              <RecentActivity activities={recentActivity} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AdvancedCharts 
+              buyerChartData={buyerChartData}
+              marketInsights={marketInsights}
+              stats={stats}
+              trends={trends}
+            />
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RecentActivity activities={recentActivity} />
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => window.location.href = '/analyzer'}
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Analyze New Deal
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/buyers'}
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Add New Buyer
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/contracts'}
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Generate Contract
+                  </Button>
                 </div>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.activeBuyers}</p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Ready for deals</p>
-              </div>
-              
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-green-800 dark:text-green-300">Total Budget</span>
-                  <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
-                </div>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                  ${(stats.averageBudget * stats.totalBuyers).toLocaleString()}
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">Combined buying power</p>
               </div>
             </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Active Rate</span>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="font-medium text-green-600 dark:text-green-400">
-                    {Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}%
-                  </span>
-                </div>
-              </div>
-              <div className="mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.round((stats.activeBuyers / Math.max(stats.totalBuyers, 1)) * 100)}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Activity with real data */}
-          <RecentActivity activities={recentActivity} />
-        </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Quick Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
