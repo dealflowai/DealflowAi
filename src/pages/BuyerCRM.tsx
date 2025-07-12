@@ -28,12 +28,16 @@ const BuyerCRM = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      console.log('Fetching buyers for user:', user.id);
+      // First get the Supabase user to get the UUID
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      if (!supabaseUser) return [];
+      
+      console.log('Fetching buyers for user:', supabaseUser.id);
       
       const { data, error } = await supabase
         .from('buyers')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id', supabaseUser.id)
         .order('created_at', { ascending: false });
       
       if (error) {
