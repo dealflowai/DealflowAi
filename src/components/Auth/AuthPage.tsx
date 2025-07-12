@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Navigate, Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,13 +9,39 @@ import { TrendingUp, Brain, Zap, Shield, Target, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { EnhancedSignUpForm } from './EnhancedSignUpForm';
 import { SignInForm } from './SignInForm';
+import { supabase } from '@/integrations/supabase/client';
 
 const AuthPage = () => {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
   const [activeTab, setActiveTab] = useState("signup");
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
 
-  // Redirect to dashboard if already signed in
-  if (isLoaded && isSignedIn) {
+  // Check onboarding status when user is signed in
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (isSignedIn && user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('has_completed_onboarding')
+            .eq('clerk_id', user.id)
+            .maybeSingle();
+          
+          setHasCompletedOnboarding(profile?.has_completed_onboarding || false);
+        } catch (error) {
+          console.error('Error checking onboarding status:', error);
+          setHasCompletedOnboarding(false);
+        }
+      }
+    };
+
+    if (isLoaded) {
+      checkOnboardingStatus();
+    }
+  }, [isSignedIn, isLoaded, user]);
+
+  // Only redirect to dashboard if user is signed in AND has completed onboarding
+  if (isLoaded && isSignedIn && hasCompletedOnboarding) {
     return <Navigate to="/" replace />;
   }
 
@@ -87,7 +113,10 @@ const AuthPage = () => {
             </TabsList>
             
             <TabsContent value="signup">
-              <EnhancedSignUpForm onSwitchToSignIn={() => setActiveTab("signin")} />
+              <EnhancedSignUpForm 
+                onSwitchToSignIn={() => setActiveTab("signin")} 
+                onSuccess={() => setHasCompletedOnboarding(true)}
+              />
             </TabsContent>
             
             <TabsContent value="signin">
