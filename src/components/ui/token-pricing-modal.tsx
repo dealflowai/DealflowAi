@@ -163,7 +163,7 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
             Choose Your Token Package
           </DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
-            Buy extra tokens to add to your monthly allowance. Tokens reset monthly based on your subscription plan.
+            Buy extra tokens that never expire. Pro plan includes 50 monthly tokens plus 100 starter credits for $49/month.
           </DialogDescription>
         </DialogHeader>
 
