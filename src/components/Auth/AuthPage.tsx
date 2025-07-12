@@ -64,15 +64,15 @@ const AuthPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center">
+            <Link to="/" className="flex items-center justify-center space-x-3 mb-6 hover:opacity-80 transition-opacity group">
+              <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
                 <TrendingUp className="text-white" size={32} strokeWidth={2.5} />
               </div>
               <div>
                 <h1 className="text-4xl font-bold">DealFlow AI</h1>
                 <p className="text-lg text-white/90 font-medium">AI-Powered Real Estate Wholesaling</p>
               </div>
-            </div>
+            </Link>
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
               Close More Deals with AI Automation
             </h2>
