@@ -464,14 +464,7 @@ const Dashboard = () => {
         </div>
 
         {/* Onboarding Prompts for New Users */}
-        {(() => {
-          const hasActionTaken = localStorage.getItem('onboardingActionTaken');
-          const hasActivity = stats.totalBuyers > 0 || stats.totalDeals > 0 || stats.totalContracts > 0;
-          
-          return (!hasActionTaken && !hasActivity) ? (
-            <OnboardingPrompts stats={stats} />
-          ) : null;
-        })()}
+        <OnboardingPrompts stats={stats} />
 
         {/* Tabbed Content Area */}
         <Tabs defaultValue="overview" className="space-y-4">

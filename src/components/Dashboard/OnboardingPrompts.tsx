@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Users, Calculator, FileText, Bot, Plus, Target, Zap, Brain } from 'lucide-react';
 
@@ -11,10 +11,21 @@ interface OnboardingPromptsProps {
 }
 
 const OnboardingPrompts = ({ stats }: OnboardingPromptsProps) => {
+  const [hiddenPrompts, setHiddenPrompts] = useState<string[]>(() => {
+    const stored = localStorage.getItem('hiddenOnboardingPrompts');
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  const hidePrompt = (promptId: string) => {
+    const newHidden = [...hiddenPrompts, promptId];
+    setHiddenPrompts(newHidden);
+    localStorage.setItem('hiddenOnboardingPrompts', JSON.stringify(newHidden));
+  };
+
   const prompts = [
     {
       id: 'buyers',
-      show: stats.totalBuyers === 0,
+      show: stats.totalBuyers === 0 && !hiddenPrompts.includes('buyers'),
       emoji: '🎯',
       title: 'Add your first buyer to unlock insights',
       description: 'Import leads or discover qualified cash buyers in your market',
@@ -25,7 +36,7 @@ const OnboardingPrompts = ({ stats }: OnboardingPromptsProps) => {
     },
     {
       id: 'deals',
-      show: stats.totalDeals === 0,
+      show: stats.totalDeals === 0 && !hiddenPrompts.includes('deals'),
       emoji: '📈',
       title: 'Run a Deal Analysis to calculate metrics',
       description: 'Analyze your first property to get market insights and ROI calculations',
@@ -36,7 +47,7 @@ const OnboardingPrompts = ({ stats }: OnboardingPromptsProps) => {
     },
     {
       id: 'ai-discovery',
-      show: stats.totalBuyers < 5,
+      show: stats.totalBuyers < 5 && !hiddenPrompts.includes('ai-discovery'),
       emoji: '🤖',
       title: 'Discover buyers with AI – start your first search',
       description: 'Use AI to find qualified buyers that match your deal criteria',
@@ -47,7 +58,7 @@ const OnboardingPrompts = ({ stats }: OnboardingPromptsProps) => {
     },
     {
       id: 'contracts',
-      show: stats.totalContracts === 0 && stats.totalDeals > 0,
+      show: stats.totalContracts === 0 && stats.totalDeals > 0 && !hiddenPrompts.includes('contracts'),
       emoji: '📝',
       title: 'Generate your first contract',
       description: 'Create professional contracts for your analyzed deals',
@@ -95,8 +106,9 @@ const OnboardingPrompts = ({ stats }: OnboardingPromptsProps) => {
                   </p>
                   <Button 
                     onClick={() => {
-                      // Mark that user has taken action
-                      localStorage.setItem('onboardingActionTaken', 'true');
+                      // Hide only this specific prompt
+                      hidePrompt(prompt.id);
+                      // Navigate to the action
                       window.location.href = prompt.actionUrl;
                     }}
                     className={`bg-gradient-to-r ${prompt.gradient} hover:opacity-90 text-white text-sm w-full`}

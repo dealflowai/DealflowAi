@@ -7,7 +7,7 @@ const QuickActions = () => {
     {
       id: 'add-buyer',
       title: 'Add Buyer',
-      description: 'Import or manually add a new buyer',
+      description: 'Import or add buyer',
       icon: Users,
       actionUrl: '/buyers?action=add',
       color: 'bg-blue-500 hover:bg-blue-600',
@@ -15,8 +15,8 @@ const QuickActions = () => {
     },
     {
       id: 'discover-buyers',
-      title: 'Discover Buyers',
-      description: 'AI-powered buyer discovery',
+      title: 'Discover',
+      description: 'AI buyer discovery',
       icon: Bot,
       actionUrl: '/buyers?tab=discovery',
       color: 'bg-purple-500 hover:bg-purple-600',
@@ -24,8 +24,8 @@ const QuickActions = () => {
     },
     {
       id: 'analyze-deal',
-      title: 'Analyze Deal',
-      description: 'Run AI analysis on a property',
+      title: 'Analyze',
+      description: 'AI property analysis',
       icon: Calculator,
       actionUrl: '/analyzer',
       color: 'bg-green-500 hover:bg-green-600',
@@ -33,8 +33,8 @@ const QuickActions = () => {
     },
     {
       id: 'create-contract',
-      title: 'Create Contract',
-      description: 'Generate professional contracts',
+      title: 'Contracts',
+      description: 'Generate contracts',
       icon: FileText,
       actionUrl: '/contracts',
       color: 'bg-orange-500 hover:bg-orange-600',
@@ -56,15 +56,15 @@ const QuickActions = () => {
             <Button
               key={action.id}
               onClick={() => window.location.href = action.actionUrl}
-              className={`${action.color} text-white h-auto p-3 flex flex-col items-center justify-center space-y-2 hover:scale-105 transition-all duration-200 min-h-[80px]`}
+              className={`${action.color} text-white h-auto p-2 flex flex-col items-center justify-center space-y-1 hover:scale-105 transition-all duration-200 min-h-[70px]`}
               variant="ghost"
             >
-              <IconComponent className="w-4 h-4" />
-              <div className="text-center">
-                <div className="font-medium text-xs leading-tight">{action.title}</div>
-                <div className="text-xs opacity-90 leading-tight mt-1">{action.description}</div>
+              <IconComponent className="w-4 h-4 shrink-0" />
+              <div className="text-center space-y-0.5">
+                <div className="font-medium text-xs leading-none">{action.title}</div>
+                <div className="text-[10px] opacity-90 leading-none">{action.description}</div>
               </div>
-              <div className="text-xs bg-white/20 rounded px-1.5 py-0.5">
+              <div className="text-[10px] bg-white/20 rounded px-1 py-0.5 leading-none">
                 ⌘{action.shortcut}
               </div>
             </Button>

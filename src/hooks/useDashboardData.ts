@@ -127,13 +127,13 @@ export const useDashboardData = () => {
   const stats = {
     // Buyer metrics
     totalBuyers: buyers.length,
-    activeBuyers: buyers.filter(buyer => buyer.status === 'active').length,
+    activeBuyers: buyers.filter(buyer => buyer.status === 'active' || buyer.status === 'qualified').length,
     newBuyers: buyers.filter(buyer => buyer.status === 'new').length,
     qualifiedBuyers: buyers.filter(buyer => buyer.status === 'qualified').length,
     
     // Deal metrics
     totalDeals: deals.length,
-    activeDeals: deals.filter(deal => deal.status === 'active').length,
+    activeDeals: deals.filter(deal => !deal.status || deal.status === 'active' || deal.status === 'new').length,
     underContractDeals: deals.filter(deal => deal.status === 'under_contract').length,
     closedDeals: deals.filter(deal => deal.status === 'closed').length,
     
@@ -207,10 +207,10 @@ export const useDashboardData = () => {
 
   // Add real buyer activities
   if (buyers.length > 0) {
-    buyers.forEach(buyer => {
+    buyers.slice(0, 10).forEach(buyer => { // Limit to prevent too many items
       allActivity.push({
         id: `buyer-${buyer.id}`,
-        type: 'buyer_added',
+        type: 'buyer',
         title: 'New buyer added',
         description: `${buyer.name || 'Unknown buyer'} - ${buyer.status || 'new'} status`,
         time: getTimeAgo(buyer.created_at),
@@ -220,11 +220,12 @@ export const useDashboardData = () => {
         bgColor: 'bg-green-50'
       });
 
-      // Add buyer status changes if updated recently
-      if (buyer.updated_at !== buyer.created_at && buyer.updated_at) {
+      // Add buyer status changes if updated recently (within 7 days)
+      const daysDiff = (new Date().getTime() - new Date(buyer.updated_at || buyer.created_at || '').getTime()) / (1000 * 60 * 60 * 24);
+      if (buyer.updated_at !== buyer.created_at && buyer.updated_at && daysDiff <= 7) {
         allActivity.push({
           id: `buyer-update-${buyer.id}`,
-          type: 'buyer_updated',
+          type: 'buyer',
           title: 'Buyer status updated',
           description: `${buyer.name || 'Unknown buyer'} changed to ${buyer.status || 'unknown'}`,
           time: getTimeAgo(buyer.updated_at),
@@ -239,10 +240,10 @@ export const useDashboardData = () => {
 
   // Add real deal activities
   if (deals.length > 0) {
-    deals.forEach(deal => {
+    deals.slice(0, 10).forEach(deal => { // Limit to prevent too many items
       allActivity.push({
         id: `deal-${deal.id}`,
-        type: 'deal_added',
+        type: 'deal',
         title: 'New deal analyzed',
         description: `${deal.address} - $${deal.list_price?.toLocaleString() || 'Price TBD'}`,
         time: getTimeAgo(deal.created_at),
@@ -252,11 +253,12 @@ export const useDashboardData = () => {
         bgColor: 'bg-blue-50'
       });
 
-      // Add deal status changes
-      if (deal.updated_at !== deal.created_at && deal.updated_at) {
+      // Add deal status changes (within 7 days)
+      const daysDiff = (new Date().getTime() - new Date(deal.updated_at || deal.created_at || '').getTime()) / (1000 * 60 * 60 * 24);
+      if (deal.updated_at !== deal.created_at && deal.updated_at && daysDiff <= 7) {
         allActivity.push({
           id: `deal-update-${deal.id}`,
-          type: 'deal_updated',
+          type: 'deal',
           title: 'Deal status updated',
           description: `${deal.address} - ${deal.status || 'updated'}`,
           time: getTimeAgo(deal.updated_at),
@@ -271,10 +273,10 @@ export const useDashboardData = () => {
 
   // Add real contract activities
   if (contracts.length > 0) {
-    contracts.forEach(contract => {
+    contracts.slice(0, 10).forEach(contract => { // Limit to prevent too many items
       allActivity.push({
         id: `contract-${contract.id}`,
-        type: 'contract_generated',
+        type: 'contract',
         title: 'Contract generated',
         description: `${contract.title} - ${contract.status || 'draft'}`,
         time: getTimeAgo(contract.created_at),
