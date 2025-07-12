@@ -617,46 +617,6 @@ const Settings = () => {
               </CardContent>
             </Card>
             </TabsContent>
-            {/* Account Management Tab */}
-            <TabsContent value="account" className="space-y-8 mt-8">
-              <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
-                <CardHeader className="pb-6">
-                  <CardTitle className="flex items-center space-x-3 text-xl">
-                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg">
-                      <SettingsIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <span>Account Management</span>
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    Manage your account settings, change password, and update security preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                    <UserProfile
-                      appearance={{
-                        elements: {
-                          card: "shadow-none border-0",
-                          navbar: "hidden",
-                          header: "hidden",
-                          profileSectionPrimaryButton: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
-                          formButtonPrimary: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
-                          page: "p-6"
-                        },
-                        variables: {
-                          colorPrimary: "hsl(var(--primary))",
-                          colorText: "hsl(var(--foreground))",
-                          colorTextSecondary: "hsl(var(--muted-foreground))",
-                          colorBackground: "hsl(var(--background))",
-                          colorInputBackground: "hsl(var(--background))",
-                          borderRadius: "0.75rem"
-                        }
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-8 mt-8">

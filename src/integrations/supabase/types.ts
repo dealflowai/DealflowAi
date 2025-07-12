@@ -400,6 +400,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
           brokerage_name: string | null
           budget_max: number | null
           budget_min: number | null
@@ -433,6 +434,7 @@ export type Database = {
           user_role: string | null
         }
         Insert: {
+          bio?: string | null
           brokerage_name?: string | null
           budget_max?: number | null
           budget_min?: number | null
@@ -466,6 +468,7 @@ export type Database = {
           user_role?: string | null
         }
         Update: {
+          bio?: string | null
           brokerage_name?: string | null
           budget_max?: number | null
           budget_min?: number | null
