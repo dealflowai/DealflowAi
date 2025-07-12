@@ -297,7 +297,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
       toast({
         title: "Setup Complete!",
-        description: "Welcome to DealFlow.ai! You're all set.",
+        description: "Welcome to DealFlow AI! You're all set.",
       });
       
       setCurrentStep(3); // Move to completion screen
@@ -674,7 +674,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
-          <CardTitle className="text-2xl">Welcome to DealFlow.ai!</CardTitle>
+          <CardTitle className="text-2xl">Welcome to DealFlow AI!</CardTitle>
           <CardDescription>
             Your account is ready. Let's explore the platform and see what you can accomplish.
           </CardDescription>
@@ -717,7 +717,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         <CardHeader className="text-center">
           <CardTitle>Customize Your Experience</CardTitle>
           <CardDescription>
-            Help us tailor dealflow.ai to your investment strategy
+            Help us tailor DealFlow AI to your investment strategy
           </CardDescription>
         </CardHeader>
         <CardContent>

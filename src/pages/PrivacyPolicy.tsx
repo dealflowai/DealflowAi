@@ -36,7 +36,7 @@ const PrivacyPolicy = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Eye className="w-5 h-5" />
-              <span>dealflow.ai Privacy Policy</span>
+              <span>DealFlow AI Privacy Policy</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="prose prose-gray dark:prose-invert max-w-none">
@@ -45,7 +45,7 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="text-xl font-semibold mb-4">1. Introduction</h2>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  At dealflow.ai, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                  At DealFlow AI, we are committed to protecting your privacy and ensuring the security of your personal information. 
                   This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our 
                   AI-powered real estate wholesaling platform.
                 </p>
@@ -253,7 +253,7 @@ const PrivacyPolicy = () => {
                   <p className="text-gray-600 dark:text-gray-300">
                     <strong>Privacy Officer:</strong> privacy@dealflow.ai<br/>
                     <strong>Data Protection Officer:</strong> dpo@dealflow.ai<br/>
-                    <strong>Address:</strong> dealflow.ai Privacy Department<br/>
+                    <strong>Address:</strong> DealFlow AI Privacy Department<br/>
                     123 Business Avenue<br/>
                     Suite 100<br/>
                     City, State 12345

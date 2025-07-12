@@ -135,7 +135,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
           });
         } else {
           toast({
-            title: "Welcome to dealflow.ai!",
+            title: "Welcome to DealFlow AI!",
             description: "Your account has been created successfully.",
           });
           onSuccess?.();

@@ -92,7 +92,7 @@ const Dashboard = () => {
       // Show welcome toast
       setTimeout(() => {
         toast({
-          title: "🎉 Welcome to DealFlow.ai!",
+          title: "🎉 Welcome to DealFlow AI!",
           description: "Let's take a quick tour to show you around the platform.",
           duration: 5000,
         });

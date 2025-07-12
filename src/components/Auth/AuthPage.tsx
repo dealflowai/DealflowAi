@@ -69,7 +69,7 @@ const AuthPage = () => {
                 <TrendingUp className="text-white" size={32} strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-4xl font-bold">dealflow.ai</h1>
+                <h1 className="text-4xl font-bold">DealFlow AI</h1>
                 <p className="text-lg text-white/90 font-medium">AI-Powered Real Estate Wholesaling</p>
               </div>
             </div>

@@ -157,7 +157,7 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
-                  dealflow.ai
+                  DealFlow AI
                 </h1>
                 <p className="text-xs text-emerald-600 font-medium opacity-75">
                   AI-Powered CRM

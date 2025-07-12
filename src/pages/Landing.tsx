@@ -213,7 +213,7 @@ const Navigation: React.FC = () => {
               <motion.span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent" whileHover={{
               scale: 1.05
             }}>
-                dealflow.ai
+                DealFlow AI
               </motion.span>
               <span className="text-xs text-gray-500 font-medium">AI-Powered Wholesaling</span>
             </div>
@@ -960,7 +960,7 @@ const Landing = () => {
                 title: "Solo Wholesaler",
                 location: "Phoenix, AZ",
                 result: "$180K profit in 6 months",
-                story: "I was struggling to find quality buyers in my market. dealflow.ai's AI discovered 127 active cash buyers I never knew existed. Now I close 3-4 deals monthly instead of hoping for 1.",
+                story: "I was struggling to find quality buyers in my market. DealFlow AI's AI discovered 127 active cash buyers I never knew existed. Now I close 3-4 deals monthly instead of hoping for 1.",
                 beforeAfter: "From 1 deal every 3 months → 4 deals monthly",
                 avatar: "photo-1486312338219-ce68d2c6f44d"
               },
@@ -1152,7 +1152,7 @@ const Landing = () => {
               answer: "Our GPT-powered analyzer considers 500+ variables including market comps, repair estimates, holding costs, and buyer demand patterns. It generates accurate profit projections and auto-creates contracts."
             }, {
               question: "Can this replace my existing tools?",
-              answer: "Yes - dealflow.ai is designed as an all-in-one platform. It combines the best features of PropStream (data), BatchLeads (CRM), and DealMachine (lead sourcing) with advanced AI automation they don't offer."
+              answer: "Yes - DealFlow AI is designed as an all-in-one platform. It combines the best features of PropStream (data), BatchLeads (CRM), and DealMachine (lead sourcing) with advanced AI automation they don't offer."
             }].map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="bg-white rounded-2xl px-6 border-0 shadow-md">
                   <AccordionTrigger className="text-left font-semibold text-gray-900 hover:no-underline py-6">
                     {faq.question}
@@ -1232,7 +1232,7 @@ const Landing = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-lg flex items-center justify-center">
                   <TrendingUp className="text-white" size={16} strokeWidth={3} />
                 </div>
-                <h3 className="text-xl font-bold">dealflow.ai</h3>
+                <h3 className="text-xl font-bold">DealFlow AI</h3>
               </div>
               <p className="text-gray-400 mb-4">
                 The first AI-powered reverse wholesaling platform. Find buyers first, then reverse-engineer profitable deals.
@@ -1270,7 +1270,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 dealflow.ai. All rights reserved. | Reverse engineer your success.</p>
+            <p>&copy; 2024 DealFlow AI. All rights reserved. | Reverse engineer your success.</p>
           </div>
         </div>
       </footer>

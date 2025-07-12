@@ -36,7 +36,7 @@ const TermsOfService = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <FileText className="w-5 h-5" />
-              <span>dealflow.ai Terms of Service</span>
+              <span>DealFlow AI Terms of Service</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="prose prose-gray dark:prose-invert max-w-none">
@@ -45,7 +45,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-xl font-semibold mb-4">1. Acceptance of Terms</h2>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  By accessing and using dealflow.ai ("Service"), you accept and agree to be bound by the terms and provision of this agreement. 
+                  By accessing and using DealFlow AI ("Service"), you accept and agree to be bound by the terms and provision of this agreement. 
                   If you do not agree to abide by the above, please do not use this service.
                 </p>
               </section>
@@ -53,7 +53,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-xl font-semibold mb-4">2. Description of Service</h2>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                  dealflow.ai is an AI-powered real estate wholesaling platform that provides:
+                  DealFlow AI is an AI-powered real estate wholesaling platform that provides:
                 </p>
                 <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                   <li>AI-powered buyer discovery and qualification</li>
@@ -109,7 +109,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-xl font-semibold mb-4">6. Intellectual Property</h2>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  The Service and its original content, features, and functionality are owned by dealflow.ai and are protected by 
+                  The Service and its original content, features, and functionality are owned by DealFlow AI and are protected by 
                   international copyright, trademark, patent, trade secret, and other intellectual property laws.
                 </p>
               </section>
@@ -151,7 +151,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-xl font-semibold mb-4">10. Limitation of Liability</h2>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  In no event shall dealflow.ai be liable for any indirect, incidental, special, consequential, or punitive damages, 
+                  In no event shall DealFlow AI be liable for any indirect, incidental, special, consequential, or punitive damages, 
                   including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your 
                   use of the Service.
                 </p>
@@ -202,7 +202,7 @@ const TermsOfService = () => {
                 <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <p className="text-gray-600 dark:text-gray-300">
                     <strong>Email:</strong> legal@dealflow.ai<br/>
-                    <strong>Address:</strong> dealflow.ai Legal Department<br/>
+                    <strong>Address:</strong> DealFlow AI Legal Department<br/>
                     123 Business Avenue<br/>
                     Suite 100<br/>
                     City, State 12345
