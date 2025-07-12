@@ -182,127 +182,168 @@ const Settings = () => {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-6xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your account preferences and application settings</p>
+      <div className="p-8 max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent dark:from-gray-100 dark:to-gray-300"
+          >
+            Settings
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg text-gray-600 dark:text-gray-400 mt-3"
+          >
+            Manage your account preferences and application settings
+          </motion.p>
         </div>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="flex items-center space-x-2">
-              <User className="w-4 h-4" />
-              <span>Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center space-x-2">
-              <CreditCard className="w-4 h-4" />
-              <span>Billing</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center space-x-2">
-              <Bell className="w-4 h-4" />
-              <span>Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center space-x-2">
-              <Shield className="w-4 h-4" />
-              <span>Security</span>
-            </TabsTrigger>
-          </TabsList>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-50 dark:bg-gray-800 p-1 rounded-xl">
+              <TabsTrigger value="profile" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
+                <CreditCard className="w-4 h-4" />
+                <span className="hidden sm:inline">Billing</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
+                <Bell className="w-4 h-4" />
+                <span className="hidden sm:inline">Notifications</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Security</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="w-5 h-5" />
-                  <span>Profile Information</span>
-                </CardTitle>
-                <CardDescription>Update your personal information and contact details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName" 
-                      defaultValue={user?.firstName || ''} 
-                      className="mt-1"
-                    />
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-8 mt-8">
+              <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
+                <CardHeader className="pb-6">
+                  <CardTitle className="flex items-center space-x-3 text-xl">
+                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-lg">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                    <span>Profile Information</span>
+                  </CardTitle>
+                  <CardDescription className="text-base">Update your personal information and contact details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                      <Input 
+                        id="firstName" 
+                        defaultValue={user?.firstName || ''} 
+                        className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                      <Input 
+                        id="lastName" 
+                        defaultValue={user?.lastName || ''} 
+                        className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName" 
-                      defaultValue={user?.lastName || ''} 
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
                 
-                <div>
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <Input 
-                      id="email" 
-                      type="email"
-                      defaultValue={user?.primaryEmailAddress?.emailAddress || ''} 
-                      disabled
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        id="email" 
+                        type="email"
+                        defaultValue={user?.primaryEmailAddress?.emailAddress || ''} 
+                        disabled
+                        className="h-11 pl-10 rounded-lg bg-gray-50 border-gray-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input 
+                          id="phone" 
+                          type="tel" 
+                          placeholder="+1 (555) 123-4567" 
+                          className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="company" className="text-sm font-medium">Company</Label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input 
+                          id="company" 
+                          placeholder="Your Company Name" 
+                          className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        id="location" 
+                        placeholder="City, State" 
+                        className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bio" className="text-sm font-medium">Bio</Label>
+                    <Textarea 
+                      id="bio" 
+                      className="rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none" 
+                      rows={4}
+                      placeholder="Tell us about yourself and your investment focus..."
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <Input id="phone" type="tel" placeholder="+1 (555) 123-4567" />
-                    </div>
+                  <div className="pt-4">
+                    <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg">
+                      Save Changes
+                    </Button>
                   </div>
-                  <div>
-                    <Label htmlFor="company">Company</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Building className="w-4 h-4 text-gray-400" />
-                      <Input id="company" placeholder="Your Company Name" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    <Input id="location" placeholder="City, State" />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea 
-                    id="bio" 
-                    className="mt-1" 
-                    rows={3}
-                    placeholder="Tell us about yourself and your investment focus..."
-                  />
-                </div>
-
-                <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
               </CardContent>
             </Card>
 
             {/* Role and Preferences Card */}
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Target className="w-5 h-5" />
+            <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center space-x-3 text-xl">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
                   <span>Role & Preferences</span>
                 </CardTitle>
-                <CardDescription>Update your role and business preferences</CardDescription>
+                <CardDescription className="text-base">Update your role and business preferences</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="role">Your Role</Label>
-                  <select className="w-full mt-1 p-2 border rounded-md bg-background">
+              <CardContent className="space-y-6 pt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="role" className="text-sm font-medium">Your Role</Label>
+                  <select className="w-full h-11 px-3 border rounded-lg bg-background border-gray-200 focus:border-emerald-500 focus:ring-emerald-500">
                     <option value="buyer">Buyer/Investor</option>
                     <option value="wholesaler">Wholesaler</option>
                     <option value="real_estate_agent">Real Estate Agent</option>
@@ -310,61 +351,83 @@ const Settings = () => {
                   </select>
                 </div>
 
-                <div>
-                  <Label htmlFor="markets">Primary Markets</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="markets" className="text-sm font-medium">Primary Markets</Label>
                   <Textarea 
                     id="markets" 
-                    className="mt-1" 
-                    rows={2}
+                    className="rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none" 
+                    rows={3}
                     placeholder="e.g., Austin, Dallas, Houston..."
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="propertyTypes">Property Types of Interest</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Property Types of Interest</Label>
+                  <div className="grid grid-cols-2 gap-4">
                     {['Single Family', 'Multi Family', 'Vacant Land', 'Commercial'].map((type) => (
-                      <label key={type} className="flex items-center space-x-2">
-                        <input type="checkbox" className="rounded" />
-                        <span className="text-sm">{type}</span>
+                      <label key={type} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                        <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+                        <span className="text-sm font-medium">{type}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="budgetMin">Min Budget</Label>
-                    <Input id="budgetMin" type="number" placeholder="$50,000" className="mt-1" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget</Label>
+                    <Input 
+                      id="budgetMin" 
+                      type="number" 
+                      placeholder="$50,000" 
+                      className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                    />
                   </div>
-                  <div>
-                    <Label htmlFor="budgetMax">Max Budget</Label>
-                    <Input id="budgetMax" type="number" placeholder="$500,000" className="mt-1" />
+                  <div className="space-y-2">
+                    <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget</Label>
+                    <Input 
+                      id="budgetMax" 
+                      type="number" 
+                      placeholder="$500,000" 
+                      className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                    />
                   </div>
                 </div>
 
-                <Button className="bg-primary hover:bg-primary/90">Update Preferences</Button>
+                <div className="pt-4">
+                  <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg">
+                    Update Preferences
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Moon className="w-5 h-5" />
+            <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center space-x-3 text-xl">
+                  <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
+                    <Moon className="w-5 h-5 text-white" />
+                  </div>
                   <span>Appearance</span>
                 </CardTitle>
-                <CardDescription>Customize your app appearance</CardDescription>
+                <CardDescription className="text-base">Customize your app appearance</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                    <Label htmlFor="darkMode">Dark Mode</Label>
+              <CardContent className="pt-0">
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg">
+                      {isDark ? <Moon className="w-4 h-4 text-white" /> : <Sun className="w-4 h-4 text-white" />}
+                    </div>
+                    <div>
+                      <Label htmlFor="darkMode" className="text-sm font-medium cursor-pointer">Dark Mode</Label>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Toggle between light and dark themes</p>
+                    </div>
                   </div>
                   <Switch 
                     id="darkMode" 
                     checked={isDark}
                     onCheckedChange={toggleTheme}
+                    className="data-[state=checked]:bg-emerald-600"
                   />
                 </div>
               </CardContent>
@@ -372,7 +435,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* Billing Tab */}
-          <TabsContent value="billing" className="space-y-4">
+          <TabsContent value="billing" className="space-y-8 mt-8">
             {/* Current Plan */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardHeader className="pb-3">
@@ -651,6 +714,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </motion.div>
       </div>
       
       <TokenPricingModal
