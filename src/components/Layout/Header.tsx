@@ -373,7 +373,12 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-3">
-          {!isMobile && <TokenBalanceDisplay onBuyTokens={() => setTokenModalOpen(true)} />}
+          {!isMobile && (
+            <TokenBalanceDisplay 
+              onBuyTokens={() => setTokenModalOpen(true)} 
+              userPlan={getUserPlanDisplay()}
+            />
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -503,7 +508,8 @@ const Header = () => {
       
       <TokenPricingModal 
         open={tokenModalOpen} 
-        onOpenChange={setTokenModalOpen} 
+        onOpenChange={setTokenModalOpen}
+        userPlan={getUserPlanDisplay()}
       />
     </header>
   );

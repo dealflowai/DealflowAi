@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 interface TokenBalanceDisplayProps {
   showBuyButton?: boolean;
   onBuyTokens?: () => void;
+  userPlan?: string;
 }
 
-export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens }: TokenBalanceDisplayProps) {
+export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens, userPlan }: TokenBalanceDisplayProps) {
   const { tokenBalance, loading } = useTokens();
 
   if (loading || !tokenBalance) {
@@ -23,6 +24,7 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens }: Token
 
   const isLow = tokenBalance.remainingTokens < 10;
   const isEmpty = tokenBalance.remainingTokens === 0;
+  const isFreePlan = userPlan?.toLowerCase().includes('free');
 
   return (
     <div className="flex items-center gap-2">
@@ -41,7 +43,7 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens }: Token
           {tokenBalance.remainingTokens} tokens
         </Badge>
       </div>
-      {showBuyButton && (
+      {showBuyButton && !isFreePlan && (
         <Button
           size="sm"
           variant="outline"
@@ -53,6 +55,11 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens }: Token
           <Plus className="h-3 w-3 mr-1" />
           {isEmpty ? 'Recharge' : 'Buy'}
         </Button>
+      )}
+      {showBuyButton && isFreePlan && (
+        <div className="text-xs text-muted-foreground px-3 py-1.5">
+          Upgrade to buy tokens
+        </div>
       )}
     </div>
   );
