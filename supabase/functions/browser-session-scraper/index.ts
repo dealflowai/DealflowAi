@@ -220,26 +220,14 @@ async function handleLogout(body: ScrapingRequest, userId: string, supabase: any
 }
 
 async function simulateBrowserLogin(platform: string, loginUrl?: string) {
-  // In a real implementation, this would use Puppeteer/Playwright
-  // to open a browser window, navigate to the login page, and wait for user login
+  // For this demo implementation, we'll return an error to indicate 
+  // that real browser automation is needed for production use
   
-  console.log(`Simulating browser login for ${platform} at ${loginUrl}`);
+  console.log(`Browser login requested for ${platform} at ${loginUrl}`);
   
-  // For demo purposes, return mock session data
-  return {
-    sessionToken: `mock_session_${platform}_${Date.now()}`,
-    cookies: [
-      { name: 'session_id', value: `sess_${Date.now()}`, domain: `.${platform}.com` },
-      { name: 'auth_token', value: `auth_${Date.now()}`, domain: `.${platform}.com` }
-    ],
-    localStorage: {
-      [`${platform}_user_id`]: `user_${Date.now()}`,
-      [`${platform}_access_token`]: `token_${Date.now()}`
-    },
-    sessionStorage: {
-      [`${platform}_session`]: `session_${Date.now()}`
-    }
-  };
+  // In a production environment, this would integrate with a browser automation service
+  // For now, we'll throw an error to indicate this feature needs real implementation
+  throw new Error(`Browser login for ${platform} requires a real browser automation service. This is a demo implementation that cannot perform actual login to external platforms.`);
 }
 
 async function performAuthenticatedScraping(platform: string, session: any, targets: string[] = [], filters: any = {}) {
