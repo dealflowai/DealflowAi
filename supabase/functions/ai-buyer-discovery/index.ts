@@ -67,15 +67,23 @@ serve(async (req) => {
 });
 
 async function handleRealEstateLeadGeneration(searchCriteria: any, firecrawlApiKey: string, openAIApiKey: string) {
-  logStep("Starting real estate lead generation");
+  logStep("Starting REAL real estate lead generation with Firecrawl");
   
+  // Use real estate websites that actually contain property data
+  const realEstateTargets = [
+    `https://www.realtor.com/realestateandhomes-search/${searchCriteria.filters?.location?.city || 'Austin'}_${searchCriteria.filters?.location?.state || 'TX'}`,
+    `https://www.zillow.com/homes/for_sale/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}_rb/`,
+    `https://www.redfin.com/city/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}`,
+    `https://www.homes.com/real-estate/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}`,
+    `https://www.movoto.com/homes-for-sale/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}`
+  ];
+
   const scrapedData = [];
-  const targets = searchCriteria.targets || [];
   
-  // Scrape each target URL with Firecrawl
-  for (const url of targets) {
+  // Scrape REAL real estate data
+  for (const url of realEstateTargets.slice(0, 3)) { // Limit to 3 to avoid timeouts
     try {
-      logStep(`Scraping URL: ${url}`);
+      logStep(`Scraping REAL data from: ${url}`);
       
       const scrapeResponse = await fetch('https://api.firecrawl.dev/v0/scrape', {
         method: 'POST',
@@ -85,37 +93,38 @@ async function handleRealEstateLeadGeneration(searchCriteria: any, firecrawlApiK
         },
         body: JSON.stringify({
           url: url,
-          formats: ['markdown', 'html'],
-          includeTags: ['title', 'meta', 'h1', 'h2', 'h3', 'p', 'div', 'span', 'a'],
-          excludeTags: ['script', 'style', 'nav', 'footer', 'header', 'aside'],
-          waitFor: 2000,
-          timeout: 30000
+          formats: ['markdown'],
+          onlyMainContent: true,
+          includeTags: ['h1', 'h2', 'h3', 'p', 'div', 'span', 'a'],
+          excludeTags: ['script', 'style', 'nav', 'footer', 'header', 'aside', 'form'],
+          waitFor: 3000,
+          timeout: 45000
         }),
       });
 
       if (scrapeResponse.ok) {
         const scrapeData = await scrapeResponse.json();
-        if (scrapeData.data) {
+        if (scrapeData.data && scrapeData.data.markdown) {
           scrapedData.push({
             url: url,
             title: scrapeData.data.metadata?.title || '',
-            content: scrapeData.data.markdown || scrapeData.data.html || '',
+            content: scrapeData.data.markdown,
             timestamp: new Date().toISOString()
           });
-          logStep(`Successfully scraped: ${url}`);
+          logStep(`SUCCESS: Scraped real data from ${url}`, { contentLength: scrapeData.data.markdown.length });
         }
       } else {
-        logStep(`Failed to scrape: ${url}`, { status: scrapeResponse.status });
+        const errorText = await scrapeResponse.text();
+        logStep(`FAILED to scrape: ${url}`, { status: scrapeResponse.status, error: errorText });
       }
     } catch (error) {
-      logStep(`Error scraping ${url}`, { error: error.message });
+      logStep(`ERROR scraping ${url}`, { error: error.message });
     }
   }
 
-  // If no data was scraped, return simulated data
+  // If no real data was scraped, throw an error instead of falling back to fake data
   if (scrapedData.length === 0) {
-    logStep("No data scraped, generating simulated real estate leads");
-    return generateSimulatedRealEstateLeads(searchCriteria);
+    throw new Error("Failed to scrape any real estate data from target websites. Please check your Firecrawl API key configuration.");
   }
 
   // Process scraped data with AI to extract real estate leads

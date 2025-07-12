@@ -213,22 +213,15 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
       
       const searchTargets = generateSearchTargets(filters);
       
-      // Step 3: Scrape data sources
+      // Step 3: Scrape REAL data sources 
       setSearchProgress(30);
-      setCurrentStep('Scraping real estate data sources...');
+      setCurrentStep('Scraping REAL real estate websites...');
       
-      let scrapedData;
-      try {
-        scrapedData = await scrapeRealEstateData(searchTargets);
-      } catch (error) {
-        console.warn('Edge function failed, using fallback data generation:', error);
-        setCurrentStep('Using local data generation...');
-        scrapedData = { leads: [] }; // Will trigger fallback in processPropertyData
-      }
+      const scrapedData = await scrapeRealEstateData(searchTargets);
       
-      // Step 4: Process and analyze data
+      // Step 4: Process and analyze REAL data
       setSearchProgress(60);
-      setCurrentStep('Processing and analyzing property data...');
+      setCurrentStep('Processing REAL scraped property data with AI...');
       
       const processedLeads = await processPropertyData(scrapedData, filters);
       
@@ -325,58 +318,13 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
   };
 
   const processPropertyData = async (scrapedData: any, filters: SearchFilters): Promise<PropertyLead[]> => {
-    // Simulate processing scraped data into structured leads
-    const mockLeads: PropertyLead[] = [];
-    
-    // Generate realistic leads based on search criteria
-    const cities = filters.location.city ? [filters.location.city] : ['Austin', 'Dallas', 'Houston', 'San Antonio'];
-    const state = filters.location.state || 'TX';
-    
-    for (let i = 0; i < 25; i++) {
-      const city = cities[Math.floor(Math.random() * cities.length)];
-      const assessedValue = filters.valueRange[0] + Math.random() * (filters.valueRange[1] - filters.valueRange[0]);
-      const equityPercentage = filters.equityRange[0] + Math.random() * (filters.equityRange[1] - filters.equityRange[0]);
-      const equity = (assessedValue * equityPercentage) / 100;
-      const mortgageBalance = assessedValue - equity;
-      const ownershipLength = filters.ownershipLength[0] + Math.random() * (filters.ownershipLength[1] - filters.ownershipLength[0]);
-      
-      const lead: PropertyLead = {
-        id: `lead-${i + 1}`,
-        ownerName: `${['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa'][Math.floor(Math.random() * 6)]} ${['Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Miller'][Math.floor(Math.random() * 6)]}`,
-        ownerPhone: Math.random() > 0.4 ? `${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}` : undefined,
-        ownerEmail: Math.random() > 0.6 ? `owner${i + 1}@email.com` : undefined,
-        propertyAddress: `${Math.floor(Math.random() * 9999) + 1} ${['Main', 'Oak', 'Pine', 'Maple', 'Cedar'][Math.floor(Math.random() * 5)]} St`,
-        city,
-        state,
-        zipCode: `${Math.floor(Math.random() * 90000) + 10000}`,
-        propertyType: filters.propertyType[Math.floor(Math.random() * filters.propertyType.length)],
-        assessedValue: Math.round(assessedValue),
-        lastSaleDate: new Date(Date.now() - ownershipLength * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        lastSalePrice: Math.round(assessedValue * (0.7 + Math.random() * 0.6)),
-        equity: Math.round(equity),
-        equityPercentage: Math.round(equityPercentage),
-        mortgageBalance: mortgageBalance > 0 ? Math.round(mortgageBalance) : undefined,
-        status: ['Owner Occupied', 'Rental', 'Vacant', 'Unknown'][Math.floor(Math.random() * 4)],
-        ownershipLength: Math.round(ownershipLength),
-        distressed: Math.random() > 0.8,
-        vacant: Math.random() > 0.85,
-        absenteeOwner: Math.random() > 0.7,
-        foreclosureStatus: Math.random() > 0.9 ? foreclosureStatuses[Math.floor(Math.random() * foreclosureStatuses.length)] : undefined,
-        mlsStatus: Math.random() > 0.8 ? mlsStatuses[Math.floor(Math.random() * mlsStatuses.length)] : undefined,
-        confidenceScore: Math.round(70 + Math.random() * 30),
-        source: 'Multiple Sources',
-        scrapedAt: new Date().toISOString(),
-        apn: `${Math.floor(Math.random() * 900000) + 100000}`,
-        sqft: Math.round(1200 + Math.random() * 2800),
-        bedrooms: Math.floor(Math.random() * 5) + 2,
-        bathrooms: Math.floor(Math.random() * 3) + 1,
-        yearBuilt: Math.floor(Math.random() * 50) + 1970
-      };
-      
-      mockLeads.push(lead);
+    // Process actual scraped data from real estate websites
+    if (!scrapedData || !scrapedData.leads) {
+      throw new Error('No real property data was scraped. Please ensure your Firecrawl API key is configured correctly.');
     }
-    
-    return mockLeads;
+
+    // Return the actual leads from the edge function
+    return scrapedData.leads || [];
   };
 
   const enhanceWithContactData = async (leads: PropertyLead[]): Promise<PropertyLead[]> => {
