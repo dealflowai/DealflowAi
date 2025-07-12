@@ -285,7 +285,7 @@ const Settings = () => {
                         <Input 
                           id="phone" 
                           type="tel" 
-                          placeholder="+1 (555) 123-4567" 
+                          defaultValue={user?.primaryPhoneNumber?.phoneNumber || ''} 
                           className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                         />
                       </div>
@@ -326,7 +326,7 @@ const Settings = () => {
                   </div>
 
                   <div className="pt-4">
-                    <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg">
+                    <Button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-3 rounded-lg">
                       Save Changes
                     </Button>
                   </div>
@@ -399,7 +399,7 @@ const Settings = () => {
                 </div>
 
                 <div className="pt-4">
-                  <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg">
+                  <Button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-3 rounded-lg">
                     Update Preferences
                   </Button>
                 </div>
@@ -442,7 +442,7 @@ const Settings = () => {
               <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
                 <CardHeader className="pb-6">
                   <CardTitle className="flex items-center space-x-3 text-xl">
-                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-lg">
+                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg">
                       <SettingsIcon className="w-5 h-5 text-white" />
                     </div>
                     <span>Account Management</span>
@@ -459,8 +459,8 @@ const Settings = () => {
                           card: "shadow-none border-0",
                           navbar: "hidden",
                           header: "hidden",
-                          profileSectionPrimaryButton: "bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700",
-                          formButtonPrimary: "bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700",
+                          profileSectionPrimaryButton: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+                          formButtonPrimary: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
                           page: "p-6"
                         },
                         variables: {
