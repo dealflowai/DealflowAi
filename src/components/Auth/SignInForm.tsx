@@ -199,7 +199,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
         </Button>
       </form>
 
-      <div className="text-center">
+      <div className="text-center space-y-3">
         <button 
           type="button" 
           className="text-sm text-primary hover:underline"
@@ -212,6 +212,21 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
         >
           Forgot your password?
         </button>
+        
+        <div className="text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <button 
+            type="button"
+            className="text-primary hover:underline font-medium"
+            onClick={() => {
+              // Switch to signup tab
+              const signupTab = document.querySelector('[data-value="signup"]') as HTMLElement;
+              if (signupTab) signupTab.click();
+            }}
+          >
+            Sign up here
+          </button>
+        </div>
       </div>
     </div>
   );

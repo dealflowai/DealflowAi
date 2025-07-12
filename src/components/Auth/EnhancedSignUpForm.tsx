@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -588,8 +589,15 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               onCheckedChange={(checked) => basicForm.setValue('consent', !!checked)}
             />
             <Label htmlFor="consent" className="text-sm leading-relaxed">
-              I agree to the <span className="text-primary cursor-pointer hover:underline">Terms of Service</span> and{' '}
-              <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span> and consent to receive communication via email, phone, and SMS.
+              I agree to the{" "}
+              <Link to="/terms" className="text-primary hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>{" "}
+              and consent to receive communication via email, phone, and SMS.
             </Label>
           </div>
           {basicForm.formState.errors.consent && (
@@ -1354,8 +1362,18 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       {renderCurrentStep()}
       
       <div className="text-center text-sm text-muted-foreground mt-6">
-        Already have an account?{' '}
-        <span className="text-primary cursor-pointer hover:underline">Sign in</span>
+        Already have an account?{" "}
+        <button 
+          type="button"
+          className="text-primary hover:underline font-medium"
+          onClick={() => {
+            // Switch to signin tab
+            const signinTab = document.querySelector('[data-value="signin"]') as HTMLElement;
+            if (signinTab) signinTab.click();
+          }}
+        >
+          Sign in here
+        </button>
       </div>
     </div>
   );
