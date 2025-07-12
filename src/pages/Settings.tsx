@@ -141,15 +141,15 @@ const Settings = () => {
         email: user.primaryEmailAddress?.emailAddress,
         first_name: profileData.first_name,
         last_name: profileData.last_name,
-        phone: profileData.phone,
-        company_name: profileData.company_name,
-        brokerage_name: profileData.brokerage_name,
-        user_role: profileData.user_role,
-        primary_markets: profileData.primary_markets,
-        property_types: profileData.property_types,
+        phone: profileData.phone || null,
+        company_name: profileData.company_name || null,
+        brokerage_name: profileData.brokerage_name || null,
+        user_role: profileData.user_role || null,
+        primary_markets: profileData.primary_markets.length > 0 ? profileData.primary_markets : null,
+        property_types: profileData.property_types.length > 0 ? profileData.property_types : null,
         budget_min: profileData.budget_min ? parseInt(profileData.budget_min) : null,
         budget_max: profileData.budget_max ? parseInt(profileData.budget_max) : null,
-        bio: profileData.bio,
+        bio: profileData.bio || null,
         updated_at: new Date().toISOString()
       };
 
