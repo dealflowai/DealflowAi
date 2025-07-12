@@ -237,6 +237,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     if (isLoaded && user) {
       refreshSubscription();
+      
+      // Set up periodic refresh every 30 seconds to catch admin updates
+      const interval = setInterval(() => {
+        refreshSubscription();
+      }, 30000);
+      
+      return () => clearInterval(interval);
     } else if (isLoaded) {
       setLoading(false);
     }

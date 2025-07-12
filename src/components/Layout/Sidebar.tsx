@@ -23,7 +23,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
-import { useTokens } from '@/contexts/TokenContext';
+import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -51,38 +52,8 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  // Get user's subscription info for plan restrictions
-  const { data: subscriptionData } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      // First get the user's profile to get the UUID
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('clerk_id', user.id)
-        .single();
-      
-      if (!profileData?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('subscribers')
-        .select('subscription_tier')
-        .eq('user_id', profileData.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching subscription:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const userPlan = subscriptionData?.subscription_tier || 'free';
+  const { subscriptionTier } = useSubscription();
+  const userPlan = subscriptionTier || 'free';
 
   // Close mobile sidebar when route changes
   useEffect(() => {

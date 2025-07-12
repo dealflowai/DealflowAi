@@ -18,11 +18,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { NotificationService, type Notification } from '@/services/notificationService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { user } = useUser();
+  const { subscriptionTier } = useSubscription();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({ deals: [], buyers: [], contracts: [] });
@@ -233,8 +235,9 @@ const Header = () => {
 
   // Get user plan display name
   const getUserPlanDisplay = () => {
-    if (subscription?.subscribed && subscription?.subscription_tier) {
-      return subscription.subscription_tier.charAt(0).toUpperCase() + subscription.subscription_tier.slice(1) + ' Plan';
+    // Use subscription context first (includes admin-set plans)
+    if (subscriptionTier) {
+      return subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1) + ' Plan';
     }
     if (profile?.selected_plan) {
       return profile.selected_plan.charAt(0).toUpperCase() + profile.selected_plan.slice(1) + ' Plan';

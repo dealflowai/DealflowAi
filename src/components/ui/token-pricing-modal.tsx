@@ -173,7 +173,7 @@ export function TokenPricingModal({ open, onOpenChange, userPlan }: TokenPricing
             </DialogHeader>
             <div className="space-y-4">
               <div className="p-6 border rounded-lg bg-muted/30">
-                <h3 className="text-lg font-semibold mb-2">Current Plan: {userPlan}</h3>
+                <h3 className="text-lg font-semibold mb-2">Current Plan: {userPlan || 'Free'}</h3>
                 <p className="text-muted-foreground mb-4">
                   Free plan users receive a monthly token allowance but cannot purchase additional tokens.
                 </p>
