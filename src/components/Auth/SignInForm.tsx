@@ -31,6 +31,8 @@ interface SignInFormProps {
 export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onSwitchToSignUp }) => {
   const { signIn, setActive } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
+  const [resetMode, setResetMode] = useState<'request' | 'verify' | null>(null);
+  const [resetEmail, setResetEmail] = useState('');
   const { toast } = useToast();
 
   const {
@@ -39,6 +41,23 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onSwitchToSig
     formState: { errors },
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
+  });
+
+  // Schema for password reset
+  const resetSchema = z.object({
+    code: z.string().min(6, 'Code must be at least 6 characters'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string()
+  }).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+  type ResetFormData = z.infer<typeof resetSchema>;
+
+  // Form for password reset
+  const resetForm = useForm<ResetFormData>({
+    resolver: zodResolver(resetSchema)
   });
 
   const onSubmit = async (data: SignInFormData) => {
@@ -148,6 +167,165 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onSwitchToSig
     }
   };
 
+  const handlePasswordReset = async (email: string) => {
+    if (!signIn) return;
+    
+    setIsLoading(true);
+    try {
+      await signIn.create({
+        strategy: "reset_password_email_code",
+        identifier: email,
+      });
+      
+      setResetEmail(email);
+      setResetMode('verify');
+      toast({
+        title: "Reset Email Sent",
+        description: "Check your email for the reset code.",
+      });
+    } catch (error: any) {
+      let errorMessage = "Failed to send reset email. Please try again.";
+      
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        if (firstError.code === 'form_identifier_not_found') {
+          errorMessage = "No account found with this email address.";
+        } else {
+          errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        }
+      }
+      
+      toast({
+        title: "Reset Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetCompletion = async (data: ResetFormData) => {
+    if (!signIn) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await signIn.attemptFirstFactor({
+        strategy: "reset_password_email_code",
+        code: data.code,
+        password: data.password,
+      });
+
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        toast({
+          title: "Password Reset Successful",
+          description: "Your password has been reset and you're now signed in.",
+        });
+        setResetMode(null);
+        onSuccess?.();
+      }
+    } catch (error: any) {
+      let errorMessage = "Failed to reset password. Please try again.";
+      
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        errorMessage = firstError.longMessage || firstError.message || errorMessage;
+      }
+      
+      toast({
+        title: "Reset Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (resetMode === 'verify') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Reset Your Password</h2>
+          <p className="text-muted-foreground">Enter the code sent to {resetEmail} and your new password</p>
+        </div>
+
+        <form onSubmit={resetForm.handleSubmit(handleResetCompletion)} className="space-y-4">
+          <div>
+            <Label htmlFor="reset-code">Reset Code</Label>
+            <Input
+              id="reset-code"
+              type="text"
+              {...resetForm.register('code')}
+              className="mt-1"
+              placeholder="Enter the 6-digit code"
+            />
+            {resetForm.formState.errors.code && (
+              <p className="text-sm text-destructive mt-1">{resetForm.formState.errors.code.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="new-password">New Password</Label>
+            <Input
+              id="new-password"
+              type="password"
+              {...resetForm.register('password')}
+              className="mt-1"
+              placeholder="Enter your new password"
+            />
+            {resetForm.formState.errors.password && (
+              <p className="text-sm text-destructive mt-1">{resetForm.formState.errors.password.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <Input
+              id="confirm-password"
+              type="password"
+              {...resetForm.register('confirmPassword')}
+              className="mt-1"
+              placeholder="Confirm your new password"
+            />
+            {resetForm.formState.errors.confirmPassword && (
+              <p className="text-sm text-destructive mt-1">{resetForm.formState.errors.confirmPassword.message}</p>
+            )}
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-semibold"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Resetting Password...
+              </>
+            ) : (
+              'Reset Password'
+            )}
+          </Button>
+        </form>
+
+        <div className="text-center">
+          <button 
+            type="button" 
+            className="text-sm text-muted-foreground hover:text-primary"
+            onClick={() => {
+              setResetMode(null);
+              resetForm.reset();
+            }}
+          >
+            Back to sign in
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -207,41 +385,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onSwitchToSig
           onClick={async () => {
             const email = prompt("Enter your email address to reset your password:");
             if (email) {
-              try {
-                const result = await signIn.create({
-                  strategy: "reset_password_email_code",
-                  identifier: email,
-                });
-                
-                if (result.status === 'needs_first_factor') {
-                  toast({
-                    title: "Reset Email Sent",
-                    description: "Check your email for password reset instructions.",
-                  });
-                } else {
-                  toast({
-                    title: "Reset Email Sent",
-                    description: "Check your email for password reset instructions.",
-                  });
-                }
-              } catch (error: any) {
-                let errorMessage = "Failed to send reset email. Please try again.";
-                
-                if (error.errors && error.errors.length > 0) {
-                  const firstError = error.errors[0];
-                  if (firstError.code === 'form_identifier_not_found') {
-                    errorMessage = "No account found with this email address.";
-                  } else {
-                    errorMessage = firstError.longMessage || firstError.message || errorMessage;
-                  }
-                }
-                
-                toast({
-                  title: "Reset Failed",
-                  description: errorMessage,
-                  variant: "destructive"
-                });
-              }
+              await handlePasswordReset(email);
             }
           }}
         >
