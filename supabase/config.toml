@@ -2,3 +2,12 @@ project_id = "whrtmdoktihsctssdyjq"
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.ai-deal-analyzer]
+verify_jwt = true
+
+[functions.ai-buyer-discovery]
+verify_jwt = true
+
+[functions.ai-contract-generator]
+verify_jwt = true
