@@ -14,6 +14,7 @@ import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 import { motion } from 'framer-motion';
 import { 
@@ -34,43 +35,98 @@ import {
   Zap,
   Users,
   Target,
-  Gem
+  Gem,
+  ExternalLink
 } from 'lucide-react';
-
-interface SubscriptionStatus {
-  subscribed: boolean;
-  subscription_tier?: string;
-  subscription_end?: string;
-}
 
 const Settings = () => {
   const { user } = useUser();
   const { isDark, toggleTheme } = useTheme();
   const { toast } = useToast();
   const { tokenBalance, loading: tokenLoading } = useTokens();
+  const { subscriptionTier, subscribed, loading: subscriptionLoading, refreshSubscription } = useSubscription();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState(false);
 
-  // Fetch subscription status
-  useEffect(() => {
-    const fetchSubscriptionStatus = async () => {
-      try {
-        const { data } = await supabase.functions.invoke('check-subscription');
-        if (data) {
-          setSubscriptionStatus(data);
+  const getCurrentPlan = () => {
+    if (!subscribed) return 'free';
+    const tier = subscriptionTier?.toLowerCase();
+    if (tier === 'pro') return 'core';
+    if (tier === 'agency') return 'agency';
+    return 'free';
+  };
+
+  const getPlanDisplayName = () => {
+    const plan = getCurrentPlan();
+    if (plan === 'free') return 'Entry / Free';
+    if (plan === 'core') return 'Core Plan';
+    if (plan === 'agency') return 'Agency Plan';
+    return 'Entry / Free';
+  };
+
+  const getPlanDescription = () => {
+    const plan = getCurrentPlan();
+    if (plan === 'free') return '25 non-expiring tokens, no credit card required';
+    if (plan === 'core') return '$49/month • 25 tokens every month';
+    if (plan === 'agency') return '$299/month • 1,500 tokens + 5 seats';
+    return '25 non-expiring tokens, no credit card required';
+  };
+
+  const handleUpgrade = async (planType: string) => {
+    if (!user) return;
+    
+    setUpgrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          userEmail: user.primaryEmailAddress?.emailAddress,
+          userId: user.id,
+          plan: planType,
         }
-      } catch (error) {
-        console.error('Error fetching subscription status:', error);
-      } finally {
-        setSubscriptionLoading(false);
-      }
-    };
+      });
 
-    if (user) {
-      fetchSubscriptionStatus();
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Upgrade Error",
+        description: "Unable to start upgrade process. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpgrading(false);
     }
-  }, [user]);
+  };
+
+  const handleManageSubscription = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        body: {
+          userEmail: user.primaryEmailAddress?.emailAddress,
+          userId: user.id,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Portal Error", 
+        description: "Unable to open subscription management. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const plans = [
     {
@@ -338,46 +394,71 @@ const Settings = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="text-xl font-bold text-primary mb-1">
-                            {subscriptionStatus?.subscribed ? 
-                              (subscriptionStatus.subscription_tier === 'pro' ? 'Core Plan' :
-                               subscriptionStatus.subscription_tier === 'agency' ? 'Agency Plan' :
-                               'Entry / Free') : 
-                              'Entry / Free'}
+                            {getPlanDisplayName()}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            {subscriptionStatus?.subscribed ? 
-                              (subscriptionStatus.subscription_tier === 'pro' ? '$49/month • 25 tokens every month' :
-                               subscriptionStatus.subscription_tier === 'agency' ? '$299/month • 1,500 tokens + 5 seats' :
-                               '25 non-expiring tokens, no credit card required') : 
-                              '25 non-expiring tokens, no credit card required'}
+                            {getPlanDescription()}
                           </p>
                         </div>
-                        <Badge variant={subscriptionStatus?.subscribed ? "default" : "secondary"}>
-                          {subscriptionStatus?.subscribed ? "Active" : "Free"}
+                        <Badge variant={subscribed ? "default" : "secondary"}>
+                          {subscribed ? "Active" : "Free"}
                         </Badge>
                       </div>
                       
-                      {subscriptionStatus?.subscribed && subscriptionStatus.subscription_end && (
-                        <div className="text-sm text-muted-foreground mb-4">
-                          <span>Next billing date: </span>
-                          <span className="font-medium">
-                            {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-
                       <div className="flex flex-col sm:flex-row gap-2">
-                        {!subscriptionStatus?.subscribed && (
-                          <Button className="bg-primary hover:bg-primary/90 text-white flex-1">
-                            <ArrowRight className="mr-2" size={14} />
-                            Upgrade to Core Plan
-                          </Button>
-                        )}
-                        {subscriptionStatus?.subscribed && (
-                          <Button variant="outline" className="flex-1">
-                            <SettingsIcon className="mr-2" size={14} />
-                            Manage Subscription
-                          </Button>
+                        {!subscribed ? (
+                          <>
+                            <Button 
+                              onClick={() => handleUpgrade('pro')}
+                              disabled={upgrading}
+                              className="bg-primary hover:bg-primary/90 text-white flex-1"
+                            >
+                              {upgrading ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              ) : (
+                                <ArrowRight className="mr-2" size={14} />
+                              )}
+                              Upgrade to Core Plan
+                            </Button>
+                            <Button 
+                              onClick={() => handleUpgrade('agency')}
+                              disabled={upgrading}
+                              variant="outline"
+                              className="flex-1"
+                            >
+                              {upgrading ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              ) : (
+                                <Users className="mr-2" size={14} />
+                              )}
+                              Get Agency Plan
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row gap-2 w-full">
+                            <Button 
+                              onClick={handleManageSubscription}
+                              variant="outline" 
+                              className="flex-1"
+                            >
+                              <ExternalLink className="mr-2" size={14} />
+                              Manage Subscription
+                            </Button>
+                            {getCurrentPlan() === 'core' && (
+                              <Button 
+                                onClick={() => handleUpgrade('agency')}
+                                disabled={upgrading}
+                                className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+                              >
+                                {upgrading ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                ) : (
+                                  <Users className="mr-2" size={14} />
+                                )}
+                                Upgrade to Agency
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
