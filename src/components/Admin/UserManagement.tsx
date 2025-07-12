@@ -194,14 +194,14 @@ const UserManagement = () => {
     }
   };
 
-  const handleRoleChange = (userId: string, newRole: string, userName: string) => {
+  const handleRoleChange = (userId: string, newRole: string, userName: string, currentUser: any) => {
     updateUserMutation.mutate({ 
       id: userId, 
       role: newRole,
-      email: '', // These won't be updated, just the role
-      first_name: '',
-      last_name: '',
-      selected_plan: 'free'
+      email: currentUser.email || '',
+      first_name: currentUser.first_name || '',
+      last_name: currentUser.last_name || '',
+      selected_plan: currentUser.selected_plan || 'free'
     });
     toast({ 
       title: 'Role Updated', 
@@ -312,9 +312,8 @@ const UserManagement = () => {
                              </FormControl>
                              <SelectContent>
                                <SelectItem value="free">Free</SelectItem>
-                               <SelectItem value="starter">Starter</SelectItem>
-                               <SelectItem value="pro">Pro</SelectItem>
-                               <SelectItem value="agency">Agency</SelectItem>
+                               <SelectItem value="core">Core Plan</SelectItem>
+                               <SelectItem value="agency">Agency Plan</SelectItem>
                              </SelectContent>
                            </Select>
                            <FormMessage />
@@ -449,7 +448,8 @@ const UserManagement = () => {
                             newRole, 
                             user.first_name && user.last_name 
                               ? `${user.first_name} ${user.last_name}`
-                              : user.email?.split('@')[0] || 'Unknown'
+                              : user.email?.split('@')[0] || 'Unknown',
+                            user
                           )}
                         >
                           <SelectTrigger className="w-32">
@@ -489,10 +489,10 @@ const UserManagement = () => {
                             updateUserMutation.mutate({ 
                               id: user.id, 
                               selected_plan: newPlan,
-                              email: user.email,
+                              email: user.email || '',
                               first_name: user.first_name || '',
                               last_name: user.last_name || '',
-                              role: user.role
+                              role: user.role || 'user'
                             });
                             toast({ 
                               title: 'Plan Updated', 
@@ -500,14 +500,13 @@ const UserManagement = () => {
                             });
                           }}
                         >
-                          <SelectTrigger className="w-28">
+                          <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="free">Free</SelectItem>
-                            <SelectItem value="starter">Starter</SelectItem>
-                            <SelectItem value="pro">Pro</SelectItem>
-                            <SelectItem value="agency">Agency</SelectItem>
+                            <SelectItem value="core">Core Plan</SelectItem>
+                            <SelectItem value="agency">Agency Plan</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -699,9 +698,8 @@ const UserManagement = () => {
                          </FormControl>
                          <SelectContent>
                            <SelectItem value="free">Free</SelectItem>
-                           <SelectItem value="starter">Starter</SelectItem>
-                           <SelectItem value="pro">Pro</SelectItem>
-                           <SelectItem value="agency">Agency</SelectItem>
+                           <SelectItem value="core">Core Plan</SelectItem>
+                           <SelectItem value="agency">Agency Plan</SelectItem>
                          </SelectContent>
                        </Select>
                        <FormMessage />
