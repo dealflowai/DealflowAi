@@ -18,6 +18,8 @@ import DealAnalyzer from "./pages/DealAnalyzer";
 import Contracts from "./pages/Contracts";
 import Settings from "./pages/Settings";
 import TokenPurchaseSuccess from "./pages/TokenPurchaseSuccess";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
@@ -117,6 +119,8 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
         <Route path="/token-purchase-success" element={<TokenPurchaseSuccess />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

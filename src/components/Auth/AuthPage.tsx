@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -126,6 +126,26 @@ const AuthPage = () => {
                 Not satisfied? Get a full refund within 30 days, no questions asked.
               </p>
             </div>
+          </motion.div>
+
+          {/* Terms and Privacy Links */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="mt-6 text-center text-sm text-muted-foreground"
+          >
+            <p>
+              By creating an account, you agree to our{" "}
+              <Link to="/terms" className="underline hover:text-primary">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="underline hover:text-primary">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </motion.div>
         </div>
       </div>
