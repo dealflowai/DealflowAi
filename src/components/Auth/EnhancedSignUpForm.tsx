@@ -37,6 +37,7 @@ const basicSignUpSchema = z.object({
     .max(128, 'Password must be less than 128 characters')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, 
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  confirmPassword: z.string(),
   role: z.enum(['buyer', 'wholesaler', 'real_estate_agent', 'other'], {
     required_error: 'Please select your role'
   }),
@@ -49,6 +50,9 @@ const basicSignUpSchema = z.object({
   consent: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy'
   })
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 // Step 2-4: Onboarding schemas based on role
@@ -100,12 +104,26 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>({});
   const [verificationCode, setVerificationCode] = useState('');
+  const [password, setPassword] = useState('');
   const { toast } = useToast();
 
   // Step 1: Basic signup form
   const basicForm = useForm<BasicSignUpData>({
     resolver: zodResolver(basicSignUpSchema),
   });
+
+  // Password requirements checker
+  const checkPasswordRequirements = (password: string) => {
+    return {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[@$!%*?&]/.test(password)
+    };
+  };
+
+  const passwordRequirements = checkPasswordRequirements(password);
 
   // Step 2-4: Role-specific onboarding forms
   const buyerForm = useForm<BuyerOnboardingData>({
@@ -533,22 +551,47 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             <Label htmlFor="password">Password</Label>
             <Input
               type="password"
-              {...basicForm.register('password')}
+              {...basicForm.register('password', {
+                onChange: (e) => setPassword(e.target.value)
+              })}
               className="mt-1"
               placeholder="Create a secure password"
             />
-            <div className="mt-2 text-xs text-muted-foreground space-y-1">
-              <p>Password must contain:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>At least 8 characters</li>
-                <li>One uppercase letter (A-Z)</li>
-                <li>One lowercase letter (a-z)</li>
-                <li>One number (0-9)</li>
-                <li>One special character (@$!%*?&)</li>
+            <div className="mt-2 text-xs space-y-1">
+              <p className="text-muted-foreground">Password must contain:</p>
+              <ul className="space-y-1 ml-2">
+                <li className={`flex items-center gap-2 ${passwordRequirements.length ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {passwordRequirements.length ? '✓' : '○'} At least 8 characters
+                </li>
+                <li className={`flex items-center gap-2 ${passwordRequirements.uppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {passwordRequirements.uppercase ? '✓' : '○'} One uppercase letter (A-Z)
+                </li>
+                <li className={`flex items-center gap-2 ${passwordRequirements.lowercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {passwordRequirements.lowercase ? '✓' : '○'} One lowercase letter (a-z)
+                </li>
+                <li className={`flex items-center gap-2 ${passwordRequirements.number ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {passwordRequirements.number ? '✓' : '○'} One number (0-9)
+                </li>
+                <li className={`flex items-center gap-2 ${passwordRequirements.special ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {passwordRequirements.special ? '✓' : '○'} One special character (@$!%*?&)
+                </li>
               </ul>
             </div>
             {basicForm.formState.errors.password && (
               <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.password.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              type="password"
+              {...basicForm.register('confirmPassword')}
+              className="mt-1"
+              placeholder="Re-enter your password"
+            />
+            {basicForm.formState.errors.confirmPassword && (
+              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.confirmPassword.message}</p>
             )}
           </div>
 
