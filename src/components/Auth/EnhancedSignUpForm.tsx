@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useSignUp, useSignIn } from '@clerk/clerk-react';
+import { useSignUp } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 
 // Step 1: Basic signup schema
 const basicSignUpSchema = z.object({
@@ -67,7 +66,6 @@ interface EnhancedSignUpFormProps {
 
 export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSuccess, onSwitchToSignIn }) => {
   const { signUp, setActive } = useSignUp();
-  const { signIn } = useSignIn();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>({});
@@ -102,29 +100,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   const passwordRequirements = checkPasswordRequirements(password);
   const allRequirementsMet = Object.values(passwordRequirements).every(Boolean);
 
-  // Handle Google OAuth signup
-  const handleGoogleSignup = async () => {
-    if (!signUp) return;
-    
-    setIsLoading(true);
-    
-    try {
-      await signUp.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/auth-callback",
-        redirectUrlComplete: "/"
-      });
-    } catch (error: any) {
-      console.error('Google signup error:', error);
-      toast({
-        title: "Google Signup Failed",
-        description: "Unable to sign up with Google. Please try email signup instead.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-    }
-  };
-
   // Step 1: Handle initial signup
   const handleBasicSignup = async (data: BasicSignUpData) => {
     if (!signUp) return;
@@ -134,33 +109,76 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     try {
       console.log('Starting signup process...');
       
-      // Try creating account with email/password
+      // Security check before allowing signup
+      const userIP = '127.0.0.1'; // This would be the actual IP in production
+      const emailDomain = data.email.split('@')[1];
+      
+      const { data: securityCheck } = await supabase.rpc('check_signup_security', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
+      });
+      
+      const securityResult = securityCheck as { allowed: boolean; reason?: string };
+      
+      if (!securityResult.allowed) {
+        toast({
+          title: "Signup Blocked",
+          description: securityResult.reason || "Security check failed",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Create the initial signup with email redirect
+      const redirectUrl = `${window.location.origin}/`;
+      
+      // Log signup attempt for security tracking
+      await supabase.rpc('log_signup_attempt', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone,
+        p_success: false
+      });
+
+      // Try creating account with minimal metadata to avoid verification issues
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName
+        lastName: data.lastName,
+        unsafeMetadata: {
+          phone: data.phone,
+          role: data.role
+        }
       });
 
       console.log('Signup result:', result);
 
       if (result.status === 'missing_requirements') {
-        console.log('Email verification required');
-        
-        // Prepare email verification
-        await signUp.prepareEmailAddressVerification({
-          strategy: 'email_code'
-        });
-        
-        setUserData(data);
-        setCurrentStep(1.5);
-        
-        toast({
-          title: "Check Your Email",
-          description: "We've sent you a verification code. Please check your email and enter the code below.",
-        });
+        // Try to prepare email verification
+        try {
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          setUserData(data);
+          setCurrentStep(1.5);
+          
+          toast({
+            title: "Check Your Email",
+            description: "We've sent you a verification code to complete your registration.",
+          });
+        } catch (verificationError) {
+          console.log('Verification preparation failed:', verificationError);
+          toast({
+            title: "Verification Issue",
+            description: "There's a temporary issue with email verification. Please check your email or try again.",
+            variant: "destructive"
+          });
+        }
       } else if (result.status === 'complete' && result.createdSessionId) {
-        console.log('Signup completed immediately');
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
         
@@ -169,25 +187,23 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         
         toast({
           title: "Account Created!",
-          description: "Welcome! Let's customize your experience.",
+          description: "Let's customize your experience.",
         });
       } else {
-        console.log('Unexpected signup status:', result.status);
         toast({
-          title: "Setup Required",
-          description: "Please complete the verification process.",
-          variant: "default"
+          title: "Signup Issue", 
+          description: "There was an issue creating your account. Please try again in a moment.",
+          variant: "destructive"
         });
       }
     } catch (error: any) {
-      console.error('Signup error details:', error);
+      console.error('Signup error:', error);
       
-      let errorMessage = "Please try again or use Google signup below.";
+      let errorMessage = "An error occurred during signup. Please try again.";
       let errorTitle = "Signup Failed";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        console.log('First error:', firstError);
         
         switch (firstError.code) {
           case 'form_identifier_exists':
@@ -195,25 +211,25 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorMessage = "An account with this email already exists. Please sign in instead.";
             break;
           case 'form_password_pwned':
-            errorTitle = "Password Not Secure";
-            errorMessage = "Please choose a different, more secure password.";
-            break;
-          case 'form_password_validation_failed':
-            errorTitle = "Password Requirements";
-            errorMessage = "Password must be at least 8 characters with uppercase, lowercase, number, and special character.";
+            errorTitle = "Weak Password";
+            errorMessage = "This password has been found in a data breach. Please choose a different password.";
             break;
           case 'captcha_invalid':
           case 'captcha_failed':
-          case 'captcha_unavailable':
-            errorTitle = "CAPTCHA Issue";
-            errorMessage = "CAPTCHA failed to load. Please try Google signup or refresh the page and try again.";
+          case 'verification_failed':
+            errorTitle = "Verification Issue";
+            errorMessage = "There's a temporary issue with our verification system. Please try again in a few moments.";
+            break;
+          case 'too_many_requests':
+            errorTitle = "Too Many Attempts";
+            errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
-      } else if (error.message?.toLowerCase().includes('captcha')) {
-        errorTitle = "CAPTCHA Problem";
-        errorMessage = "CAPTCHA verification failed. Try disabling browser extensions or use Google signup.";
+      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
+        errorTitle = "Verification Required";
+        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
       }
       
       toast({
@@ -239,14 +255,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       if (!cleanCode || cleanCode.length !== 6) {
         toast({
           title: "Invalid Code",
-          description: "Please enter the 6-digit verification code from your email.",
+          description: "Please enter a valid 6-digit verification code.",
           variant: "destructive"
         });
         setIsLoading(false);
         return;
       }
 
-      console.log('Attempting verification with code:', cleanCode);
+      console.log('Attempting verification...');
       
       const result = await signUp.attemptEmailAddressVerification({
         code: cleanCode,
@@ -254,47 +270,49 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
       console.log('Verification result:', result);
       
-      if (result.status === 'complete' && result.createdSessionId) {
-        console.log('Verification successful, setting session');
-        await setActive({ session: result.createdSessionId });
-        await createUserProfile(result.createdUserId!, userData);
-        
-        setUserData({ ...userData, clerkId: result.createdUserId });
-        setCurrentStep(2);
-        
-        toast({
-          title: "Email Verified!",
-          description: "Welcome! Let's set up your preferences.",
-        });
-      } else {
-        console.log('Verification incomplete, attempting to complete signup');
-        // Additional step might be needed
-        try {
-          const completionResult = await signUp.update({
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-          });
+      if (result.verifications?.emailAddress?.status === 'verified') {
+        if (result.status === 'complete' && result.createdSessionId) {
+          await setActive({ session: result.createdSessionId });
+          await createUserProfile(result.createdUserId!, userData);
           
-          if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-            await setActive({ session: completionResult.createdSessionId });
-            await createUserProfile(completionResult.createdUserId!, userData);
-            
-            setUserData({ ...userData, clerkId: completionResult.createdUserId });
-            setCurrentStep(2);
-            
-            toast({
-              title: "Account Verified!",
-              description: "Welcome! Let's set up your preferences.",
+          setUserData({ ...userData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+          
+          toast({
+            title: "Email Verified!",
+            description: "Let's customize your experience.",
+          });
+        } else {
+          // Need to complete signup
+          try {
+            const completionResult = await signUp.update({
+              firstName: userData.firstName,
+              lastName: userData.lastName,
             });
-          } else {
-            console.log('Still not complete after update, proceeding anyway');
+            
+            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
+              await setActive({ session: completionResult.createdSessionId });
+              await createUserProfile(completionResult.createdUserId!, userData);
+              
+              setUserData({ ...userData, clerkId: completionResult.createdUserId });
+              setCurrentStep(2);
+              
+              toast({
+                title: "Email Verified!",
+                description: "Let's customize your experience.",
+              });
+            }
+          } catch (completionError) {
+            console.error('Completion error:', completionError);
             setCurrentStep(2);
           }
-        } catch (completionError) {
-          console.error('Completion error:', completionError);
-          // Even if completion fails, proceed if verification was successful
-          setCurrentStep(2);
         }
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: "Invalid verification code. Please try again.",
+          variant: "destructive"
+        });
       }
       
       setVerificationCode('');
@@ -302,21 +320,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       console.error('Verification error:', error);
       setVerificationCode('');
       
-      let errorMessage = "Invalid verification code. Please check your email and try again.";
+      let errorMessage = "Verification failed. Please try again.";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        console.log('Verification error details:', firstError);
-        
-        switch (firstError.code) {
-          case 'form_code_incorrect':
-            errorMessage = "The verification code is incorrect. Please check your email and try again.";
-            break;
-          case 'form_code_expired':
-            errorMessage = "The verification code has expired. Please request a new one.";
-            break;
-          default:
-            errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        if (firstError.code === 'form_code_incorrect') {
+          errorMessage = "Invalid verification code. Please check your email and try again.";
         }
       }
       
@@ -450,43 +459,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         </CardHeader>
         <CardContent>
           {renderProgressIndicator()}
-          
-          {/* Google Signup Button */}
-          <div className="mb-6">
-            <Button 
-              type="button"
-              variant="outline" 
-              className="w-full h-12 text-base font-medium"
-              onClick={handleGoogleSignup}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing up...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Continue with Google
-                </>
-              )}
-            </Button>
-            
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
-              </div>
-            </div>
-          </div>
           
           <form onSubmit={basicForm.handleSubmit(handleBasicSignup)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
