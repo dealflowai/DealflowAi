@@ -100,91 +100,80 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   const passwordRequirements = checkPasswordRequirements(password);
   const allRequirementsMet = Object.values(passwordRequirements).every(Boolean);
 
-  // Step 1: Handle initial signup
+  // Step 1: Handle initial signup with improved reliability
   const handleBasicSignup = async (data: BasicSignUpData) => {
     if (!signUp) return;
     
     setIsLoading(true);
     
     try {
-      console.log('Starting signup process...');
+      console.log('Starting simplified signup process...');
       
-      // Create the initial signup with email redirect
-      const redirectUrl = `${window.location.origin}/auth`;
-      
-      // Try creating account with minimal metadata to avoid verification issues
+      // Create account with basic information only
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName
+        lastName: data.lastName,
       });
 
-      console.log('Signup result:', result);
+      console.log('Signup result status:', result.status);
 
-      if (result.status === 'missing_requirements') {
-        // Try to prepare email verification
-        try {
-          await signUp.prepareEmailAddressVerification({
-            strategy: 'email_code'
-          });
+      // Handle different signup statuses
+      if (result.status === 'complete' && result.createdSessionId) {
+        // Account created successfully, activate session immediately
+        await setActive({ session: result.createdSessionId });
+        
+        // Store user profile data in Supabase
+        await createUserProfile(result.createdUserId!, data);
+        
+        setUserData({ ...data, clerkId: result.createdUserId });
+        setCurrentStep(2); // Go to onboarding
+        
+        toast({
+          title: "Welcome to DealFlow AI!",
+          description: "Your account has been created successfully.",
+        });
+        
+      } else if (result.status === 'missing_requirements') {
+        // Try to complete signup without email verification if possible
+        const updateResult = await signUp.update({
+          firstName: data.firstName,
+          lastName: data.lastName,
+        });
+        
+        if (updateResult.status === 'complete' && updateResult.createdSessionId) {
+          await setActive({ session: updateResult.createdSessionId });
+          await createUserProfile(updateResult.createdUserId!, data);
           
+          setUserData({ ...data, clerkId: updateResult.createdUserId });
+          setCurrentStep(2);
+          
+          toast({
+            title: "Welcome to DealFlow AI!",
+            description: "Your account has been created successfully.",
+          });
+        } else {
+          // Fall back to email verification if absolutely necessary
           setUserData(data);
           setCurrentStep(1.5);
           
           toast({
-            title: "Check Your Email",
-            description: "We've sent you a verification code to complete your registration.",
+            title: "Almost Done!",
+            description: "Please check your email for a verification code.",
           });
-        } catch (verificationError) {
-          console.log('Verification preparation failed, trying alternative flow');
-          // If verification fails, try to complete without it
-          try {
-            const completionResult = await signUp.update({
-              firstName: data.firstName,
-              lastName: data.lastName,
-            });
-            
-            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-              await setActive({ session: completionResult.createdSessionId });
-              await createUserProfile(completionResult.createdUserId!, data);
-              
-              setUserData({ ...data, clerkId: completionResult.createdUserId });
-              setCurrentStep(2);
-              
-              toast({
-                title: "Account Created!",
-                description: "Welcome! Let's customize your experience.",
-              });
-            }
-          } catch (updateError) {
-            throw verificationError; // Fall back to original error
-          }
         }
-      } else if (result.status === 'complete' && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
-        await createUserProfile(result.createdUserId!, data);
-        
-        setUserData({ ...data, clerkId: result.createdUserId });
-        setCurrentStep(2);
-        
-        toast({
-          title: "Account Created!",
-          description: "Let's customize your experience.",
-        });
       } else {
-        toast({
-          title: "Signup Issue", 
-          description: "There was an issue creating your account. Please try again in a moment.",
-          variant: "destructive"
-        });
+        throw new Error('Unexpected signup status: ' + result.status);
       }
+      
     } catch (error: any) {
       console.error('Signup error:', error);
       
-      let errorMessage = "An error occurred during signup. Please try again.";
+      let errorMessage = "Unable to create account. Please try again.";
       let errorTitle = "Signup Failed";
       
+      // Handle specific error types
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
         
@@ -194,25 +183,31 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorMessage = "An account with this email already exists. Please sign in instead.";
             break;
           case 'form_password_pwned':
-            errorTitle = "Weak Password";
-            errorMessage = "This password has been found in a data breach. Please choose a different password.";
+            errorTitle = "Password Security Issue";
+            errorMessage = "This password has been found in a data breach. Please choose a different one for your security.";
             break;
-          case 'captcha_invalid':
-          case 'captcha_failed':
-          case 'verification_failed':
-            errorTitle = "Verification Issue";
-            errorMessage = "There's a temporary issue with our verification system. Please try again in a few moments.";
+          case 'form_password_length_too_short':
+            errorTitle = "Password Too Short";
+            errorMessage = "Password must be at least 8 characters long.";
+            break;
+          case 'form_password_no_uppercase':
+          case 'form_password_no_lowercase':
+          case 'form_password_no_numbers':
+          case 'form_password_no_symbols':
+            errorTitle = "Password Requirements";
+            errorMessage = "Password must contain uppercase, lowercase, numbers, and special characters.";
             break;
           case 'too_many_requests':
             errorTitle = "Too Many Attempts";
-            errorMessage = "Please wait 5-10 minutes before trying again.";
+            errorMessage = "Please wait a few minutes before trying again.";
             break;
           default:
-            errorMessage = firstError.longMessage || firstError.message || errorMessage;
+            if (firstError.longMessage) {
+              errorMessage = firstError.longMessage;
+            } else if (firstError.message) {
+              errorMessage = firstError.message;
+            }
         }
-      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
-        errorTitle = "Verification Required";
-        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
       }
       
       toast({
@@ -225,96 +220,49 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     }
   };
 
-  // Handle email verification
+  // Simplified email verification (only if absolutely required)
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp) return;
+    if (!signUp || !verificationCode) return;
     
     setIsLoading(true);
     
     try {
       const cleanCode = verificationCode.trim().replace(/\s/g, '');
       
-      if (!cleanCode || cleanCode.length !== 6) {
+      if (cleanCode.length !== 6) {
         toast({
           title: "Invalid Code",
-          description: "Please enter a valid 6-digit verification code.",
+          description: "Please enter the 6-digit verification code.",
           variant: "destructive"
         });
         setIsLoading(false);
         return;
       }
 
-      console.log('Attempting verification...');
-      
       const result = await signUp.attemptEmailAddressVerification({
         code: cleanCode,
       });
-
-      console.log('Verification result:', result);
       
-      if (result.verifications?.emailAddress?.status === 'verified') {
-        if (result.status === 'complete' && result.createdSessionId) {
-          await setActive({ session: result.createdSessionId });
-          await createUserProfile(result.createdUserId!, userData);
-          
-          setUserData({ ...userData, clerkId: result.createdUserId });
-          setCurrentStep(2);
-          
-          toast({
-            title: "Email Verified!",
-            description: "Let's customize your experience.",
-          });
-        } else {
-          // Need to complete signup
-          try {
-            const completionResult = await signUp.update({
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-            });
-            
-            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-              await setActive({ session: completionResult.createdSessionId });
-              await createUserProfile(completionResult.createdUserId!, userData);
-              
-              setUserData({ ...userData, clerkId: completionResult.createdUserId });
-              setCurrentStep(2);
-              
-              toast({
-                title: "Email Verified!",
-                description: "Let's customize your experience.",
-              });
-            }
-          } catch (completionError) {
-            console.error('Completion error:', completionError);
-            setCurrentStep(2);
-          }
-        }
-      } else {
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        await createUserProfile(result.createdUserId!, userData);
+        
+        setUserData({ ...userData, clerkId: result.createdUserId });
+        setCurrentStep(2);
+        
         toast({
-          title: "Verification Failed",
-          description: "Invalid verification code. Please try again.",
-          variant: "destructive"
+          title: "Email Verified!",
+          description: "Welcome to DealFlow AI!",
         });
       }
       
-      setVerificationCode('');
     } catch (error: any) {
       console.error('Verification error:', error);
-      setVerificationCode('');
-      
-      let errorMessage = "Verification failed. Please try again.";
-      
-      if (error.errors && error.errors.length > 0) {
-        const firstError = error.errors[0];
-        if (firstError.code === 'form_code_incorrect') {
-          errorMessage = "Invalid verification code. Please check your email and try again.";
-        }
-      }
       
       toast({
         title: "Verification Failed",
-        description: errorMessage,
+        description: "Invalid code. Please check your email and try again.",
         variant: "destructive"
       });
     } finally {
