@@ -127,7 +127,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       console.log('Signup result:', result);
 
       if (result.status === 'missing_requirements') {
-        // Send verification email
+        // Send verification email without additional options to avoid CAPTCHA issues
         await signUp.prepareEmailAddressVerification({
           strategy: 'email_code'
         });
@@ -140,16 +140,23 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           description: "We've sent you a verification code to complete your registration.",
         });
       } else if (result.status === 'complete' && result.createdSessionId) {
-        // Account created successfully
+        // Account created successfully without verification needed
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
-        setCurrentStep(2); // Continue to onboarding
+        setCurrentStep(2); // Skip verification, go directly to onboarding
         
         toast({
           title: "Account Created!",
           description: "Let's customize your experience.",
+        });
+      } else {
+        // Handle other statuses
+        toast({
+          title: "Signup Issue",
+          description: "There was an issue creating your account. Please try again.",
+          variant: "destructive"
         });
       }
     } catch (error: any) {
@@ -172,12 +179,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             break;
           case 'captcha_invalid':
           case 'captcha_failed':
-            errorTitle = "Verification Failed";
-            errorMessage = "Please try again. If this continues, try using a different browser or disabling browser extensions.";
+          case 'verification_failed':
+            errorTitle = "Verification Issue";
+            errorMessage = "We're having trouble with verification. Please try signing up with a simpler password or contact support if this continues.";
             break;
           case 'too_many_requests':
             errorTitle = "Too Many Attempts";
-            errorMessage = "Too many signup attempts. Please wait a few minutes before trying again.";
+            errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
