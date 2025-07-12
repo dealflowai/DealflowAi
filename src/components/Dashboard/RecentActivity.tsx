@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Clock, User, FileText, Calculator, Filter, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const iconMap = {
 };
 
 const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
+  const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
   const [filter, setFilter] = useState<string>('all');
   
@@ -126,7 +128,7 @@ const RecentActivity = ({ activities = [] }: RecentActivityProps) => {
           <Button 
             variant="ghost" 
             className="w-full text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2"
-            onClick={() => window.location.href = '/analytics?tab=activity'}
+            onClick={() => navigate('/analytics?tab=activity')}
           >
             View all activity
           </Button>

@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import RecentActivity from '@/components/Dashboard/RecentActivity';
 import AdvancedCharts from '@/components/Dashboard/AdvancedCharts';
@@ -128,6 +130,7 @@ const generateCSVReport = (data: any) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useUser();
   const { stats, trends, recentActivity, buyerChartData, marketInsights, isLoading } = useDashboardData();
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -217,13 +220,38 @@ const Dashboard = () => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Header skeleton */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+              </div>
+              <div className="flex gap-2">
+                <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+              </div>
+            </div>
+            
+            {/* Stats grid skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
               {[1, 2, 3, 4].map((i) => (
                 <SkeletonCard key={i} />
               ))}
+            </div>
+            
+            {/* Secondary stats skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <SkeletonCard key={i + 4} />
+              ))}
+            </div>
+            
+            {/* Content area skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-gray-200 dark:bg-gray-700 rounded-xl h-64 animate-pulse"></div>
+              <div className="lg:col-span-2 bg-gray-200 dark:bg-gray-700 rounded-xl h-64 animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -252,7 +280,7 @@ const Dashboard = () => {
               Export Report
             </Button>
             <Button 
-              onClick={() => window.location.href = '/analyzer'}
+              onClick={() => navigate('/analyzer')}
               className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
               data-tour="deal-analyzer"
             >
@@ -306,7 +334,7 @@ const Dashboard = () => {
                   <h4 className="font-medium text-xs sm:text-sm text-gray-900 dark:text-gray-100 mb-1">{insight.title}</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{insight.description}</p>
                   <Button 
-                    onClick={() => window.location.href = insight.actionUrl}
+                    onClick={() => navigate(insight.actionUrl)}
                     variant="outline" 
                     size="sm" 
                     className="text-xs w-full sm:w-auto"
@@ -320,81 +348,87 @@ const Dashboard = () => {
         )}
 
         {/* Enhanced Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard
-            title="Total Buyers"
-            value={stats.totalBuyers}
-            change={trends.buyersGrowth > 0 ? `+${trends.buyersGrowth.toFixed(1)}% growth` : `${stats.newBuyers} new this month`}
-            changeType={trends.buyersGrowth > 0 ? "positive" : "neutral"}
-            icon={Users}
-            data-tour="buyers-cta"
-            trend={{ percentage: trends.buyersGrowth, period: "vs last month" }}
-            tooltip="Total number of buyers in your pipeline. Includes active, inactive, and prospect buyers."
-          />
-          <StatsCard
-            title="Active Deals"
-            value={stats.activeDeals}
-            change={`${stats.totalDeals} total deals`}
-            changeType="positive"
-            icon={Calculator}
-            trend={{ percentage: 12.5, period: "vs last week" }}
-            tooltip="Deals currently being analyzed or in negotiation phase."
-          />
-          <StatsCard
-            title="Buying Power"
-            value={`$${(stats.totalBuyingPower / 1000000).toFixed(1)}M`}
-            change={`Avg: $${stats.averageBudget.toLocaleString()}`}
-            changeType="positive"
-            icon={DollarSign}
-            gradient={true}
-            trend={{ percentage: 8.3, period: "vs last month" }}
-            tooltip="Total combined buying power of all active buyers in your pipeline."
-          />
-          <StatsCard
-            title="Conversion Rate"
-            value={`${trends.conversionRate.toFixed(1)}%`}
-            change={`${stats.closedDeals} closed deals`}
-            changeType={trends.conversionRate > 0 ? "positive" : "neutral"}
-            icon={TrendingUp}
-            trend={{ percentage: 15.2, period: "vs last month" }}
-            tooltip="Percentage of analyzed deals that result in closed transactions."
-          />
-        </div>
+        <ErrorBoundary>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+            <StatsCard
+              title="Total Buyers"
+              value={stats.totalBuyers}
+              change={trends.buyersGrowth > 0 ? `+${trends.buyersGrowth.toFixed(1)}% growth` : `${stats.newBuyers} new this month`}
+              changeType={trends.buyersGrowth > 0 ? "positive" : "neutral"}
+              icon={Users}
+              data-tour="buyers-cta"
+              trend={{ percentage: trends.buyersGrowth, period: "vs last month" }}
+              tooltip="Total number of buyers in your pipeline. Includes active, inactive, and prospect buyers."
+            />
+            <StatsCard
+              title="Active Deals"
+              value={stats.activeDeals}
+              change={`${stats.totalDeals} total deals`}
+              changeType="positive"
+              icon={Calculator}
+              trend={{ percentage: 12.5, period: "vs last week" }}
+              tooltip="Deals currently being analyzed or in negotiation phase."
+            />
+            <StatsCard
+              title="Buying Power"
+              value={`$${(stats.totalBuyingPower / 1000000).toFixed(1)}M`}
+              change={`Avg: $${stats.averageBudget.toLocaleString()}`}
+              changeType="positive"
+              icon={DollarSign}
+              gradient={true}
+              trend={{ percentage: 8.3, period: "vs last month" }}
+              tooltip="Total combined buying power of all active buyers in your pipeline."
+            />
+            <StatsCard
+              title="Conversion Rate"
+              value={`${trends.conversionRate.toFixed(1)}%`}
+              change={`${stats.closedDeals} closed deals`}
+              changeType={trends.conversionRate > 0 ? "positive" : "neutral"}
+              icon={TrendingUp}
+              trend={{ percentage: 15.2, period: "vs last month" }}
+              tooltip="Percentage of analyzed deals that result in closed transactions."
+            />
+          </div>
+        </ErrorBoundary>
 
         {/* Additional KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard
-            title="Contracts"
-            value={stats.totalContracts}
-            change={`${stats.signedContracts} signed`}
-            changeType="positive"
-            icon={FileText}
-          />
-          <StatsCard
-            title="Token Usage"
-            value={`${stats.usedTokens}/${stats.totalTokens}`}
-            change={`${stats.remainingTokens} remaining`}
-            changeType={stats.remainingTokens > 10 ? "positive" : "negative"}
-            icon={Zap}
-          />
-          <StatsCard
-            title="Activation Rate"
-            value={`${trends.activationRate.toFixed(1)}%`}
-            change={`${stats.activeBuyers} active buyers`}
-            changeType={trends.activationRate > 50 ? "positive" : "neutral"}
-            icon={Activity}
-          />
-          <StatsCard
-            title="This Week"
-            value={marketInsights.recentTrends.newBuyersThisWeek}
-            change={`${marketInsights.recentTrends.dealsThisWeek} deals added`}
-            changeType="positive"
-            icon={Award}
-          />
-        </div>
+        <ErrorBoundary>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+            <StatsCard
+              title="Contracts"
+              value={stats.totalContracts}
+              change={`${stats.signedContracts} signed`}
+              changeType="positive"
+              icon={FileText}
+            />
+            <StatsCard
+              title="Token Usage"
+              value={`${stats.usedTokens}/${stats.totalTokens}`}
+              change={`${stats.remainingTokens} remaining`}
+              changeType={stats.remainingTokens > 10 ? "positive" : "negative"}
+              icon={Zap}
+            />
+            <StatsCard
+              title="Activation Rate"
+              value={`${trends.activationRate.toFixed(1)}%`}
+              change={`${stats.activeBuyers} active buyers`}
+              changeType={trends.activationRate > 50 ? "positive" : "neutral"}
+              icon={Activity}
+            />
+            <StatsCard
+              title="This Week"
+              value={marketInsights.recentTrends.newBuyersThisWeek}
+              change={`${marketInsights.recentTrends.dealsThisWeek} deals added`}
+              changeType="positive"
+              icon={Award}
+            />
+          </div>
+        </ErrorBoundary>
 
         {/* Onboarding Prompts for New Users */}
-        <OnboardingPrompts stats={stats} />
+        <ErrorBoundary>
+          <OnboardingPrompts stats={stats} />
+        </ErrorBoundary>
 
         {/* Tabbed Content Area */}
         <Tabs defaultValue="overview" className="space-y-4">
@@ -406,9 +440,13 @@ const Dashboard = () => {
           <TabsContent value="overview" className="space-y-4">
             {/* Quick Actions and Portfolio Snapshot */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-              <QuickActions />
+              <ErrorBoundary>
+                <QuickActions />
+              </ErrorBoundary>
               <div className="lg:col-span-2">
-                <DealBuyerSnapshot stats={stats} trends={trends} />
+                <ErrorBoundary>
+                  <DealBuyerSnapshot stats={stats} trends={trends} />
+                </ErrorBoundary>
               </div>
             </div>
 
@@ -466,17 +504,21 @@ const Dashboard = () => {
               </div>
 
               {/* Recent Activity */}
-              <RecentActivity activities={recentActivity} />
+              <ErrorBoundary>
+                <RecentActivity activities={recentActivity} />
+              </ErrorBoundary>
             </div>
           </TabsContent>
 
           <TabsContent value="analytics">
-            <AdvancedCharts 
-              buyerChartData={buyerChartData}
-              marketInsights={marketInsights}
-              stats={stats}
-              trends={trends}
-            />
+            <ErrorBoundary>
+              <AdvancedCharts 
+                buyerChartData={buyerChartData}
+                marketInsights={marketInsights}
+                stats={stats}
+                trends={trends}
+              />
+            </ErrorBoundary>
           </TabsContent>
         </Tabs>
 

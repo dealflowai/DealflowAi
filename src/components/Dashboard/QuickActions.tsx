@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Users, Calculator, FileText, Bot, Plus, Search, Brain, Zap } from 'lucide-react';
 
 const QuickActions = () => {
+  const navigate = useNavigate();
   const actions = [
     {
       id: 'add-buyer',
@@ -51,7 +53,7 @@ const QuickActions = () => {
           return (
             <Button
               key={action.id}
-              onClick={() => window.location.href = action.actionUrl}
+              onClick={() => navigate(action.actionUrl)}
               className={`${action.color} text-white h-auto p-2 flex flex-col items-center justify-center space-y-1 hover:scale-105 transition-all duration-200 min-h-[70px]`}
               variant="ghost"
             >
