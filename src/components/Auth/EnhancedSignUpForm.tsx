@@ -549,21 +549,23 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
                 id="consent"
                 onCheckedChange={(checked) => basicForm.setValue('consent', !!checked)}
               />
-              <Label htmlFor="consent" className="text-sm leading-relaxed">
-                I agree to the{" "}
-                <Link to="/terms" className="text-primary hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </Link>{" "}
-                and consent to receive communication via email, phone, and SMS.
-              </Label>
+              <div className="flex-1">
+                <Label htmlFor="consent" className="text-sm leading-relaxed cursor-pointer">
+                  I agree to the{" "}
+                  <Link to="/terms" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>{" "}
+                  and consent to receive communication via email, phone, and SMS.
+                </Label>
+                {basicForm.formState.errors.consent && (
+                  <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.consent.message}</p>
+                )}
+              </div>
             </div>
-            {basicForm.formState.errors.consent && (
-              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.consent.message}</p>
-            )}
 
             <Button 
               type="submit" 
@@ -669,51 +671,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   }
 
   // Step 2: Onboarding
-  // Completion screen
-  if (currentStep === 3) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-          </div>
-          <CardTitle className="text-2xl">Welcome to DealFlow AI!</CardTitle>
-          <CardDescription>
-            Your account is ready. Let's explore the platform and see what you can accomplish.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm">
-              <Check className="w-4 h-4 text-green-600" />
-              <span>Account created and verified</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Check className="w-4 h-4 text-green-600" />
-              <span>Profile customized</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Check className="w-4 h-4 text-green-600" />
-              <span>Ready to start finding deals</span>
-            </div>
-          </div>
-          
-          <Button 
-            onClick={() => {
-              localStorage.setItem('hasCompletedOnboard', 'true');
-              localStorage.setItem('showWelcomeTour', 'true');
-              onSuccess?.();
-            }}
-            className="w-full"
-          >
-            Continue to Dashboard
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (currentStep === 2) {
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -752,6 +709,54 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             </div>
 
             <div>
+              <Label>Preferred Markets (Optional)</Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {['Atlanta', 'Dallas', 'Phoenix', 'Tampa', 'Charlotte', 'Austin'].map((market) => (
+                  <div key={market} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`market-${market}`}
+                      onCheckedChange={(checked) => {
+                        const currentMarkets = onboardingForm.getValues('preferredMarkets') || [];
+                        if (checked) {
+                          onboardingForm.setValue('preferredMarkets', [...currentMarkets, market]);
+                        } else {
+                          onboardingForm.setValue('preferredMarkets', currentMarkets.filter(m => m !== market));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`market-${market}`} className="text-sm font-normal">
+                      {market}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Property Types (Optional)</Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {['Single Family', 'Duplex', 'Multi-Family', 'Townhouse', 'Condo', 'Land'].map((type) => (
+                  <div key={type} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`type-${type}`}
+                      onCheckedChange={(checked) => {
+                        const currentTypes = onboardingForm.getValues('propertyTypes') || [];
+                        if (checked) {
+                          onboardingForm.setValue('propertyTypes', [...currentTypes, type]);
+                        } else {
+                          onboardingForm.setValue('propertyTypes', currentTypes.filter(t => t !== type));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`type-${type}`} className="text-sm font-normal">
+                      {type}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <Label htmlFor="experience">Experience Level</Label>
               <Select onValueChange={(value) => onboardingForm.setValue('experience', value)}>
                 <SelectTrigger className="mt-1">
@@ -780,7 +785,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               <Button 
                 type="button"
                 variant="outline"
-                onClick={() => onSuccess?.()}
+                onClick={() => setCurrentStep(3)}
                 className="flex-1"
               >
                 Skip For Now
@@ -808,6 +813,52 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       </Card>
     );
   }
+
+  // Step 3: Completion screen
+  if (currentStep === 3) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <CardTitle className="text-2xl">Welcome to DealFlow AI!</CardTitle>
+          <CardDescription>
+            Your account is ready. Let's explore the platform and see what you can accomplish.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-sm">
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Account created and verified</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Profile customized</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Ready to start finding deals</span>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={() => {
+              localStorage.setItem('hasCompletedOnboard', 'true');
+              localStorage.setItem('showWelcomeTour', 'true');
+              onSuccess?.();
+            }}
+            className="w-full"
+          >
+            Continue to Dashboard
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
 
   return null;
 };
