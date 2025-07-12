@@ -51,12 +51,18 @@ serve(async (req) => {
     // Define pricing for each plan
     const planPricing = {
       starter: { amount: 0, name: "Entry / Free Plan" },     // Free
-      pro: { amount: 4900, name: "Core Plan" },              // $49
+      pro: { amount: 4900, name: "Core Plan" },              // $49  
+      core: { amount: 4900, name: "Core Plan" },             // $49 (alternative mapping)
       agency: { amount: 29900, name: "Agency Plan" }         // $299
     };
 
+    logStep("Plan mapping lookup", { plan, availablePlans: Object.keys(planPricing) });
+    
     const selectedPlan = planPricing[plan as keyof typeof planPricing];
-    if (!selectedPlan) throw new Error("Invalid plan selected");
+    if (!selectedPlan) {
+      logStep("Invalid plan error", { plan, availablePlans: Object.keys(planPricing) });
+      throw new Error(`Invalid plan selected: ${plan}`);
+    }
 
     logStep("Creating checkout session", { plan, amount: selectedPlan.amount });
 
@@ -69,7 +75,7 @@ serve(async (req) => {
             currency: "usd",
             product_data: { 
               name: selectedPlan.name,
-              description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} subscription for dealflow.ai`
+              description: `${selectedPlan.name} subscription for dealflow.ai`
             },
             unit_amount: selectedPlan.amount,
             recurring: { interval: "month" },
@@ -78,15 +84,21 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/pricing?success=true`,
-      cancel_url: `${req.headers.get("origin")}/pricing?canceled=true`,
+      success_url: `${req.headers.get("origin")}/settings?upgrade=success`,
+      cancel_url: `${req.headers.get("origin")}/settings?upgrade=cancelled`,
       metadata: {
         plan: plan,
-        user_id: userId
+        user_id: userId,
+        amount: selectedPlan.amount.toString()
       }
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created", { 
+      sessionId: session.id, 
+      url: session.url,
+      amount: selectedPlan.amount,
+      planName: selectedPlan.name
+    });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
