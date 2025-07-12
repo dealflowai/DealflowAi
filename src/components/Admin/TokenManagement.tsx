@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,78 +14,125 @@ import { Progress } from '@/components/ui/progress';
 import { 
   Zap, 
   Plus, 
-  Minus, 
-  Settings,
+  Gift,
+  Search,
   TrendingUp,
-  AlertTriangle
+  Users,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 
-interface TokenLimitFormData {
-  user_id: string;
-  daily_limit: number;
-  monthly_limit: number;
+interface AddTokensFormData {
+  email: string;
+  tokens: number;
 }
 
 const TokenManagement = () => {
-  const [isSetLimitDialogOpen, setIsSetLimitDialogOpen] = useState(false);
+  const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
+  const [searchEmail, setSearchEmail] = useState('');
   const queryClient = useQueryClient();
-  const form = useForm<TokenLimitFormData>();
+  const addTokensForm = useForm<AddTokensFormData>();
 
-  // Fetch token usage data
+  // Fetch real user profiles with token data
   const { data: tokenData, isLoading } = useQuery({
-    queryKey: ['token-usage'],
+    queryKey: ['admin-users-tokens'],
     queryFn: async () => {
-      // This would be replaced with actual token usage data from your system
-      // For now, using mock data based on profiles
-      const { data: profiles, error } = await supabase
+      // Get all profiles
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .limit(20);
+        .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (profileError) throw profileError;
       
-      // Mock token usage data
-      return profiles?.map(profile => ({
-        ...profile,
-        daily_tokens_used: Math.floor(Math.random() * 500),
-        daily_token_limit: 1000,
-        monthly_tokens_used: Math.floor(Math.random() * 15000),
-        monthly_token_limit: 25000,
-        last_usage: new Date(Date.now() - Math.random() * 86400000 * 7)
-      })) || [];
+      // Get token data for each user
+      const usersWithTokens = await Promise.all(
+        profiles?.map(async (profile) => {
+          const { data: tokenData } = await supabase.rpc('get_user_tokens', {
+            p_user_id: profile.id
+          });
+          
+          return {
+            ...profile,
+            totalTokens: tokenData?.[0]?.total_tokens || 0,
+            usedTokens: tokenData?.[0]?.used_tokens || 0,
+            remainingTokens: tokenData?.[0]?.remaining_tokens || 0,
+          };
+        }) || []
+      );
+      
+      return usersWithTokens;
     },
   });
 
-  // Add tokens mutation
+  // Add tokens mutation that actually works
   const addTokensMutation = useMutation({
     mutationFn: async ({ userId, amount }: { userId: string, amount: number }) => {
-      // This would integrate with your token system
-      // For demo purposes, we'll just show a success message
-      console.log(`Adding ${amount} tokens to user ${userId}`);
+      const { data, error } = await supabase.rpc('add_tokens', {
+        p_user_id: userId,
+        p_tokens: amount
+      });
+      
+      if (error) throw error;
+      if (!data) throw new Error('Failed to add tokens');
+      
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['token-usage'] });
-      toast({ title: 'Tokens added successfully' });
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users-tokens'] });
+      toast({ 
+        title: 'Tokens Added Successfully!', 
+        description: `Added ${variables.amount} tokens to user account.`
+      });
     },
     onError: (error) => {
-      toast({ title: 'Error adding tokens', description: error.message, variant: 'destructive' });
+      toast({ 
+        title: 'Error adding tokens', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
     }
   });
 
-  // Set token limits mutation
-  const setLimitsMutation = useMutation({
-    mutationFn: async (data: TokenLimitFormData) => {
-      // This would integrate with your token limit system
-      console.log('Setting token limits:', data);
+  // Add tokens by email mutation
+  const addTokensByEmailMutation = useMutation({
+    mutationFn: async ({ email, tokens }: { email: string, tokens: number }) => {
+      // First find the profile by email
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+      
+      if (profileError) throw new Error(`User with email ${email} not found`);
+      if (!profile) throw new Error(`User with email ${email} not found`);
+      
+      // Then add tokens
+      const { data, error } = await supabase.rpc('add_tokens', {
+        p_user_id: profile.id,
+        p_tokens: tokens
+      });
+      
+      if (error) throw error;
+      if (!data) throw new Error('Failed to add tokens');
+      
+      return { data, email, tokens };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['token-usage'] });
-      toast({ title: 'Token limits updated successfully' });
-      setIsSetLimitDialogOpen(false);
-      form.reset();
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users-tokens'] });
+      toast({ 
+        title: 'Tokens Added Successfully!', 
+        description: `Added ${result.tokens} tokens to ${result.email}`
+      });
+      setIsAddTokensDialogOpen(false);
+      addTokensForm.reset();
     },
     onError: (error) => {
-      toast({ title: 'Error setting limits', description: error.message, variant: 'destructive' });
+      toast({ 
+        title: 'Error adding tokens', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
     }
   });
 
@@ -94,19 +140,24 @@ const TokenManagement = () => {
     addTokensMutation.mutate({ userId, amount });
   };
 
-  const getUsageColor = (used: number, limit: number) => {
-    const percentage = (used / limit) * 100;
-    if (percentage >= 90) return 'text-red-600';
-    if (percentage >= 70) return 'text-yellow-600';
+  const getTokenStatusColor = (remaining: number) => {
+    if (remaining === 0) return 'text-red-600';
+    if (remaining < 10) return 'text-yellow-600';
     return 'text-green-600';
   };
 
-  const getUsageStatus = (used: number, limit: number) => {
-    const percentage = (used / limit) * 100;
-    if (percentage >= 90) return { status: 'Critical', variant: 'destructive' as const };
-    if (percentage >= 70) return { status: 'Warning', variant: 'secondary' as const };
+  const getTokenStatusBadge = (remaining: number) => {
+    if (remaining === 0) return { status: 'Empty', variant: 'destructive' as const };
+    if (remaining < 10) return { status: 'Low', variant: 'secondary' as const };
     return { status: 'Good', variant: 'default' as const };
   };
+
+  // Filter users based on search
+  const filteredUsers = tokenData?.filter(user => 
+    searchEmail === '' || 
+    user.email?.toLowerCase().includes(searchEmail.toLowerCase()) ||
+    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchEmail.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -115,13 +166,13 @@ const TokenManagement = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
-              <Zap className="h-4 w-4 mr-2 text-blue-600" />
-              Total Tokens Used Today
+              <Users className="h-4 w-4 mr-2 text-blue-600" />
+              Total Users
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {tokenData?.reduce((sum, user) => sum + user.daily_tokens_used, 0).toLocaleString() || 0}
+              {tokenData?.length || 0}
             </div>
           </CardContent>
         </Card>
@@ -129,13 +180,13 @@ const TokenManagement = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
-              <TrendingUp className="h-4 w-4 mr-2 text-green-600" />
-              Monthly Usage
+              <Zap className="h-4 w-4 mr-2 text-green-600" />
+              Total Tokens Distributed
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {tokenData?.reduce((sum, user) => sum + user.monthly_tokens_used, 0).toLocaleString() || 0}
+              {tokenData?.reduce((sum, user) => sum + user.totalTokens, 0).toLocaleString() || 0}
             </div>
           </CardContent>
         </Card>
@@ -143,111 +194,123 @@ const TokenManagement = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
-              <AlertTriangle className="h-4 w-4 mr-2 text-yellow-600" />
-              High Usage Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {tokenData?.filter(user => (user.daily_tokens_used / user.daily_token_limit) > 0.8).length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Settings className="h-4 w-4 mr-2 text-purple-600" />
-              Active Users
+              <TrendingUp className="h-4 w-4 mr-2 text-purple-600" />
+              Tokens Remaining
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {tokenData?.filter(user => user.daily_tokens_used > 0).length || 0}
+              {tokenData?.reduce((sum, user) => sum + user.remainingTokens, 0).toLocaleString() || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2 text-yellow-600" />
+              Low Token Users
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {tokenData?.filter(user => user.remainingTokens < 10).length || 0}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Token Management Table */}
+      {/* Token Management Header */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Token Usage & Management</CardTitle>
-            <Dialog open={isSetLimitDialogOpen} onOpenChange={setIsSetLimitDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Set Limits
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Set Token Limits</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit((data) => setLimitsMutation.mutate(data))} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="user_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>User ID</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter user ID" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="daily_limit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Daily Limit</FormLabel>
-                          <FormControl>
-                            <Input {...field} type="number" placeholder="1000" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="monthly_limit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Monthly Limit</FormLabel>
-                          <FormControl>
-                            <Input {...field} type="number" placeholder="25000" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="flex gap-2 pt-4">
-                      <Button type="submit" disabled={setLimitsMutation.isPending}>
-                        {setLimitsMutation.isPending ? 'Setting...' : 'Set Limits'}
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => setIsSetLimitDialogOpen(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle className="flex items-center">
+              <Gift className="w-5 h-5 mr-2 text-blue-600" />
+              Token Management
+            </CardTitle>
+            
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Search by email or name..."
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                  className="pl-10 w-full sm:w-64"
+                />
+              </div>
+              
+              {/* Add Tokens by Email Dialog */}
+              <Dialog open={isAddTokensDialogOpen} onOpenChange={setIsAddTokensDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-green-600 to-blue-600">
+                    <Gift className="w-4 h-4 mr-2" />
+                    Add Tokens
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Tokens to User</DialogTitle>
+                  </DialogHeader>
+                  <Form {...addTokensForm}>
+                    <form onSubmit={addTokensForm.handleSubmit((data) => addTokensByEmailMutation.mutate(data))} className="space-y-4">
+                      <FormField
+                        control={addTokensForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>User Email</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="user@example.com" type="email" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={addTokensForm.control}
+                        name="tokens"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Number of Tokens</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="number" placeholder="100" min="1" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="flex gap-2 pt-4">
+                        <Button type="submit" disabled={addTokensByEmailMutation.isPending}>
+                          {addTokensByEmailMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Adding...
+                            </>
+                          ) : (
+                            'Add Tokens'
+                          )}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setIsAddTokensDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <span className="ml-2 text-gray-600">Loading users...</span>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -255,93 +318,96 @@ const TokenManagement = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Daily Usage</TableHead>
-                    <TableHead>Monthly Usage</TableHead>
+                    <TableHead>Total Tokens</TableHead>
+                    <TableHead>Used Tokens</TableHead>
+                    <TableHead>Remaining</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Last Activity</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Quick Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tokenData?.map((user) => {
-                    const dailyUsage = getUsageStatus(user.daily_tokens_used, user.daily_token_limit);
-                    const monthlyUsage = getUsageStatus(user.monthly_tokens_used, user.monthly_token_limit);
+                  {filteredUsers?.map((user) => {
+                    const status = getTokenStatusBadge(user.remainingTokens);
                     
                     return (
-                      <TableRow key={user.id}>
+                      <TableRow key={user.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">
                           <div>
-                            <div>{user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email?.split('@')[0]}</div>
+                            <div className="font-semibold">
+                              {user.first_name && user.last_name 
+                                ? `${user.first_name} ${user.last_name}` 
+                                : user.email?.split('@')[0] || 'Unknown User'}
+                            </div>
                             <div className="text-xs text-gray-500">{user.email}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className={getUsageColor(user.daily_tokens_used, user.daily_token_limit)}>
-                                {user.daily_tokens_used.toLocaleString()} / {user.daily_token_limit.toLocaleString()}
-                              </span>
-                              <span className="text-gray-500">
-                                {Math.round((user.daily_tokens_used / user.daily_token_limit) * 100)}%
-                              </span>
-                            </div>
-                            <Progress 
-                              value={(user.daily_tokens_used / user.daily_token_limit) * 100} 
-                              className="h-2"
-                            />
+                          <div className="font-semibold text-blue-600">
+                            {user.totalTokens.toLocaleString()}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className={getUsageColor(user.monthly_tokens_used, user.monthly_token_limit)}>
-                                {user.monthly_tokens_used.toLocaleString()} / {user.monthly_token_limit.toLocaleString()}
-                              </span>
-                              <span className="text-gray-500">
-                                {Math.round((user.monthly_tokens_used / user.monthly_token_limit) * 100)}%
-                              </span>
-                            </div>
-                            <Progress 
-                              value={(user.monthly_tokens_used / user.monthly_token_limit) * 100} 
-                              className="h-2"
-                            />
+                          <div className="text-gray-600">
+                            {user.usedTokens.toLocaleString()}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={dailyUsage.variant}>
-                            {dailyUsage.status}
+                          <div className={`font-semibold ${getTokenStatusColor(user.remainingTokens)}`}>
+                            {user.remainingTokens.toLocaleString()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={status.variant}>
+                            {status.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm text-gray-500">
-                            {user.last_usage.toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
+                          <div className="flex flex-wrap gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleAddTokens(user.id, 25)}
+                              disabled={addTokensMutation.isPending}
+                              title="Add 25 tokens"
+                              className="text-xs"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              +25
+                            </Button>
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => handleAddTokens(user.id, 100)}
+                              disabled={addTokensMutation.isPending}
                               title="Add 100 tokens"
+                              className="text-xs"
                             >
-                              <Plus className="h-3 w-3" />
-                              100
+                              <Plus className="h-3 w-3 mr-1" />
+                              +100
                             </Button>
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => handleAddTokens(user.id, 500)}
+                              disabled={addTokensMutation.isPending}
                               title="Add 500 tokens"
+                              className="text-xs"
                             >
-                              <Plus className="h-3 w-3" />
-                              500
+                              <Plus className="h-3 w-3 mr-1" />
+                              +500
                             </Button>
                           </div>
                         </TableCell>
                       </TableRow>
                     );
                   })}
+                  {filteredUsers?.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        {searchEmail ? 'No users found matching your search.' : 'No users found.'}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
