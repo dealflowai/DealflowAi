@@ -99,7 +99,7 @@ const Settings = () => {
   const getPlanDescription = () => {
     const plan = getCurrentPlan();
     if (plan === 'free') return '25 non-expiring tokens, no credit card required';
-    if (plan === 'core') return '$49/month • 25 tokens every month';
+    if (plan === 'core') return '$49/month • 100 tokens every month';
     if (plan === 'agency') return '$299/month • 1,500 tokens + 5 seats';
     if (plan === 'starter') return '$19/month • 10 tokens every month';
     return '25 non-expiring tokens, no credit card required';
@@ -341,9 +341,9 @@ const Settings = () => {
       name: "Core Plan",
       price: 49,
       period: "/month",
-      description: "25 tokens included every month",
+      description: "100 tokens included every month",
       features: [
-        "25 tokens included every month",
+        "100 tokens included every month",
         "Advanced AI buyer discovery",
         "Unlimited deal analysis",
         "Priority support",

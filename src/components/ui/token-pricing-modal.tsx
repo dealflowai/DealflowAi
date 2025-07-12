@@ -190,7 +190,7 @@ export function TokenPricingModal({ open, onOpenChange, userPlan }: TokenPricing
                 Choose Your Token Package
               </DialogTitle>
               <DialogDescription className="text-center text-muted-foreground">
-                Buy extra tokens that never expire. Core plan includes 25 monthly tokens for $49/month.
+                Buy extra tokens that never expire. Core plan includes 100 monthly tokens for $49/month.
               </DialogDescription>
             </DialogHeader>
 

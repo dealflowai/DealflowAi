@@ -43,9 +43,9 @@ const plans = [
     name: "Core Plan", 
     price: 49,
     originalPrice: 0,
-    description: "$49/month recurring with 25 tokens every month",
+    description: "$49/month recurring with 100 tokens every month",
     features: [
-      "25 tokens included every month",
+      "100 tokens included every month",
       "Advanced AI buyer discovery",
       "Unlimited deal analysis",
       "Priority support", 

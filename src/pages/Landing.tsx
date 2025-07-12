@@ -726,7 +726,7 @@ const Landing = () => {
               Pay Only For What You Use
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              Start with 25 free non-expiring tokens, upgrade to Core for $49/month with 25 monthly tokens.
+              Start with 25 free non-expiring tokens, upgrade to Core for $49/month with 100 monthly tokens.
             </p>
           </motion.div>
           
@@ -807,14 +807,14 @@ const Landing = () => {
                     <span className="text-4xl font-bold">$49</span>
                     <span className="text-white/80">/month</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">25 tokens included every month</div>
+                  <div className="text-sm text-white/70 mt-2">100 tokens included every month</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">25 tokens included every month</span>
+                      <span className="text-gray-600">100 tokens included every month</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
