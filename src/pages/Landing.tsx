@@ -542,7 +542,7 @@ const Landing = () => {
               icon: Shield,
               title: "Verified Network",
               description: "All participants are verified wholesalers and buyers. No tire-kickers or fake leads in our marketplace.",
-              benefit: "Quality guaranteed"
+              benefit: "Quality assured"
             }].map((feature, index) => (
               <motion.div
                 key={index}

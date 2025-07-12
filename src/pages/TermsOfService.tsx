@@ -86,7 +86,7 @@ const TermsOfService = () => {
                   <li>New users receive free tokens upon registration</li>
                   <li>AI features consume tokens based on usage</li>
                   <li>Additional tokens can be purchased through our platform</li>
-                  <li>Tokens are non-refundable and do not expire</li>
+                  <li>Tokens are non-transferable and do not expire</li>
                   <li>Pricing is subject to change with reasonable notice</li>
                 </ul>
               </section>
@@ -122,7 +122,7 @@ const TermsOfService = () => {
                 <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                   <li>AI-generated content is provided for informational purposes only</li>
                   <li>You should review and verify all AI-generated content before use</li>
-                  <li>We do not guarantee the accuracy or completeness of AI outputs</li>
+                  <li>We provide AI outputs based on available data and algorithms</li>
                   <li>Legal documents should be reviewed by qualified professionals</li>
                 </ul>
               </section>
