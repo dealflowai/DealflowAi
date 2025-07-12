@@ -239,34 +239,35 @@ const Marketplace = () => {
 
   return (
     <Layout>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-3">
-              <Building className="w-8 h-8 text-blue-600" />
-              <span>Advanced Marketplace</span>
-              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 sm:mb-6 space-y-4 lg:space-y-0 gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center space-x-2 sm:space-x-3">
+              <Building className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
+              <span className="truncate">Advanced Marketplace</span>
+              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs sm:text-sm">
                 AI-Powered
               </Badge>
             </h1>
-            <p className="text-gray-600 mt-1">Intelligent deal discovery with advanced matching and analytics</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Intelligent deal discovery with advanced matching and analytics</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
             <Button 
               variant="outline" 
-              className="flex items-center space-x-2"
+              className="flex items-center justify-center space-x-2 text-xs sm:text-sm"
               onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+              size="sm"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Advanced Features</span>
             </Button>
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Bell className="w-4 h-4" />
+            <Button variant="outline" className="flex items-center justify-center space-x-2 text-xs sm:text-sm" size="sm">
+              <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Alerts</span>
             </Button>
-            <Button className="gradient-primary flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
+            <Button className="gradient-primary flex items-center justify-center space-x-2 text-xs sm:text-sm" size="sm">
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Post Deal</span>
             </Button>
           </div>
@@ -322,37 +323,40 @@ const Marketplace = () => {
         )}
 
         {/* Search and Filters Bar */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 space-y-4">
-          <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+          <div className="flex flex-col lg:flex-row space-y-3 lg:space-y-0 lg:space-x-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search by location, property type, or investor name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="roi">Highest ROI</SelectItem>
-                <SelectItem value="popular">Most Popular</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>Filters</span>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="roi">Highest ROI</SelectItem>
+                  <SelectItem value="popular">Most Popular</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+                size="sm"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Filters</span>
+              </Button>
+            </div>
           </div>
 
           {/* Advanced Filters */}
@@ -417,52 +421,56 @@ const Marketplace = () => {
         </div>
 
         {/* Results Summary with Comparison */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-4">
-            <p className="text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <p className="text-sm sm:text-base text-gray-600">
               Showing {filteredDeals.length} deals • {buyerRequests.length} active buyer requests
             </p>
             {comparisonDeals.length > 0 && (
-              <Badge variant="outline" className="flex items-center space-x-1">
+              <Badge variant="outline" className="flex items-center space-x-1 w-fit">
                 <GitCompare className="w-3 h-3" />
-                <span>{comparisonDeals.length} selected for comparison</span>
+                <span className="text-xs">{comparisonDeals.length} selected for comparison</span>
               </Badge>
             )}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             {comparisonDeals.length >= 2 && (
               <Button
                 size="sm"
                 onClick={() => setShowComparison(true)}
-                className="flex items-center space-x-1"
+                className="flex items-center space-x-1 text-xs"
               >
                 <GitCompare className="w-3 h-3" />
                 <span>Compare ({comparisonDeals.length})</span>
               </Button>
             )}
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              Grid
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              List
-            </Button>
+            <div className="flex gap-1 sm:gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="text-xs sm:text-sm"
+              >
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="text-xs sm:text-sm"
+              >
+                List
+              </Button>
+            </div>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
-            <TabsTrigger value="deals">Deals ({filteredDeals.length})</TabsTrigger>
-            <TabsTrigger value="buyers">Buyers ({buyerRequests.length})</TabsTrigger>
-            <TabsTrigger value="matching">AI Matching</TabsTrigger>
-            <TabsTrigger value="saved-searches">Saved Searches</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 max-w-full lg:max-w-2xl">
+            <TabsTrigger value="deals" className="text-xs sm:text-sm">Deals ({filteredDeals.length})</TabsTrigger>
+            <TabsTrigger value="buyers" className="text-xs sm:text-sm">Buyers ({buyerRequests.length})</TabsTrigger>
+            <TabsTrigger value="matching" className="text-xs sm:text-sm hidden lg:block">AI Matching</TabsTrigger>
+            <TabsTrigger value="saved-searches" className="text-xs sm:text-sm hidden lg:block">Saved Searches</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropwireDeals from '@/components/DealAnalyzer/PropwireDeals';
-import { Calculator, Upload, Zap, CheckCircle, TrendingUp, Home, DollarSign, Users, FileText, MessageSquare, Phone, Mail, MapPin, Star, Target, Building, Search, Download, Eye, Filter, BarChart3, PieChart, Calendar, Clock, AlertTriangle, RefreshCw, Bot, Settings, Camera, Send, Mic, Video, Globe, TrendingDown, Activity, AlertCircle, Award, Briefcase, ChartLine, Database, FileCheck, HandHeart, Image, Link, Lock, Mail as MailIcon, MessageCircle, PlusCircle, ShieldCheck, Smartphone, Timer, User, Wallet, Wrench } from 'lucide-react';
+import { Calculator, Upload, Zap, CheckCircle, TrendingUp, Home, DollarSign, Users, FileText, MessageSquare, Phone, Mail, MapPin, Star, Target, Building, Search, Download, Eye, Filter, BarChart3, PieChart, Calendar, Clock, AlertTriangle, RefreshCw, Bot, Settings, Camera, Send, Mic, Video, Globe, TrendingDown, Activity, AlertCircle, Award, Briefcase, ChartLine, Database, FileCheck, HandHeart, Image, Link, Lock, MailIcon, MessageCircle, PlusCircle, ShieldCheck, Smartphone, Timer, User, Wallet, Wrench } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
@@ -691,18 +691,18 @@ const DealAnalyzer = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="analyzer">AI Analyzer</TabsTrigger>
-            <TabsTrigger value="scraper">Smart Scraper</TabsTrigger>
-            <TabsTrigger value="propwire">Propwire Deals</TabsTrigger>
-            <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
-            <TabsTrigger value="matching">Buyer Matching</TabsTrigger>
-            <TabsTrigger value="outreach">Outreach Hub</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1">
+            <TabsTrigger value="analyzer" className="text-xs sm:text-sm">AI Analyzer</TabsTrigger>
+            <TabsTrigger value="scraper" className="text-xs sm:text-sm">Smart Scraper</TabsTrigger>
+            <TabsTrigger value="propwire" className="text-xs sm:text-sm hidden sm:block">Propwire Deals</TabsTrigger>
+            <TabsTrigger value="pipeline" className="text-xs sm:text-sm hidden lg:block">Deal Pipeline</TabsTrigger>
+            <TabsTrigger value="matching" className="text-xs sm:text-sm hidden lg:block">Buyer Matching</TabsTrigger>
+            <TabsTrigger value="outreach" className="text-xs sm:text-sm hidden lg:block">Outreach Hub</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm hidden lg:block">Analytics</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="analyzer" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <TabsContent value="analyzer" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
               {/* Enhanced Input Form */}
               <div className="xl:col-span-2">
                 <Card>

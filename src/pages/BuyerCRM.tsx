@@ -130,35 +130,37 @@ const BuyerCRM = () => {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Buyer CRM</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your qualified cash buyers and discover new opportunities</p>
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 truncate">Buyer CRM</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Manage your qualified cash buyers and discover new opportunities</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
             <Button 
               variant="outline"
               onClick={() => setActiveTab('discovery')}
-              className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
+              className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20 text-xs sm:text-sm"
+              size="sm"
             >
-              <Globe className="w-4 h-4 mr-2" />
+              <Globe className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Discover Buyers
             </Button>
             <Button 
               variant="outline"
               onClick={() => setActiveTab('ai-outreach')}
-              className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20"
+              className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20 text-xs sm:text-sm"
+              size="sm"
             >
-              <Bot className="w-4 h-4 mr-2" />
+              <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               AI Outreach
             </Button>
             <Button 
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
               onClick={() => setShowAddDialog(true)}
+              size="sm"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Add Buyer
             </Button>
           </div>
@@ -205,40 +207,42 @@ const BuyerCRM = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Enhanced Filters */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
-                      placeholder="Search buyers by name, email, location, or market..."
+                      placeholder="Search buyers by name, email, location..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 text-sm"
                     />
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <Filter className="w-4 h-4 text-gray-400" />
-                    <select 
-                      value={selectedStatus} 
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="All">All Status</option>
-                      <option value="New">New</option>
-                      <option value="Active">Active</option>
-                      <option value="Warm">Warm</option>
-                      <option value="Cold">Cold</option>
-                      <option value="Not contacted">Not Contacted</option>
-                      <option value="Contacted">Contacted</option>
-                      <option value="Qualified">Qualified</option>
-                      <option value="Deal pending">Deal Pending</option>
-                    </select>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <select 
+                        value={selectedStatus} 
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="flex-1 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="All">All Status</option>
+                        <option value="New">New</option>
+                        <option value="Active">Active</option>
+                        <option value="Warm">Warm</option>
+                        <option value="Cold">Cold</option>
+                        <option value="Not contacted">Not Contacted</option>
+                        <option value="Contacted">Contacted</option>
+                        <option value="Qualified">Qualified</option>
+                        <option value="Deal pending">Deal Pending</option>
+                      </select>
+                    </div>
 
                     <select 
                       value={selectedPriority} 
                       onChange={(e) => setSelectedPriority(e.target.value)}
-                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="All">All Priority</option>
                       <option value="VERY HIGH">Very High</option>
@@ -277,19 +281,19 @@ const BuyerCRM = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {filteredBuyers.map((buyer) => (
                   <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200 dark:bg-gray-800 dark:border-gray-700">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{buyer.name || 'Unnamed Buyer'}</h3>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <Badge className={getStatusColor(buyer.status || 'new')}>
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">{buyer.name || 'Unnamed Buyer'}</h3>
+                          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
+                            <Badge className={`${getStatusColor(buyer.status || 'new')} text-xs`}>
                               {buyer.status || 'new'}
                             </Badge>
                             {buyer.priority && (
-                              <Badge className={getPriorityColor(buyer.priority)}>
+                              <Badge className={`${getPriorityColor(buyer.priority)} text-xs`}>
                                 {buyer.priority}
                               </Badge>
                             )}
@@ -300,31 +304,31 @@ const BuyerCRM = () => {
                             )}
                           </div>
                         </div>
-                        <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <button className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex-shrink-0">
                           <MoreHorizontal className="w-4 h-4 text-gray-400" />
                         </button>
                       </div>
                     </CardHeader>
 
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-2 sm:space-y-3 px-3 sm:px-6 pb-3 sm:pb-6">
                       {buyer.email && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Mail className="w-4 h-4" />
-                          <span>{buyer.email}</span>
+                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                          <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span className="truncate">{buyer.email}</span>
                         </div>
                       )}
                       
                       {buyer.phone && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Phone className="w-4 h-4" />
-                          <span>{buyer.phone}</span>
+                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                          <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span className="truncate">{buyer.phone}</span>
                         </div>
                       )}
 
                       {(buyer.city || buyer.state || buyer.markets) && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                          <MapPin className="w-4 h-4" />
-                          <span>
+                        <div className="flex items-start space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">
                             {buyer.city && buyer.state ? `${buyer.city}, ${buyer.state}` : 
                              buyer.city || buyer.state || ''}
                             {buyer.markets && buyer.markets.length > 0 && (
@@ -334,20 +338,25 @@ const BuyerCRM = () => {
                         </div>
                       )}
 
-                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                        <DollarSign className="w-4 h-4" />
-                        <span>{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
                       </div>
 
                       {buyer.asset_types && buyer.asset_types.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Asset Types:</p>
+                        <div className="space-y-1 sm:space-y-2">
+                          <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Asset Types:</p>
                           <div className="flex flex-wrap gap-1">
-                            {buyer.asset_types.map((type, index) => (
+                            {buyer.asset_types.slice(0, 3).map((type, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {type}
                               </Badge>
                             ))}
+                            {buyer.asset_types.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{buyer.asset_types.length - 3} more
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       )}
