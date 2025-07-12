@@ -10,8 +10,7 @@ const QuickActions = () => {
       description: 'Import or add buyer',
       icon: Users,
       actionUrl: '/buyers?action=add',
-      color: 'bg-blue-500 hover:bg-blue-600',
-      shortcut: 'B'
+      color: 'bg-blue-500 hover:bg-blue-600'
     },
     {
       id: 'discover-buyers',
@@ -19,8 +18,7 @@ const QuickActions = () => {
       description: 'AI buyer discovery',
       icon: Bot,
       actionUrl: '/buyers?tab=discovery',
-      color: 'bg-purple-500 hover:bg-purple-600',
-      shortcut: 'D'
+      color: 'bg-purple-500 hover:bg-purple-600'
     },
     {
       id: 'analyze-deal',
@@ -28,8 +26,7 @@ const QuickActions = () => {
       description: 'AI property analysis',
       icon: Calculator,
       actionUrl: '/analyzer',
-      color: 'bg-green-500 hover:bg-green-600',
-      shortcut: 'A'
+      color: 'bg-green-500 hover:bg-green-600'
     },
     {
       id: 'create-contract',
@@ -37,8 +34,7 @@ const QuickActions = () => {
       description: 'Generate contracts',
       icon: FileText,
       actionUrl: '/contracts',
-      color: 'bg-orange-500 hover:bg-orange-600',
-      shortcut: 'C'
+      color: 'bg-orange-500 hover:bg-orange-600'
     }
   ];
 
@@ -63,9 +59,6 @@ const QuickActions = () => {
               <div className="text-center space-y-0.5">
                 <div className="font-medium text-xs leading-none">{action.title}</div>
                 <div className="text-[10px] opacity-90 leading-none">{action.description}</div>
-              </div>
-              <div className="text-[10px] bg-white/20 rounded px-1 py-0.5 leading-none">
-                ⌘{action.shortcut}
               </div>
             </Button>
           );
