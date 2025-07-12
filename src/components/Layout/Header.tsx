@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Bell, Search, Check, X, AlertCircle, Users, Calculator, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, Search, Check, X, AlertCircle, Users, Calculator, FileText, MapPin, Phone, Mail } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,12 +19,19 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { NotificationService, type Notification } from '@/services/notificationService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { user } = useUser();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState({ deals: [], buyers: [], contracts: [] });
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Get user profile for notifications
   const { data: profile } = useQuery({
@@ -119,6 +126,94 @@ const Header = () => {
     }
   };
 
+  // Search functionality
+  const performSearch = async (query: string) => {
+    if (!query.trim() || !profile?.id) {
+      setSearchResults({ deals: [], buyers: [], contracts: [] });
+      return;
+    }
+
+    setIsSearching(true);
+    
+    try {
+      const searchTerm = `%${query.trim().toLowerCase()}%`;
+      
+      // Search deals
+      const { data: deals } = await supabase
+        .from('deals')
+        .select('id, address, city, state, list_price, status')
+        .eq('owner_id', profile.id)
+        .or(`address.ilike.${searchTerm},city.ilike.${searchTerm},state.ilike.${searchTerm}`)
+        .limit(5);
+
+      // Search buyers
+      const { data: buyers } = await supabase
+        .from('buyers')
+        .select('id, name, email, phone, city, state, status')
+        .eq('owner_id', profile.id)
+        .or(`name.ilike.${searchTerm},email.ilike.${searchTerm},city.ilike.${searchTerm},state.ilike.${searchTerm}`)
+        .limit(5);
+
+      // Search contracts
+      const { data: contracts } = await supabase
+        .from('contracts')
+        .select('id, title, property_address, buyer_name, status')
+        .eq('owner_id', profile.id)
+        .or(`title.ilike.${searchTerm},property_address.ilike.${searchTerm},buyer_name.ilike.${searchTerm}`)
+        .limit(5);
+
+      setSearchResults({
+        deals: deals || [],
+        buyers: buyers || [],
+        contracts: contracts || []
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle search input changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, profile?.id]);
+
+  // Handle click outside to close results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleResultClick = (type: string, id: string) => {
+    setShowResults(false);
+    setSearchQuery('');
+    
+    switch (type) {
+      case 'deal':
+        navigate('/deal-analyzer');
+        break;
+      case 'buyer':
+        navigate('/buyer-crm');
+        break;
+      case 'contract':
+        navigate('/contracts');
+        break;
+    }
+  };
+
+  const totalResults = searchResults.deals.length + searchResults.buyers.length + searchResults.contracts.length;
+
   return (
     <header className={cn(
       "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border h-16 fixed top-0 right-0 z-30 shadow-sm transition-all duration-300",
@@ -129,12 +224,123 @@ const Header = () => {
         isMobile && "pl-16" // Add left padding for mobile menu button
       )}>
         <div className="flex items-center space-x-4 flex-1 max-w-sm sm:max-w-md">
-          <div className="relative flex-1">
+          <div className="relative flex-1" ref={searchRef}>
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input 
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
               placeholder={isMobile ? "Search..." : "Search deals, buyers, or contracts..."} 
               className="pl-10 text-sm border-border/50 focus:border-primary focus:ring-primary/20 bg-background/50"
             />
+            
+            {/* Search Results Dropdown */}
+            {showResults && searchQuery.trim() && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                {isSearching ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                    Searching...
+                  </div>
+                ) : totalResults === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    No results found for "{searchQuery}"
+                  </div>
+                ) : (
+                  <div className="py-2">
+                    {/* Deals */}
+                    {searchResults.deals.length > 0 && (
+                      <>
+                        <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
+                          Deals ({searchResults.deals.length})
+                        </div>
+                        {searchResults.deals.map((deal: any) => (
+                          <button
+                            key={deal.id}
+                            onClick={() => handleResultClick('deal', deal.id)}
+                            className="w-full text-left px-3 py-2 hover:bg-muted/50 flex items-center space-x-3"
+                          >
+                            <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/20">
+                              <Calculator className="w-3 h-3 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{deal.address}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {deal.city}, {deal.state} • ${deal.list_price?.toLocaleString()} • {deal.status}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Buyers */}
+                    {searchResults.buyers.length > 0 && (
+                      <>
+                        <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
+                          Buyers ({searchResults.buyers.length})
+                        </div>
+                        {searchResults.buyers.map((buyer: any) => (
+                          <button
+                            key={buyer.id}
+                            onClick={() => handleResultClick('buyer', buyer.id)}
+                            className="w-full text-left px-3 py-2 hover:bg-muted/50 flex items-center space-x-3"
+                          >
+                            <div className="p-1.5 rounded-full bg-green-100 dark:bg-green-900/20">
+                              <Users className="w-3 h-3 text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{buyer.name}</p>
+                              <p className="text-xs text-muted-foreground flex items-center space-x-2">
+                                <span className="flex items-center space-x-1">
+                                  <Mail className="w-3 h-3" />
+                                  <span className="truncate">{buyer.email}</span>
+                                </span>
+                                {buyer.city && (
+                                  <span className="flex items-center space-x-1">
+                                    <MapPin className="w-3 h-3" />
+                                    <span>{buyer.city}, {buyer.state}</span>
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Contracts */}
+                    {searchResults.contracts.length > 0 && (
+                      <>
+                        <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
+                          Contracts ({searchResults.contracts.length})
+                        </div>
+                        {searchResults.contracts.map((contract: any) => (
+                          <button
+                            key={contract.id}
+                            onClick={() => handleResultClick('contract', contract.id)}
+                            className="w-full text-left px-3 py-2 hover:bg-muted/50 flex items-center space-x-3"
+                          >
+                            <div className="p-1.5 rounded-full bg-purple-100 dark:bg-purple-900/20">
+                              <FileText className="w-3 h-3 text-purple-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{contract.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {contract.property_address} • {contract.buyer_name} • {contract.status}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
