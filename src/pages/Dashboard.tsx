@@ -139,19 +139,10 @@ const Dashboard = () => {
   // Check if user should see demo banner and onboarding prompts
   useEffect(() => {
     const hasSeenDemo = localStorage.getItem('hasSeenDemoBanner');
-    const hideOnboardingUntil = localStorage.getItem('hideOnboardingPrompts');
     const totalActivity = stats.totalBuyers + stats.totalDeals + stats.totalContracts;
     
     if (!hasSeenDemo && totalActivity === 0) {
       setShowDemoBanner(true);
-    }
-    
-    // Check if onboarding prompts should be hidden
-    if (hideOnboardingUntil) {
-      const hideUntilDate = new Date(hideOnboardingUntil);
-      if (new Date() < hideUntilDate) {
-        // Hide onboarding prompts until the specified time
-      }
     }
   }, [stats]);
 
@@ -474,18 +465,11 @@ const Dashboard = () => {
 
         {/* Onboarding Prompts for New Users */}
         {(() => {
-          const hideOnboardingUntil = localStorage.getItem('hideOnboardingPrompts');
-          const shouldHide = hideOnboardingUntil && new Date() < new Date(hideOnboardingUntil);
+          const hasActionTaken = localStorage.getItem('onboardingActionTaken');
           const hasActivity = stats.totalBuyers > 0 || stats.totalDeals > 0 || stats.totalContracts > 0;
           
-          return (!shouldHide && !hasActivity) ? (
-            <OnboardingPrompts 
-              stats={stats} 
-              onDismiss={() => {
-                localStorage.setItem('hideOnboardingPrompts', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
-                window.location.reload(); // Refresh to hide the prompts
-              }}
-            />
+          return (!hasActionTaken && !hasActivity) ? (
+            <OnboardingPrompts stats={stats} />
           ) : null;
         })()}
 

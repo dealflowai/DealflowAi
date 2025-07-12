@@ -56,16 +56,16 @@ const QuickActions = () => {
             <Button
               key={action.id}
               onClick={() => window.location.href = action.actionUrl}
-              className={`${action.color} text-white h-auto p-4 flex flex-col items-center space-y-2 hover:scale-105 transition-all duration-200`}
+              className={`${action.color} text-white h-auto p-3 flex flex-col items-center justify-center space-y-2 hover:scale-105 transition-all duration-200 min-h-[80px]`}
               variant="ghost"
             >
-              <IconComponent className="w-5 h-5" />
+              <IconComponent className="w-4 h-4" />
               <div className="text-center">
-                <div className="font-medium text-sm">{action.title}</div>
-                <div className="text-xs opacity-90">{action.description}</div>
+                <div className="font-medium text-xs leading-tight">{action.title}</div>
+                <div className="text-xs opacity-90 leading-tight mt-1">{action.description}</div>
               </div>
-              <div className="text-xs bg-white/20 rounded px-2 py-1">
-                ⌘ {action.shortcut}
+              <div className="text-xs bg-white/20 rounded px-1.5 py-0.5">
+                ⌘{action.shortcut}
               </div>
             </Button>
           );
