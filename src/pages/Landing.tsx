@@ -734,7 +734,7 @@ const Landing = () => {
               Pay Only For What You Use
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              Start free, then buy tokens as needed. No monthly commitments, no wasted subscriptions.
+              Start with 25 free monthly tokens, upgrade to Pro for $49/month with 50 monthly tokens + 100 starter credits.
             </p>
           </motion.div>
           
@@ -749,19 +749,20 @@ const Landing = () => {
             >
               <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-gray-500 to-gray-700 text-white p-8">
-                  <CardTitle className="text-2xl font-bold mb-2">Free Trial</CardTitle>
-                  <p className="text-white/80 mb-4">Try our AI features risk-free</p>
+                  <CardTitle className="text-2xl font-bold mb-2">Free Plan</CardTitle>
+                  <p className="text-white/80 mb-4">Get started with monthly tokens</p>
                   <div className="flex items-baseline space-x-2">
                     <span className="text-4xl font-bold">25</span>
-                    <span className="text-white/80">free tokens</span>
+                    <span className="text-white/80">monthly tokens</span>
                   </div>
+                  <div className="text-sm text-white/70 mt-2">Forever free • Tokens never expire</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">25 free AI tokens</span>
+                      <span className="text-gray-600">25 monthly tokens (never expire)</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -811,8 +812,8 @@ const Landing = () => {
                   <CardTitle className="text-2xl font-bold mb-2">Pro</CardTitle>
                   <p className="text-white/80 mb-4">Perfect for active wholesalers</p>
                   <div className="flex items-baseline space-x-2">
-                    <span className="text-4xl font-bold">100</span>
-                    <span className="text-white/80">tokens</span>
+                    <span className="text-4xl font-bold">$49</span>
+                    <span className="text-white/80">/month</span>
                   </div>
                   <div className="text-sm text-white/70 mt-2">$49/month • 50 monthly tokens + 100 starter credits</div>
                 </CardHeader>
@@ -821,7 +822,7 @@ const Landing = () => {
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">100 AI tokens included</span>
+                      <span className="text-gray-600">50 monthly tokens + 100 starter credits</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -837,7 +838,11 @@ const Landing = () => {
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Buy token packs: 500 ($199), 1000 ($349), 2000 ($599)</span>
+                      <span className="text-gray-600">Tokens never expire</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Buy extra token packs anytime</span>
                     </li>
                   </ul>
                   
@@ -865,16 +870,17 @@ const Landing = () => {
                   <CardTitle className="text-2xl font-bold mb-2">Agency</CardTitle>
                   <p className="text-white/80 mb-4">Custom solutions for teams</p>
                   <div className="flex items-baseline space-x-2">
-                    <span className="text-4xl font-bold">Custom</span>
-                    <span className="text-white/80">pricing</span>
+                    <span className="text-4xl font-bold">$299</span>
+                    <span className="text-white/80">/month</span>
                   </div>
+                  <div className="text-sm text-white/70 mt-2">3-5 users • Team management</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Unlimited tokens</span>
+                      <span className="text-gray-600">Everything in Pro</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -901,7 +907,7 @@ const Landing = () => {
                         window.open('mailto:sales@dealflow.ai?subject=Agency Plan Inquiry&body=Hi! I\'m interested in learning more about the Agency plan for my team. Please contact me to discuss custom pricing and features.', '_blank');
                       }}
                     >
-                      Contact Sales
+                      Get Agency Plan
                     </Button>
                   </motion.div>
                 </CardContent>
