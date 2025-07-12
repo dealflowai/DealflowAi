@@ -1186,19 +1186,20 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         if (result.status === 'complete' && result.createdSessionId) {
           console.log('✅ Signup complete with session');
           
-          // Set session and complete
+          // Set session and continue to onboarding
           await setActive({ session: result.createdSessionId });
           
           // Create profile
           await createUserProfile(result.createdUserId!, userData);
           
-          toast({
-            title: "Account Created!",
-            description: "Welcome to dealflow.ai!",
-          });
+          // Continue to onboarding steps instead of finishing
+          setUserData({ ...userData, clerkId: result.createdUserId });
+          setCurrentStep(2);
           
-          onSuccess?.();
-          return;
+          toast({
+            title: "Email Verified!",
+            description: "Let's customize your experience.",
+          });
           
         } else {
           console.log('📝 Email verified but signup incomplete, updating user details...');
@@ -1216,13 +1217,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               await setActive({ session: updateResult.createdSessionId });
               await createUserProfile(updateResult.createdUserId!, userData);
               
-              toast({
-                title: "Account Created!",
-                description: "Welcome to dealflow.ai!",
-              });
+              // Continue to onboarding instead of finishing
+              setUserData({ ...userData, clerkId: updateResult.createdUserId });
+              setCurrentStep(2);
               
-              onSuccess?.();
-              return;
+              toast({
+                title: "Email Verified!",
+                description: "Let's customize your experience.",
+              });
             }
           } catch (updateError) {
             console.log('Update failed, continuing to onboarding:', updateError);
