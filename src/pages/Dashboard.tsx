@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useTokens } from '@/contexts/TokenContext';
 import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
+import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
   const { user } = useUser();
@@ -20,6 +21,8 @@ const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { tokenBalance, loading: tokenLoading } = useTokens();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+  const { toast } = useToast();
 
   // Check if user has completed onboarding
   const { data: hasCompletedOnboarding } = useQuery({
@@ -78,6 +81,24 @@ const Dashboard = () => {
       setShowOnboarding(true);
     }
   }, [hasCompletedOnboarding]);
+
+  // Check for welcome tour
+  useEffect(() => {
+    const shouldShowWelcome = localStorage.getItem('showWelcomeTour');
+    if (shouldShowWelcome === 'true' && hasCompletedOnboarding) {
+      localStorage.removeItem('showWelcomeTour');
+      setShowWelcomeTour(true);
+      
+      // Show welcome toast
+      setTimeout(() => {
+        toast({
+          title: "🎉 Welcome to DealFlow.ai!",
+          description: "Let's take a quick tour to show you around the platform.",
+          duration: 5000,
+        });
+      }, 1000);
+    }
+  }, [hasCompletedOnboarding, toast]);
 
   if (isLoading) {
     return (
@@ -331,15 +352,18 @@ const Dashboard = () => {
         </div>
 
         {/* Guided Tour */}
-        <GuidedTour 
-          isOpen={showOnboarding}
-          onComplete={() => setShowOnboarding(false)}
-        />
-        
-        <TokenPricingModal 
-          open={tokenModalOpen} 
-          onOpenChange={setTokenModalOpen} 
-        />
+      <GuidedTour 
+        isOpen={showOnboarding || showWelcomeTour} 
+        onComplete={() => {
+          setShowOnboarding(false);
+          setShowWelcomeTour(false);
+        }} 
+      />
+      
+      <TokenPricingModal 
+        open={tokenModalOpen} 
+        onOpenChange={setTokenModalOpen} 
+      />
       </div>
     </Layout>
   );

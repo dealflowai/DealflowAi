@@ -275,47 +275,39 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
   // Handle onboarding completion
   const handleOnboardingSubmit = async (data: OnboardingData) => {
+    if (!userData.clerkId) return;
+    
     setIsLoading(true);
     
     try {
-      // Update profile in Supabase
-      const updateData = {
-        budget_min: data.budgetMin,
-        budget_max: data.budgetMax,
-        preferred_markets: data.preferredMarkets,
-        property_types: data.propertyTypes,
-        monthly_deal_volume: data.experience,
-        notes: data.notes,
-        has_completed_onboarding: true,
-        onboarding_completed: true,
-        updated_at: new Date().toISOString()
-      };
-
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({
+          budget_min: data.budgetMin,
+          budget_max: data.budgetMax,
+          preferred_markets: data.preferredMarkets,
+          property_types: data.propertyTypes,
+          monthly_deal_volume: data.experience,
+          notes: data.notes,
+          has_completed_onboarding: true
+        })
         .eq('clerk_id', userData.clerkId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
-        title: "Welcome to dealflow.ai!",
-        description: "Your account setup is complete. Let's get started!",
+        title: "Setup Complete!",
+        description: "Welcome to DealFlow.ai! You're all set.",
       });
       
-      onSuccess?.();
+      setCurrentStep(3); // Move to completion screen
     } catch (error) {
-      console.error('Onboarding error:', error);
+      console.error('Profile update error:', error);
       toast({
-        title: "Setup Failed",
-        description: "Could not complete your profile setup. You can finish this later.",
+        title: "Update Failed",
+        description: "There was an error updating your profile. Please try again.",
         variant: "destructive"
       });
-      
-      // Continue anyway
-      onSuccess?.();
     } finally {
       setIsLoading(false);
     }
@@ -674,6 +666,51 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   }
 
   // Step 2: Onboarding
+  // Completion screen
+  if (currentStep === 3) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+          </div>
+          <CardTitle className="text-2xl">Welcome to DealFlow.ai!</CardTitle>
+          <CardDescription>
+            Your account is ready. Let's explore the platform and see what you can accomplish.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-sm">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>Account created and verified</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>Profile customized</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>Ready to start finding deals</span>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={() => {
+              localStorage.setItem('hasCompletedOnboard', 'true');
+              localStorage.setItem('showWelcomeTour', 'true');
+              onSuccess?.();
+            }}
+            className="w-full"
+          >
+            Continue to Dashboard
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (currentStep === 2) {
     return (
       <Card className="w-full max-w-md mx-auto">
