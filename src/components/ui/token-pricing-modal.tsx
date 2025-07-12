@@ -98,21 +98,21 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-center">Purchase Tokens</DialogTitle>
-          <DialogDescription className="text-center">
+      <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw] overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background pb-4">
+          <DialogTitle className="text-xl sm:text-2xl text-center">Purchase Tokens</DialogTitle>
+          <DialogDescription className="text-center text-sm">
             Pay only for what you use. Tokens power all AI features.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 mt-4">
           {TOKEN_PACKAGES.map((pkg) => {
             const Icon = pkg.icon;
             return (
               <div
                 key={pkg.id}
-                className={`relative p-6 rounded-lg border-2 transition-all ${
+                className={`relative p-4 sm:p-6 rounded-lg border-2 transition-all ${
                   pkg.popular 
                     ? 'border-primary bg-primary/5' 
                     : pkg.bestValue
@@ -121,28 +121,28 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
                 }`}
               >
                 {pkg.popular && (
-                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary">
+                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-xs">
                     Most Popular
                   </Badge>
                 )}
                 {pkg.bestValue && (
-                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600">
+                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-xs">
                     💎 Best Value
                   </Badge>
                 )}
 
-                <div className="text-center space-y-4">
-                  <Icon className={`h-8 w-8 mx-auto ${
+                <div className="text-center space-y-3 sm:space-y-4">
+                  <Icon className={`h-6 w-6 sm:h-8 sm:w-8 mx-auto ${
                     pkg.popular ? 'text-primary' : pkg.bestValue ? 'text-purple-600' : 'text-muted-foreground'
                   }`} />
                   
                   <div>
-                    <div className="text-3xl font-bold">{pkg.tokens}</div>
-                    <div className="text-sm text-muted-foreground">Tokens</div>
+                    <div className="text-2xl sm:text-3xl font-bold">{pkg.tokens}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Tokens</div>
                   </div>
 
                   <div>
-                    <div className="text-2xl font-bold">${pkg.price}</div>
+                    <div className="text-xl sm:text-2xl font-bold">${pkg.price}</div>
                     <div className="text-xs text-muted-foreground">
                       ${pkg.value.toFixed(2)} per token
                     </div>
@@ -156,6 +156,7 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
                   <Button
                     onClick={() => handlePurchase(pkg)}
                     disabled={loadingPackage === pkg.id}
+                    size="sm"
                     className={`w-full ${
                       pkg.popular 
                         ? 'bg-primary hover:bg-primary/90' 
@@ -172,9 +173,9 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
           })}
         </div>
 
-        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-          <h4 className="font-medium mb-2">Token Usage Guide:</h4>
-          <div className="text-sm text-muted-foreground space-y-1">
+        <div className="mt-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-medium mb-2 text-sm sm:text-base">Token Usage Guide:</h4>
+          <div className="text-xs sm:text-sm text-muted-foreground space-y-1">
             <div>• AI Deal Analyzer: 5 tokens</div>
             <div>• AI Buyer Discovery: 2 tokens per lead</div>
             <div>• Voice Outreach: 10 tokens per call</div>
