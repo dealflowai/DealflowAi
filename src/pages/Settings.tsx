@@ -63,6 +63,14 @@ const Settings = () => {
     bio: ''
   });
   const [saving, setSaving] = useState(false);
+  
+  // Phone verification state
+  const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+  const [phoneVerificationStep, setPhoneVerificationStep] = useState<'input' | 'verify'>('input');
+
+  // Check if phone is verified
+  const isPhoneVerified = user?.primaryPhoneNumber?.verification?.status === 'verified';
 
   const getCurrentPlan = () => {
     if (!subscribed) return 'free';
@@ -189,6 +197,50 @@ const Settings = () => {
         ? [...prev.property_types, type]
         : prev.property_types.filter(t => t !== type)
     }));
+  };
+
+  const handlePhoneVerification = async () => {
+    if (!user) return;
+
+    setIsVerifyingPhone(true);
+    try {
+      if (phoneVerificationStep === 'input') {
+        // Create or update phone number and send verification code
+        const phoneNumberResource = await user.createPhoneNumber({ phoneNumber: profileData.phone });
+        await phoneNumberResource.prepareVerification();
+        setPhoneVerificationStep('verify');
+        toast({
+          title: "Verification Code Sent",
+          description: "Please check your phone for the verification code.",
+        });
+      } else {
+        // Verify the code
+        const phoneNumber = user.phoneNumbers.find(p => p.phoneNumber === profileData.phone);
+        if (phoneNumber) {
+          await phoneNumber.attemptVerification({ code: phoneVerificationCode });
+          await user.reload(); // Refresh user data
+          
+          // Update profile with verified phone
+          await handleProfileSave();
+          
+          setPhoneVerificationStep('input');
+          setPhoneVerificationCode('');
+          toast({
+            title: "Phone Verified",
+            description: "Your phone number has been successfully verified!",
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Phone verification error:', error);
+      toast({
+        title: "Verification Error",
+        description: error.errors?.[0]?.message || "Failed to verify phone number. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsVerifyingPhone(false);
+    }
   };
 
   const handleUpgrade = async (planType: string) => {
@@ -376,7 +428,14 @@ const Settings = () => {
                         <Phone className="w-5 h-5 text-emerald-600" />
                         <div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
-                          <p className="font-medium">{profileData.phone || 'Not set'}</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="font-medium">{profileData.phone || 'Not set'}</p>
+                            {isPhoneVerified && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -461,8 +520,39 @@ const Settings = () => {
                           value={profileData.phone}
                           onChange={(e) => handleInputChange('phone', e.target.value)}
                           className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                          placeholder="+1234567890"
                         />
+                        {isPhoneVerified && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                              Verified
+                            </Badge>
+                          </div>
+                        )}
                       </div>
+                      {profileData.phone && !isPhoneVerified && (
+                        <div className="space-y-2">
+                          {phoneVerificationStep === 'verify' && (
+                            <Input
+                              type="text"
+                              placeholder="Enter verification code"
+                              value={phoneVerificationCode}
+                              onChange={(e) => setPhoneVerificationCode(e.target.value)}
+                              className="h-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                            />
+                          )}
+                          <Button
+                            onClick={handlePhoneVerification}
+                            disabled={isVerifyingPhone || (phoneVerificationStep === 'verify' && !phoneVerificationCode)}
+                            size="sm"
+                            variant="outline"
+                            className="w-full"
+                          >
+                            {isVerifyingPhone ? 'Processing...' : 
+                             phoneVerificationStep === 'input' ? 'Verify Phone' : 'Confirm Code'}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="company" className="text-sm font-medium">Company</Label>
