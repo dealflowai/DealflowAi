@@ -10,31 +10,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Loader2, Star, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { CheckCircle, Loader2, ArrowLeft, ArrowRight, Check, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
 
-// Enhanced signup schema with stronger validation
+// Step 1: Basic signup schema
 const basicSignUpSchema = z.object({
   firstName: z.string()
     .min(2, 'First name must be at least 2 characters')
-    .max(50, 'First name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes'),
+    .max(50, 'First name must be less than 50 characters'),
   lastName: z.string()
     .min(2, 'Last name must be at least 2 characters')
-    .max(50, 'Last name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes'),
+    .max(50, 'Last name must be less than 50 characters'),
   email: z.string()
     .email('Please enter a valid email address')
-    .min(5, 'Email must be at least 5 characters')
-    .max(100, 'Email must be less than 100 characters')
-    .toLowerCase(),
+    .min(5, 'Email must be at least 5 characters'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password must be less than 128 characters')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, 
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
   confirmPassword: z.string(),
@@ -42,11 +36,8 @@ const basicSignUpSchema = z.object({
     required_error: 'Please select your role'
   }),
   phone: z.string()
-    .min(1, 'Phone number is required')
-    .refine((val) => {
-      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-      return phoneRegex.test(val.replace(/[\s\-\(\)\.]/g, ''));
-    }, 'Please enter a valid phone number'),
+    .min(10, 'Phone number must be at least 10 digits')
+    .regex(/^[\+]?[1-9][\d]{9,14}$/, 'Please enter a valid phone number'),
   consent: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy'
   })
@@ -55,43 +46,18 @@ const basicSignUpSchema = z.object({
   path: ["confirmPassword"],
 });
 
-// Step 2-4: Onboarding schemas based on role
-const buyerOnboardingSchema = z.object({
+// Onboarding schemas
+const onboardingSchema = z.object({
   budgetMin: z.number().min(0).optional(),
   budgetMax: z.number().min(0).optional(),
   preferredMarkets: z.array(z.string()).optional(),
   propertyTypes: z.array(z.string()).optional(),
-  roiTarget: z.number().min(0).max(100).optional(),
-  financingType: z.string().optional(),
-  timelineToClose: z.string().optional(),
-  companyName: z.string().optional(),
-});
-
-const wholesalerOnboardingSchema = z.object({
-  primaryMarkets: z.array(z.string()).optional(),
-  dealTypes: z.array(z.string()).optional(),
-  monthlyDealVolume: z.string().optional(),
-  companyName: z.string().optional(),
-});
-
-const agentOnboardingSchema = z.object({
-  licenseNumber: z.string().optional(),
-  brokerageName: z.string().optional(),
-  marketsServed: z.array(z.string()).optional(),
-  typicalClients: z.array(z.string()).optional(),
-});
-
-const consentSchema = z.object({
-  consent: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the terms and privacy policy'
-  })
+  experience: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type BasicSignUpData = z.infer<typeof basicSignUpSchema>;
-type BuyerOnboardingData = z.infer<typeof buyerOnboardingSchema>;
-type WholesalerOnboardingData = z.infer<typeof wholesalerOnboardingSchema>;
-type AgentOnboardingData = z.infer<typeof agentOnboardingSchema>;
-type ConsentData = z.infer<typeof consentSchema>;
+type OnboardingData = z.infer<typeof onboardingSchema>;
 
 interface EnhancedSignUpFormProps {
   onSuccess?: () => void;
@@ -105,11 +71,19 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   const [userData, setUserData] = useState<any>({});
   const [verificationCode, setVerificationCode] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
 
-  // Step 1: Basic signup form
+  // Basic signup form
   const basicForm = useForm<BasicSignUpData>({
     resolver: zodResolver(basicSignUpSchema),
+    mode: 'onChange'
+  });
+
+  // Onboarding form
+  const onboardingForm = useForm<OnboardingData>({
+    resolver: zodResolver(onboardingSchema),
   });
 
   // Password requirements checker
@@ -124,268 +98,76 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   };
 
   const passwordRequirements = checkPasswordRequirements(password);
+  const allRequirementsMet = Object.values(passwordRequirements).every(Boolean);
 
-  // Step 2-4: Role-specific onboarding forms
-  const buyerForm = useForm<BuyerOnboardingData>({
-    resolver: zodResolver(buyerOnboardingSchema),
-  });
-
-  const wholesalerForm = useForm<WholesalerOnboardingData>({
-    resolver: zodResolver(wholesalerOnboardingSchema),
-  });
-
-  const agentForm = useForm<AgentOnboardingData>({
-    resolver: zodResolver(agentOnboardingSchema),
-  });
-
-  const consentForm = useForm<ConsentData>({
-    resolver: zodResolver(consentSchema),
-  });
-
-  const handleBasicSubmit = async (data: BasicSignUpData) => {
-    if (!signUp) {
-      toast({
-        title: "Service Unavailable",
-        description: "Authentication service is not available. Please try again.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  // Step 1: Handle initial signup
+  const handleBasicSignup = async (data: BasicSignUpData) => {
+    if (!signUp) return;
+    
     setIsLoading(true);
+    
     try {
-      // Enhanced email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(data.email)) {
-        toast({
-          title: "Invalid Email",
-          description: "Please enter a valid email address.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Enhanced password validation
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      if (!passwordRegex.test(data.password)) {
-        toast({
-          title: "Weak Password",
-          description: "Password must contain at least 8 characters with uppercase, lowercase, number, and special character.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Sanitize input data
-      const sanitizedData = {
-        email: data.email.toLowerCase().trim(),
+      console.log('Starting signup process...');
+      
+      // Create the initial signup
+      const result = await signUp.create({
+        emailAddress: data.email,
         password: data.password,
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        role: data.role,
-        phone: data.phone?.trim()
-      };
-
-      // Create user with Clerk - with proper email verification
-      const signUpAttempt = await signUp.create({
-        emailAddress: sanitizedData.email,
-        password: sanitizedData.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        unsafeMetadata: {
+          role: data.role,
+          phone: data.phone,
+          signupTimestamp: new Date().toISOString()
+        }
       });
 
-      let result = signUpAttempt;
+      console.log('Signup result:', result);
 
-      // Handle email verification requirement
-      console.log('SignUp attempt status:', signUpAttempt.status);
-      console.log('SignUp attempt object:', signUpAttempt);
-      
-      if (signUpAttempt.status === 'missing_requirements') {
-        console.log('Missing requirements:', signUpAttempt.missingFields);
+      if (result.status === 'missing_requirements') {
+        // Send verification email
+        await signUp.prepareEmailAddressVerification({
+          strategy: 'email_code'
+        });
         
-        // Try to prepare email verification regardless of missing fields
-        try {
-          console.log('Attempting to prepare email verification...');
-          await signUp.prepareEmailAddressVerification({
-            strategy: 'email_code'
-          });
-          
-          console.log('Email verification prepared successfully');
-          toast({
-            title: "Check Your Email",
-            description: "We've sent you a verification code. Please check your email (including spam folder).",
-          });
-          
-          // Show verification step
-          setCurrentStep(1.5);
-          setUserData({ 
-            email: sanitizedData.email,
-            firstName: sanitizedData.firstName,
-            lastName: sanitizedData.lastName,
-            role: sanitizedData.role,
-            phone: sanitizedData.phone
-          });
-          setIsLoading(false);
-          return;
-        } catch (emailError) {
-          console.error('Email verification preparation failed:', emailError);
-          toast({
-            title: "Email Setup Issue",
-            description: `Email verification failed: ${emailError}`,
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
-        }
-      }
-      
-      // Check if we need email verification in other status cases
-      if (signUpAttempt.status !== 'complete') {
-        console.log('Non-complete status, attempting email verification...');
-        try {
-          await signUp.prepareEmailAddressVerification({
-            strategy: 'email_code'
-          });
-          
-          console.log('Email verification prepared for non-complete status');
-          toast({
-            title: "Check Your Email", 
-            description: "We've sent you a verification code.",
-          });
-          
-          setCurrentStep(1.5);
-          setUserData({ email: sanitizedData.email });
-          setIsLoading(false);
-          return;
-        } catch (emailError) {
-          console.error('Email verification failed for non-complete status:', emailError);
-        }
-      }
-
-      // If the initial create was successful but not complete, try to update with additional details
-      if (signUpAttempt.createdUserId && signUpAttempt.status !== 'complete') {
-        try {
-          const updateResult = await signUp.update({
-            firstName: sanitizedData.firstName,
-            lastName: sanitizedData.lastName,
-            unsafeMetadata: {
-              role: sanitizedData.role,
-              phone: sanitizedData.phone,
-              signupTimestamp: new Date().toISOString()
-            }
-          });
-          
-          result = updateResult;
-        } catch (updateError) {
-          console.warn('Could not update user details:', updateError);
-          // Continue with basic account - don't fail the signup
-        }
-      }
-
-      // Handle the final result
-      if (result.status === 'complete' && result.createdSessionId) {
-        // Set the session active
-        await setActive({ 
-          session: result.createdSessionId,
-          beforeEmit: () => {
-            console.log('Setting active session for user:', result.createdUserId);
-          }
-        });
-
-        // Store profile data in Supabase
-        const profileData = {
-          clerk_id: result.createdUserId!,
-          email: sanitizedData.email,
-          first_name: sanitizedData.firstName,
-          last_name: sanitizedData.lastName,
-          phone: sanitizedData.phone || null,
-          user_role: sanitizedData.role,
-          onboarding_step: 2,
-          role: 'user',
-          created_at: new Date().toISOString(),
-          has_completed_onboarding: false, // Keep false to allow onboarding steps
-          consent_given: true // Store consent from step 1
-        };
-
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert(profileData, {
-            onConflict: 'clerk_id'
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          
-          toast({
-            title: "Profile Setup Warning",
-            description: "Account created successfully, but additional setup is needed. You can complete this later.",
-            variant: "destructive"
-          });
-          
-          // Continue to onboarding
-          setUserData({ ...sanitizedData, clerkId: result.createdUserId });
-          setCurrentStep(2);
-        } else {
-          // Success - proceed to onboarding steps
-          toast({
-            title: "Account Created!",
-            description: "Welcome to dealflow.ai. Let's customize your experience.",
-          });
-          
-          setUserData({ ...sanitizedData, clerkId: result.createdUserId });
-          setCurrentStep(2);
-        }
-      } else if (result.status === 'missing_requirements') {
-        // Handle specific missing requirements
+        setUserData(data);
+        setCurrentStep(1.5); // Verification step
+        
         toast({
-          title: "Additional Information Required",
-          description: "Please check your email for verification instructions.",
+          title: "Check Your Email",
+          description: "We've sent you a verification code to complete your registration.",
         });
-        setIsLoading(false);
-      } else {
-        // Handle other statuses
+      } else if (result.status === 'complete' && result.createdSessionId) {
+        // Account created successfully
+        await setActive({ session: result.createdSessionId });
+        await createUserProfile(result.createdUserId!, data);
+        
+        setUserData({ ...data, clerkId: result.createdUserId });
+        setCurrentStep(2); // Continue to onboarding
+        
         toast({
-          title: "Verification Required",
-          description: "Please check your email for verification instructions.",
+          title: "Account Created!",
+          description: "Let's customize your experience.",
         });
-        setIsLoading(false);
       }
     } catch (error: any) {
-      console.error('Comprehensive sign up error:', error);
+      console.error('Signup error:', error);
       
-      // Enhanced error handling with specific messages
-      let errorMessage = "Something went wrong. Please try again.";
-      let errorTitle = "Sign Up Failed";
+      let errorMessage = "An error occurred during signup. Please try again.";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        
-        switch (firstError.code) {
-          case 'form_identifier_exists':
-            errorTitle = "Account Already Exists";
-            errorMessage = "An account with this email already exists. Please sign in instead.";
-            break;
-          case 'form_password_pwned':
-            errorTitle = "Insecure Password";
-            errorMessage = "This password has been found in data breaches. Please choose a different password.";
-            break;
-          case 'form_password_too_common':
-            errorTitle = "Common Password";
-            errorMessage = "This password is too common. Please choose a more unique password.";
-            break;
-          case 'form_username_invalid':
-            errorTitle = "Invalid Email";
-            errorMessage = "Please enter a valid email address.";
-            break;
-          default:
-            errorMessage = firstError.longMessage || firstError.message || errorMessage;
+        if (firstError.code === 'form_identifier_exists') {
+          errorMessage = "An account with this email already exists. Please sign in instead.";
+        } else if (firstError.code === 'form_password_pwned') {
+          errorMessage = "This password has been found in a data breach. Please choose a different password.";
+        } else {
+          errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
-      } else if (error.message) {
-        errorMessage = error.message;
       }
       
       toast({
-        title: errorTitle,
+        title: "Signup Failed",
         description: errorMessage,
         variant: "destructive"
       });
@@ -394,43 +176,118 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     }
   };
 
-  const handleOnboardingSubmit = async (data: any) => {
-    if (!userData.clerkId) {
-      toast({
-        title: "Session Error",
-        description: "Your session has expired. Please start over.",
-        variant: "destructive"
-      });
-      setCurrentStep(1);
-      return;
-    }
-
+  // Handle email verification
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signUp) return;
+    
     setIsLoading(true);
+    
     try {
-      // Sanitize and validate onboarding data
-      const sanitizedOnboardingData = Object.keys(data).reduce((acc, key) => {
-        const value = data[key];
-        if (value !== null && value !== undefined) {
-          // Handle arrays
-          if (Array.isArray(value)) {
-            acc[key] = value.filter(item => item && item.trim && item.trim().length > 0);
-          }
-          // Handle strings
-          else if (typeof value === 'string') {
-            acc[key] = value.trim();
-          }
-          // Handle numbers and booleans
-          else {
-            acc[key] = value;
+      const cleanCode = verificationCode.trim().replace(/\s/g, '');
+      
+      if (!cleanCode || cleanCode.length !== 6) {
+        toast({
+          title: "Invalid Code",
+          description: "Please enter a valid 6-digit verification code.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Attempting verification...');
+      
+      const result = await signUp.attemptEmailAddressVerification({
+        code: cleanCode,
+      });
+
+      console.log('Verification result:', result);
+      
+      if (result.verifications?.emailAddress?.status === 'verified') {
+        if (result.status === 'complete' && result.createdSessionId) {
+          await setActive({ session: result.createdSessionId });
+          await createUserProfile(result.createdUserId!, userData);
+          
+          setUserData({ ...userData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+          
+          toast({
+            title: "Email Verified!",
+            description: "Let's customize your experience.",
+          });
+        } else {
+          // Need to complete signup
+          try {
+            const completionResult = await signUp.update({
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+            });
+            
+            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
+              await setActive({ session: completionResult.createdSessionId });
+              await createUserProfile(completionResult.createdUserId!, userData);
+              
+              setUserData({ ...userData, clerkId: completionResult.createdUserId });
+              setCurrentStep(2);
+              
+              toast({
+                title: "Email Verified!",
+                description: "Let's customize your experience.",
+              });
+            }
+          } catch (completionError) {
+            console.error('Completion error:', completionError);
+            setCurrentStep(2);
           }
         }
-        return acc;
-      }, {} as any);
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: "Invalid verification code. Please try again.",
+          variant: "destructive"
+        });
+      }
+      
+      setVerificationCode('');
+    } catch (error: any) {
+      console.error('Verification error:', error);
+      setVerificationCode('');
+      
+      let errorMessage = "Verification failed. Please try again.";
+      
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        if (firstError.code === 'form_code_incorrect') {
+          errorMessage = "Invalid verification code. Please check your email and try again.";
+        }
+      }
+      
+      toast({
+        title: "Verification Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Handle onboarding completion
+  const handleOnboardingSubmit = async (data: OnboardingData) => {
+    setIsLoading(true);
+    
+    try {
+      // Update profile in Supabase
       const updateData = {
-        ...sanitizedOnboardingData,
-        onboarding_step: currentStep + 1,
-        onboarding_completed: currentStep >= 3,
+        budget_min: data.budgetMin,
+        budget_max: data.budgetMax,
+        preferred_markets: data.preferredMarkets,
+        property_types: data.propertyTypes,
+        monthly_deal_volume: data.experience,
+        notes: data.notes,
+        has_completed_onboarding: true,
+        onboarding_completed: true,
         updated_at: new Date().toISOString()
       };
 
@@ -440,65 +297,90 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         .eq('clerk_id', userData.clerkId);
 
       if (error) {
-        console.error('Error updating profile:', error);
-        toast({
-          title: "Update Failed",
-          description: "Could not save your information. Please try again.",
-          variant: "destructive"
-        });
-      } else {
-        setUserData({ ...userData, ...sanitizedOnboardingData });
-        
-        // Check if this is the final consent step (step 4) and consent was given
-        if (currentStep === 4 && sanitizedOnboardingData.consent_given) {
-          // Mark onboarding as complete
-          await supabase
-            .from('profiles')
-            .update({ 
-              has_completed_onboarding: true, 
-              onboarding_completed: true,
-              updated_at: new Date().toISOString()
-            })
-            .eq('clerk_id', userData.clerkId);
-          
-          toast({
-            title: "Welcome to dealflow.ai!",
-            description: "Your account setup is complete. Let's get started!",
-          });
-          onSuccess?.();
-        } else {
-          // Move to next step
-          setCurrentStep(currentStep + 1);
-        }
+        throw error;
       }
-    } catch (error) {
-      console.error('Onboarding update error:', error);
+
       toast({
-        title: "Update Failed",
-        description: "Something went wrong while saving your information. Please try again.",
+        title: "Welcome to dealflow.ai!",
+        description: "Your account setup is complete. Let's get started!",
+      });
+      
+      onSuccess?.();
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      toast({
+        title: "Setup Failed",
+        description: "Could not complete your profile setup. You can finish this later.",
         variant: "destructive"
       });
+      
+      // Continue anyway
+      onSuccess?.();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderStepIndicator = () => {
-    // Adjust display step for UI (1.5 should show as step 2)
-    const displayStep = currentStep === 1.5 ? 2 : Math.ceil(currentStep);
-    
+  // Helper function to create user profile
+  const createUserProfile = async (clerkUserId: string, userData: BasicSignUpData) => {
+    try {
+      const profileData = {
+        clerk_id: clerkUserId,
+        email: userData.email,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        phone: userData.phone,
+        user_role: userData.role,
+        role: 'user',
+        onboarding_step: 2,
+        has_completed_onboarding: false,
+        consent_given: true,
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(profileData, {
+          onConflict: 'clerk_id'
+        });
+
+      if (error) {
+        console.error('Profile creation error:', error);
+      } else {
+        console.log('Profile created successfully');
+      }
+    } catch (error) {
+      console.error('Profile creation error:', error);
+    }
+  };
+
+  // Step progress indicator
+  const renderProgressIndicator = () => {
+    const steps = [
+      { number: 1, title: "Account", description: "Basic information" },
+      { number: 2, title: "Preferences", description: "Your investment focus" },
+    ];
+
+    const displayStep = currentStep === 1.5 ? 1 : currentStep;
+
     return (
       <div className="flex items-center justify-center mb-8">
-        {[1, 2, 3, 4].map((step) => (
-          <div key={step} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step <= displayStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
-              {step < displayStep ? <Check className="w-4 h-4" /> : step}
+        {steps.map((step, index) => (
+          <div key={step.number} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                step.number <= displayStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                {step.number < displayStep ? <Check className="w-5 h-5" /> : step.number}
+              </div>
+              <div className="text-center mt-2">
+                <div className="text-sm font-medium">{step.title}</div>
+                <div className="text-xs text-muted-foreground">{step.description}</div>
+              </div>
             </div>
-            {step < 4 && (
-              <div className={`w-16 h-1 mx-2 ${
-                step < displayStep ? 'bg-primary' : 'bg-muted'
+            {index < steps.length - 1 && (
+              <div className={`w-16 h-1 mx-4 ${
+                step.number < displayStep ? 'bg-primary' : 'bg-muted'
               }`} />
             )}
           </div>
@@ -507,885 +389,247 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     );
   };
 
-  const renderStep1 = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Create Your Free Account</CardTitle>
-        <CardDescription>Join thousands of successful real estate professionals</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={basicForm.handleSubmit(handleBasicSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="fullName">Full Name</Label>
-            <div className="grid grid-cols-2 gap-4 mt-1">
-              <Input
-                {...basicForm.register('firstName')}
-                placeholder="First name"
-              />
-              <Input
-                {...basicForm.register('lastName')}
-                placeholder="Last name"
-              />
-            </div>
-            {(basicForm.formState.errors.firstName || basicForm.formState.errors.lastName) && (
-              <p className="text-sm text-destructive mt-1">
-                {basicForm.formState.errors.firstName?.message || basicForm.formState.errors.lastName?.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              type="email"
-              {...basicForm.register('email')}
-              className="mt-1"
-              placeholder="your@email.com"
-            />
-            {basicForm.formState.errors.email && (
-              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.email.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              {...basicForm.register('password', {
-                onChange: (e) => setPassword(e.target.value)
-              })}
-              className="mt-1"
-              placeholder="Create a secure password"
-            />
-            <div className="mt-2 text-xs space-y-1">
-              <p className="text-muted-foreground">Password must contain:</p>
-              <ul className="space-y-1 ml-2">
-                <li className={`flex items-center gap-2 ${passwordRequirements.length ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {passwordRequirements.length ? '✓' : '○'} At least 8 characters
-                </li>
-                <li className={`flex items-center gap-2 ${passwordRequirements.uppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {passwordRequirements.uppercase ? '✓' : '○'} One uppercase letter (A-Z)
-                </li>
-                <li className={`flex items-center gap-2 ${passwordRequirements.lowercase ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {passwordRequirements.lowercase ? '✓' : '○'} One lowercase letter (a-z)
-                </li>
-                <li className={`flex items-center gap-2 ${passwordRequirements.number ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {passwordRequirements.number ? '✓' : '○'} One number (0-9)
-                </li>
-                <li className={`flex items-center gap-2 ${passwordRequirements.special ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {passwordRequirements.special ? '✓' : '○'} One special character (@$!%*?&)
-                </li>
-              </ul>
-            </div>
-            {basicForm.formState.errors.password && (
-              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.password.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              type="password"
-              {...basicForm.register('confirmPassword')}
-              className="mt-1"
-              placeholder="Re-enter your password"
-            />
-            {basicForm.formState.errors.confirmPassword && (
-              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.confirmPassword.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <Select onValueChange={(value) => basicForm.setValue('role', value as any)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select your role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="buyer">Buyer</SelectItem>
-                <SelectItem value="wholesaler">Wholesaler</SelectItem>
-                <SelectItem value="real_estate_agent">Real Estate Agent</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {basicForm.formState.errors.role && (
-              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.role.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="phone">Phone Number *</Label>
-            <Input
-              type="tel"
-              {...basicForm.register('phone')}
-              className="mt-1"
-              placeholder="(555) 123-4567"
-              required
-            />
-            {basicForm.formState.errors.phone && (
-              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.phone.message}</p>
-            )}
-          </div>
-
-          <div className="flex items-start space-x-2">
-            <Checkbox 
-              id="consent"
-              onCheckedChange={(checked) => basicForm.setValue('consent', !!checked)}
-            />
-            <Label htmlFor="consent" className="text-sm leading-relaxed">
-              I agree to the{" "}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              and consent to receive communication via email, phone, and SMS.
-            </Label>
-          </div>
-          {basicForm.formState.errors.consent && (
-            <p className="text-sm text-destructive">{basicForm.formState.errors.consent.message}</p>
-          )}
-
-          <Button
-            type="submit" 
-            className="w-full h-12 text-base font-semibold"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating Account...
-              </>
-            ) : (
-              'Continue'
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-
-  const renderBuyerOnboarding = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Let's customize your buying criteria</CardTitle>
-        <CardDescription>Help us find the perfect deals for you</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={buyerForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
-          <div>
-            <Label>Budget Range</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label className="text-sm text-muted-foreground">Min Budget</Label>
-                <Input
-                  type="number"
-                  placeholder="$50,000"
-                  onChange={(e) => buyerForm.setValue('budgetMin', parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div>
-                <Label className="text-sm text-muted-foreground">Max Budget</Label>
-                <Input
-                  type="number"
-                  placeholder="$500,000"
-                  onChange={(e) => buyerForm.setValue('budgetMax', parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Label>Property Types</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {['Single Family', 'Multi Family', 'Vacant Land', 'Commercial'].map((type) => (
-                <div key={type} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={type}
-                    onCheckedChange={(checked) => {
-                      const current = buyerForm.getValues('propertyTypes') || [];
-                      if (checked) {
-                        buyerForm.setValue('propertyTypes', [...current, type]);
-                      } else {
-                        buyerForm.setValue('propertyTypes', current.filter(t => t !== type));
-                      }
-                    }}
-                  />
-                  <Label htmlFor={type} className="text-sm">{type}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label>Financing Type</Label>
-            <Select onValueChange={(value) => buyerForm.setValue('financingType', value)}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select financing type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="hard_money">Hard Money</SelectItem>
-                <SelectItem value="conventional">Conventional</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Timeline to Close</Label>
-            <Select onValueChange={(value) => buyerForm.setValue('timelineToClose', value)}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select timeline" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7_days">7 days</SelectItem>
-                <SelectItem value="14_days">14 days</SelectItem>
-                <SelectItem value="30_days">30 days</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Company Name (Optional)</Label>
-            <Input
-              {...buyerForm.register('companyName')}
-              className="mt-2"
-              placeholder="Your company name"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(4)}
-              className="flex-1"
-            >
-              Skip For Now
-            </Button>
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-
-  const renderWholesalerOnboarding = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Tell us about your wholesaling activity</CardTitle>
-        <CardDescription>Help us optimize your deal flow</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={wholesalerForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
-          <div>
-            <Label>Deal Types</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {['Assignment', 'Fix & Flip', 'Buy & Hold', 'Land'].map((type) => (
-                <div key={type} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={type}
-                    onCheckedChange={(checked) => {
-                      const current = wholesalerForm.getValues('dealTypes') || [];
-                      if (checked) {
-                        wholesalerForm.setValue('dealTypes', [...current, type]);
-                      } else {
-                        wholesalerForm.setValue('dealTypes', current.filter(t => t !== type));
-                      }
-                    }}
-                  />
-                  <Label htmlFor={type} className="text-sm">{type}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label>Monthly Deal Volume</Label>
-            <Select onValueChange={(value) => wholesalerForm.setValue('monthlyDealVolume', value)}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select volume" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1-2">1-2 deals</SelectItem>
-                <SelectItem value="3-5">3-5 deals</SelectItem>
-                <SelectItem value="6-10">6-10 deals</SelectItem>
-                <SelectItem value="10+">10+ deals</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Company / LLC Name</Label>
-            <Input
-              {...wholesalerForm.register('companyName')}
-              className="mt-2"
-              placeholder="Your company name"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(4)}
-              className="flex-1"
-            >
-              Skip For Now
-            </Button>
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-
-  const renderAgentOnboarding = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Brokerage & Market Info</CardTitle>
-        <CardDescription>Tell us about your real estate practice</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={agentForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
-          <div>
-            <Label>License Number</Label>
-            <Input
-              {...agentForm.register('licenseNumber')}
-              className="mt-2"
-              placeholder="Your license number"
-            />
-          </div>
-
-          <div>
-            <Label>Brokerage Name</Label>
-            <Input
-              {...agentForm.register('brokerageName')}
-              className="mt-2"
-              placeholder="Your brokerage"
-            />
-          </div>
-
-          <div>
-            <Label>Typical Clients</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {['Retail Buyers', 'Investors', 'Institutional', 'First-time Buyers'].map((client) => (
-                <div key={client} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={client}
-                    onCheckedChange={(checked) => {
-                      const current = agentForm.getValues('typicalClients') || [];
-                      if (checked) {
-                        agentForm.setValue('typicalClients', [...current, client]);
-                      } else {
-                        agentForm.setValue('typicalClients', current.filter(c => c !== client));
-                      }
-                    }}
-                  />
-                  <Label htmlFor={client} className="text-sm">{client}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(4)}
-              className="flex-1"
-            >
-              Skip For Now
-            </Button>
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-
-  const renderGenericOnboarding = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Tell us about yourself</CardTitle>
-        <CardDescription>Help us personalize your experience</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={agentForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
-          <div>
-            <Label>Company Name (Optional)</Label>
-            <Input
-              {...agentForm.register('brokerageName')}
-              className="mt-2"
-              placeholder="Your company or organization"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-
-  const renderPreferencesStep = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Additional Preferences</CardTitle>
-        <CardDescription>This step is optional - you can skip it and complete it later in settings</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={agentForm.handleSubmit(handleOnboardingSubmit)} className="space-y-6">
-          <div>
-            <Label>Preferred Markets (Optional)</Label>
-            <Textarea
-              className="mt-2"
-              placeholder="e.g., Austin, Dallas, Houston..."
-              onChange={(e) => agentForm.setValue('marketsServed', e.target.value.split(',').map(m => m.trim()))}
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(currentStep - 1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(4)}
-              className="flex-1"
-            >
-              Skip This Step
-            </Button>
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-
-  const renderCompletionStep = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center space-x-2">
-          <CheckCircle className="w-6 h-6 text-emerald-500" />
-          <span>Setup Complete!</span>
-        </CardTitle>
-        <CardDescription>Your account is ready. Let's get started!</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
-            <div className="text-center">
-              <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-2">
-                Welcome to dealflow.ai!
-              </h3>
-              <p className="text-emerald-700 dark:text-emerald-300">
-                Your profile has been set up successfully. You can always update your preferences in settings.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-              <span>Account created</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-              <span>Email verified</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-              <span>Profile configured</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-              <span>Ready to use</span>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setCurrentStep(currentStep - 1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button 
-              onClick={async () => {
-                // Mark onboarding as complete
-                if (userData.clerkId) {
-                  await supabase
-                    .from('profiles')
-                    .update({ 
-                      has_completed_onboarding: true, 
-                      onboarding_completed: true,
-                      updated_at: new Date().toISOString()
-                    })
-                    .eq('clerk_id', userData.clerkId);
-                }
-                
-                toast({
-                  title: "Welcome to dealflow.ai!",
-                  description: "Let's start finding your next deal!",
-                });
-                onSuccess?.();
-              }}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <>
-                  Enter Dashboard
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const handleVerificationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signUp) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Clean and validate the verification code
-      const cleanCode = verificationCode.trim().replace(/[\s-]/g, '');
-      
-      if (!cleanCode || cleanCode.length !== 6 || !/^\d{6}$/.test(cleanCode)) {
-        toast({
-          title: "Invalid Code Format",
-          description: "Please enter a valid 6-digit verification code.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('🔍 Starting verification process...');
-      console.log('Code entered:', verificationCode);
-      console.log('Cleaned code:', cleanCode);
-      
-      // Simple, direct verification approach
-      let result;
-      try {
-        console.log('📧 Attempting email verification...');
-        result = await signUp.attemptEmailAddressVerification({
-          code: cleanCode,
-        });
-        console.log('✅ Verification attempt completed');
-        console.log('Result status:', result.status);
-        console.log('Email verification status:', result.verifications?.emailAddress?.status);
-      } catch (verificationError: any) {
-        console.error('❌ Verification attempt failed:', verificationError);
-        
-        // Check if it's just a "code incorrect" error that might work on retry
-        if (verificationError.errors?.[0]?.code === 'form_code_incorrect') {
-          console.log('🔄 Code incorrect - this might be a timing issue, clearing for retry');
-          setVerificationCode('');
-          toast({
-            title: "Verification Failed",
-            description: "Invalid code. Please double-check the code from your email and try again.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
-        }
-        
-        throw verificationError;
-      }
-      
-      // Clear the code after successful attempt
-      setVerificationCode('');
-      
-      // Check if email verification succeeded
-      if (result.verifications?.emailAddress?.status === 'verified') {
-        console.log('✅ Email verified successfully');
-        
-        // Handle different completion scenarios
-        if (result.status === 'complete' && result.createdSessionId) {
-          console.log('✅ Signup complete with session');
-          
-          // Set session and continue to onboarding
-          await setActive({ session: result.createdSessionId });
-          
-          // Create profile
-          await createUserProfile(result.createdUserId!, userData);
-          
-          // Continue to onboarding steps instead of finishing
-          setUserData({ ...userData, clerkId: result.createdUserId });
-          setCurrentStep(2);
-          
-          toast({
-            title: "Email Verified!",
-            description: "Let's customize your experience.",
-          });
-          
-        } else {
-          console.log('📝 Email verified but signup incomplete, updating user details...');
-          
-          // Try to complete signup by updating with required fields
-          try {
-            const updateResult = await signUp.update({
-              firstName: userData.firstName || 'User',
-              lastName: userData.lastName || 'User',
-            });
-            
-            console.log('Update result:', updateResult);
-            
-            if (updateResult.status === 'complete' && updateResult.createdSessionId) {
-              await setActive({ session: updateResult.createdSessionId });
-              await createUserProfile(updateResult.createdUserId!, userData);
-              
-              // Continue to onboarding instead of finishing
-              setUserData({ ...userData, clerkId: updateResult.createdUserId });
-              setCurrentStep(2);
-              
-              toast({
-                title: "Email Verified!",
-                description: "Let's customize your experience.",
-              });
-            }
-          } catch (updateError) {
-            console.log('Update failed, continuing to onboarding:', updateError);
-          }
-          
-          // If completion failed, continue to onboarding
-          console.log('📋 Continuing to onboarding flow');
-          setUserData({ ...userData, clerkId: result.createdUserId });
-          setCurrentStep(2);
-          
-          toast({
-            title: "Email Verified!",
-            description: "Please complete your profile setup.",
-          });
-        }
-      } else {
-        console.log('❌ Email verification failed');
-        toast({
-          title: "Verification Failed",
-          description: "The verification code is incorrect. Please check your email and try again.",
-          variant: "destructive"
-        });
-      }
-      
-    } catch (error: any) {
-      console.error('💥 Verification process error:', error);
-      setVerificationCode('');
-      
-      let errorMessage = "Verification failed. Please try again.";
-      
-      if (error.errors && error.errors.length > 0) {
-        const firstError = error.errors[0];
-        console.error('First error details:', firstError);
-        
-        switch (firstError.code) {
-          case 'form_code_incorrect':
-            errorMessage = "The verification code is incorrect. Please check your email and try again.";
-            break;
-          case 'verification_expired':
-            errorMessage = "The verification code has expired. Please request a new one.";
-            break;
-          case 'too_many_requests':
-            errorMessage = "Too many attempts. Please wait a moment before trying again.";
-            break;
-          default:
-            errorMessage = firstError.longMessage || firstError.message || errorMessage;
-        }
-      }
-      
-      toast({
-        title: "Verification Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Helper function to create user profile
-  const createUserProfile = async (clerkUserId: string, userData: any) => {
-    const profileData = {
-      clerk_id: clerkUserId,
-      email: userData.email,
-      first_name: userData.firstName || 'User',
-      last_name: userData.lastName || 'User',
-      phone: userData.phone || null,
-      user_role: userData.role || 'user',
-      onboarding_step: 2,
-      role: 'user',
-      created_at: new Date().toISOString(),
-      has_completed_onboarding: false,
-      consent_given: true
-    };
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert(profileData, {
-        onConflict: 'clerk_id'
-      });
-
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
-    } else {
-      console.log('✅ Profile created successfully');
-    }
-  };
-
-  const renderEmailVerification = () => {
-
+  // Step 1: Basic signup form
+  if (currentStep === 1) {
     return (
-      <Card>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle>Create Your Account</CardTitle>
+          <CardDescription>
+            Join thousands of investors finding profitable deals with AI
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {renderProgressIndicator()}
+          
+          <form onSubmit={basicForm.handleSubmit(handleBasicSignup)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  {...basicForm.register('firstName')}
+                  className="mt-1"
+                  placeholder="John"
+                />
+                {basicForm.formState.errors.firstName && (
+                  <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.firstName.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  {...basicForm.register('lastName')}
+                  className="mt-1"
+                  placeholder="Doe"
+                />
+                {basicForm.formState.errors.lastName && (
+                  <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.lastName.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                {...basicForm.register('email')}
+                className="mt-1"
+                placeholder="john@example.com"
+              />
+              {basicForm.formState.errors.email && (
+                <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  {...basicForm.register('password', {
+                    onChange: (e) => setPassword(e.target.value)
+                  })}
+                  className="mt-1 pr-10"
+                  placeholder="Create a secure password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              
+              {password && (
+                <div className="mt-2 text-xs space-y-1">
+                  <p className="text-muted-foreground">Password requirements:</p>
+                  <div className="grid grid-cols-1 gap-1">
+                    <div className={`flex items-center gap-2 ${passwordRequirements.length ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {passwordRequirements.length ? '✓' : '○'} At least 8 characters
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.uppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {passwordRequirements.uppercase ? '✓' : '○'} One uppercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.lowercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {passwordRequirements.lowercase ? '✓' : '○'} One lowercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.number ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {passwordRequirements.number ? '✓' : '○'} One number
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.special ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {passwordRequirements.special ? '✓' : '○'} One special character
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {basicForm.formState.errors.password && (
+                <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.password.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  {...basicForm.register('confirmPassword')}
+                  className="mt-1 pr-10"
+                  placeholder="Re-enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {basicForm.formState.errors.confirmPassword && (
+                <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="role">Your Role</Label>
+              <Select onValueChange={(value) => basicForm.setValue('role', value as any)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="buyer">Real Estate Investor/Buyer</SelectItem>
+                  <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                  <SelectItem value="real_estate_agent">Real Estate Agent</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {basicForm.formState.errors.role && (
+                <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.role.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                {...basicForm.register('phone')}
+                className="mt-1"
+                placeholder="+1 (555) 123-4567"
+              />
+              {basicForm.formState.errors.phone && (
+                <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.phone.message}</p>
+              )}
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="consent"
+                onCheckedChange={(checked) => basicForm.setValue('consent', !!checked)}
+              />
+              <Label htmlFor="consent" className="text-sm leading-relaxed">
+                I agree to the{" "}
+                <Link to="/terms" className="text-primary hover:underline">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy" className="text-primary hover:underline">
+                  Privacy Policy
+                </Link>{" "}
+                and consent to receive communication via email, phone, and SMS.
+              </Label>
+            </div>
+            {basicForm.formState.errors.consent && (
+              <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.consent.message}</p>
+            )}
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base font-semibold"
+              disabled={isLoading || !allRequirementsMet}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center text-sm text-muted-foreground mt-4">
+            Already have an account?{" "}
+            <button 
+              type="button"
+              className="text-primary hover:underline font-medium"
+              onClick={() => onSwitchToSignIn?.()}
+            >
+              Sign in here
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Step 1.5: Email verification
+  if (currentStep === 1.5) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <CardTitle>Verify Your Email</CardTitle>
           <CardDescription>
-            We've sent a verification code to {userData.email}
+            We've sent a 6-digit code to {userData.email}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleVerificationSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="code">Verification Code</Label>
+              <Label htmlFor="verificationCode">Verification Code</Label>
               <Input
+                id="verificationCode"
                 type="text"
-                id="code"
                 value={verificationCode}
                 onChange={(e) => setVerificationCode(e.target.value)}
-                placeholder="Enter 6-digit code"
                 className="mt-1 text-center text-lg tracking-widest"
+                placeholder="123456"
                 maxLength={6}
               />
             </div>
-            
+
             <Button 
               type="submit" 
-              className="w-full"
-              disabled={isLoading || verificationCode.length < 6}
+              className="w-full h-12 text-base font-semibold"
+              disabled={isLoading || verificationCode.length !== 6}
             >
               {isLoading ? (
                 <>
@@ -1396,84 +640,134 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
                 'Verify Email'
               )}
             </Button>
-            
-            <div className="text-center text-sm text-muted-foreground">
-              Didn't receive the code? Check your spam folder or{' '}
-              <Button
+          </form>
+
+          <div className="text-center text-sm text-muted-foreground mt-4">
+            Didn't receive the code?{" "}
+            <button 
+              type="button"
+              className="text-primary hover:underline"
+              onClick={async () => {
+                try {
+                  await signUp?.prepareEmailAddressVerification({
+                    strategy: 'email_code'
+                  });
+                  toast({
+                    title: "Code Resent",
+                    description: "We've sent you a new verification code.",
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Failed to Resend",
+                    description: "Please try again in a moment.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+            >
+              Resend code
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Step 2: Onboarding
+  if (currentStep === 2) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle>Customize Your Experience</CardTitle>
+          <CardDescription>
+            Help us tailor dealflow.ai to your investment strategy
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {renderProgressIndicator()}
+          
+          <form onSubmit={onboardingForm.handleSubmit(handleOnboardingSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="budgetMin">Min Budget ($)</Label>
+                <Input
+                  id="budgetMin"
+                  type="number"
+                  {...onboardingForm.register('budgetMin', { valueAsNumber: true })}
+                  className="mt-1"
+                  placeholder="50000"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="budgetMax">Max Budget ($)</Label>
+                <Input
+                  id="budgetMax"
+                  type="number"
+                  {...onboardingForm.register('budgetMax', { valueAsNumber: true })}
+                  className="mt-1"
+                  placeholder="500000"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="experience">Experience Level</Label>
+              <Select onValueChange={(value) => onboardingForm.setValue('experience', value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select your experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner (0-5 deals)</SelectItem>
+                  <SelectItem value="intermediate">Intermediate (5-20 deals)</SelectItem>
+                  <SelectItem value="experienced">Experienced (20+ deals)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Additional Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                {...onboardingForm.register('notes')}
+                className="mt-1"
+                placeholder="Tell us about your investment goals or specific requirements..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Button 
                 type="button"
-                variant="link"
-                className="p-0 h-auto text-primary"
-                onClick={async () => {
-                  try {
-                    await signUp?.prepareEmailAddressVerification({ strategy: 'email_code' });
-                    toast({
-                      title: "Code Resent",
-                      description: "We've sent you a new verification code.",
-                    });
-                  } catch (error: any) {
-                    if (error.errors?.[0]?.code === 'verification_already_verified') {
-                      toast({
-                        title: "Email Already Verified",
-                        description: "Your email is already verified. Click Verify Email to continue.",
-                      });
-                    } else {
-                      toast({
-                        title: "Resend Failed",
-                        description: "Unable to resend code. Please try again.",
-                        variant: "destructive"
-                      });
-                    }
-                  }
-                }}
+                variant="outline"
+                onClick={() => onSuccess?.()}
+                className="flex-1"
               >
-                resend code
+                Skip For Now
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Complete Setup
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
     );
-  };
+  }
 
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return renderStep1();
-      case 1.5:
-        return renderEmailVerification();
-      case 2:
-        // Role-specific onboarding step
-        if (userData.role === 'buyer') return renderBuyerOnboarding();
-        if (userData.role === 'wholesaler') return renderWholesalerOnboarding();
-        if (userData.role === 'real_estate_agent') return renderAgentOnboarding();
-        // For 'other' role, show a generic step
-        return renderGenericOnboarding();
-      case 3:
-        // Additional preferences step (optional)
-        return renderPreferencesStep();
-      case 4:
-        // Final completion step
-        return renderCompletionStep();
-      default:
-        return renderStep1();
-    }
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto p-6">
-      {renderStepIndicator()}
-      {renderCurrentStep()}
-      
-      <div className="text-center text-sm text-muted-foreground mt-6">
-        Already have an account?{" "}
-        <button 
-          type="button"
-          className="text-primary hover:underline font-medium"
-          onClick={() => onSwitchToSignIn?.()}
-        >
-          Sign in here
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 };
