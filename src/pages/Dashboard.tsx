@@ -4,8 +4,12 @@ import Layout from '@/components/Layout/Layout';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import RecentActivity from '@/components/Dashboard/RecentActivity';
 import AdvancedCharts from '@/components/Dashboard/AdvancedCharts';
+import OnboardingPrompts from '@/components/Dashboard/OnboardingPrompts';
+import QuickActions from '@/components/Dashboard/QuickActions';
+import DealBuyerSnapshot from '@/components/Dashboard/DealBuyerSnapshot';
+import DemoDataBanner from '@/components/Dashboard/DemoDataBanner';
 import GuidedTour from '@/components/Onboarding/GuidedTour';
-import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot, Gem, BarChart3, Activity, Award, Zap } from 'lucide-react';
+import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot, Gem, BarChart3, Activity, Award, Zap, Gauge } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -129,7 +133,18 @@ const Dashboard = () => {
   const { tokenBalance, loading: tokenLoading } = useTokens();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+  const [showDemoBanner, setShowDemoBanner] = useState(false);
   const { toast } = useToast();
+
+  // Check if user should see demo banner
+  useEffect(() => {
+    const hasSeenDemo = localStorage.getItem('hasSeenDemoBanner');
+    const totalActivity = stats.totalBuyers + stats.totalDeals + stats.totalContracts;
+    
+    if (!hasSeenDemo && totalActivity === 0) {
+      setShowDemoBanner(true);
+    }
+  }, [stats]);
 
   // Check if user has completed onboarding
   const { data: hasCompletedOnboarding } = useQuery({
@@ -285,6 +300,26 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Demo Data Banner */}
+        {showDemoBanner && (
+          <DemoDataBanner 
+            onDismiss={() => {
+              setShowDemoBanner(false);
+              localStorage.setItem('hasSeenDemoBanner', 'true');
+            }}
+            onImportDemo={() => {
+              // Mock demo data import
+              toast({
+                title: "Demo Data Imported",
+                description: "Sample buyer data has been added to showcase platform features.",
+              });
+              setShowDemoBanner(false);
+              localStorage.setItem('hasSeenDemoBanner', 'true');
+              // In real app, this would import actual demo data
+            }}
+          />
+        )}
+
         {/* Fresh Insights Card */}
         {insights && insights.length > 0 && (
           <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
@@ -320,6 +355,8 @@ const Dashboard = () => {
             changeType={trends.buyersGrowth > 0 ? "positive" : "neutral"}
             icon={Users}
             data-tour="buyers-cta"
+            trend={{ percentage: trends.buyersGrowth, period: "vs last month" }}
+            tooltip="Total number of buyers in your pipeline. Includes active, inactive, and prospect buyers."
           />
           <StatsCard
             title="Active Deals"
@@ -327,6 +364,8 @@ const Dashboard = () => {
             change={`${stats.totalDeals} total deals`}
             changeType="positive"
             icon={Calculator}
+            trend={{ percentage: 12.5, period: "vs last week" }}
+            tooltip="Deals currently being analyzed or in negotiation phase."
           />
           <StatsCard
             title="Buying Power"
@@ -335,6 +374,8 @@ const Dashboard = () => {
             changeType="positive"
             icon={DollarSign}
             gradient={true}
+            trend={{ percentage: 8.3, period: "vs last month" }}
+            tooltip="Total combined buying power of all active buyers in your pipeline."
           />
           <StatsCard
             title="Conversion Rate"
@@ -342,6 +383,8 @@ const Dashboard = () => {
             change={`${stats.closedDeals} closed deals`}
             changeType={trends.conversionRate > 0 ? "positive" : "neutral"}
             icon={TrendingUp}
+            trend={{ percentage: 15.2, period: "vs last month" }}
+            tooltip="Percentage of analyzed deals that result in closed transactions."
           />
         </div>
 
@@ -377,37 +420,9 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Zero State Check */}
-        {stats.totalBuyers === 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 text-center">
-              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Buyers Yet</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Import a lead or discover buyers to start building your pipeline.</p>
-              <Button 
-                onClick={() => window.location.href = '/buyers'}
-                className="bg-primary hover:bg-primary/90 text-xs sm:text-sm w-full sm:w-auto" 
-                data-tour="buyers-cta"
-              >
-                <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                Discover Buyers
-              </Button>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 text-center">
-              <Calculator className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Deals Analyzed</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Import a lead or scrape a listing to start analyzing deals.</p>
-              <Button 
-                onClick={() => window.location.href = '/analyzer'}
-                variant="outline" 
-                data-tour="ai-discovery" 
-                className="text-xs sm:text-sm w-full sm:w-auto"
-              >
-                <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                Analyze First Deal
-              </Button>
-            </div>
-          </div>
+        {/* Onboarding Prompts for New Users */}
+        {(stats.totalBuyers === 0 || stats.totalDeals === 0 || stats.totalContracts === 0) && (
+          <OnboardingPrompts stats={stats} />
         )}
 
         {/* Tabbed Content Area */}
@@ -419,6 +434,14 @@ const Dashboard = () => {
           </TabsList>
           
           <TabsContent value="overview" className="space-y-4">
+            {/* Quick Actions and Portfolio Snapshot */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <QuickActions />
+              <div className="lg:col-span-2">
+                <DealBuyerSnapshot stats={stats} trends={trends} />
+              </div>
+            </div>
+
             {/* Pipeline Overview */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
               <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">

@@ -10,17 +10,23 @@ interface StatsCardProps {
   icon: LucideIcon;
   gradient?: boolean;
   'data-tour'?: string;
+  trend?: {
+    percentage: number;
+    period: string;
+  };
+  tooltip?: string;
 }
 
-const StatsCard = ({ title, value, change, changeType = 'neutral', icon: Icon, gradient = false, 'data-tour': dataTour }: StatsCardProps) => {
+const StatsCard = ({ title, value, change, changeType = 'neutral', icon: Icon, gradient = false, 'data-tour': dataTour, trend, tooltip }: StatsCardProps) => {
   return (
     <div 
-      className={`rounded-xl p-3 sm:p-4 border transition-all duration-200 hover:shadow-lg min-h-[120px] sm:min-h-[140px] ${
+      className={`rounded-xl p-3 sm:p-4 border transition-all duration-200 hover:shadow-lg min-h-[120px] sm:min-h-[140px] group ${
         gradient 
           ? 'bg-primary text-white border-transparent' 
           : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
       data-tour={dataTour}
+      title={tooltip}
     >
       <div className="flex items-center justify-between h-full">
         <div className="flex-1 min-w-0">
@@ -41,6 +47,19 @@ const StatsCard = ({ title, value, change, changeType = 'neutral', icon: Icon, g
                     : 'text-gray-500 dark:text-gray-400'
             }`}>
               {change}
+            </p>
+          )}
+          {trend && (
+            <p className={`text-xs mt-1 font-medium ${
+              gradient 
+                ? 'text-blue-100' 
+                : trend.percentage > 0 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : trend.percentage < 0 
+                    ? 'text-red-600 dark:text-red-400' 
+                    : 'text-gray-500 dark:text-gray-400'
+            }`}>
+              {trend.percentage > 0 ? '+' : ''}{trend.percentage.toFixed(1)}% {trend.period}
             </p>
           )}
         </div>
