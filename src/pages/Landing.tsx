@@ -734,7 +734,7 @@ const Landing = () => {
               Pay Only For What You Use
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              Start with 25 free monthly tokens, upgrade to Pro for $49/month with 50 monthly tokens + 100 starter credits.
+              Start with 25 free non-expiring tokens, upgrade to Core for $49/month with 25 monthly tokens.
             </p>
           </motion.div>
           
@@ -749,20 +749,20 @@ const Landing = () => {
             >
               <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-gray-500 to-gray-700 text-white p-8">
-                  <CardTitle className="text-2xl font-bold mb-2">Free Plan</CardTitle>
-                  <p className="text-white/80 mb-4">Get started with monthly tokens</p>
+                  <CardTitle className="text-2xl font-bold mb-2">Entry / Free</CardTitle>
+                  <p className="text-white/80 mb-4">Get started with non-expiring tokens</p>
                   <div className="flex items-baseline space-x-2">
                     <span className="text-4xl font-bold">25</span>
-                    <span className="text-white/80">monthly tokens</span>
+                    <span className="text-white/80">free tokens</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">Forever free • Tokens never expire</div>
+                  <div className="text-sm text-white/70 mt-2">No credit card • Tokens never expire</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">25 monthly tokens (never expire)</span>
+                      <span className="text-gray-600">25 non-expiring tokens included</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -809,20 +809,20 @@ const Landing = () => {
               
               <Card className="h-full ring-2 ring-emerald-500 shadow-2xl bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white p-8">
-                  <CardTitle className="text-2xl font-bold mb-2">Pro</CardTitle>
+                  <CardTitle className="text-2xl font-bold mb-2">Core Plan</CardTitle>
                   <p className="text-white/80 mb-4">Perfect for active wholesalers</p>
                   <div className="flex items-baseline space-x-2">
                     <span className="text-4xl font-bold">$49</span>
                     <span className="text-white/80">/month</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">$49/month • 50 monthly tokens + 100 starter credits</div>
+                  <div className="text-sm text-white/70 mt-2">25 tokens included every month</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">50 monthly tokens + 100 starter credits</span>
+                      <span className="text-gray-600">25 tokens included every month</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -849,7 +849,7 @@ const Landing = () => {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link to="/auth">
                       <Button className="w-full py-4 text-lg rounded-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white">
-                        Get Pro Access
+                        Get Core Plan
                       </Button>
                     </Link>
                   </motion.div>
@@ -868,23 +868,27 @@ const Landing = () => {
               <Card className="h-full shadow-xl bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-8">
                   <CardTitle className="text-2xl font-bold mb-2">Agency</CardTitle>
-                  <p className="text-white/80 mb-4">Custom solutions for teams</p>
+                  <p className="text-white/80 mb-4">Team solution with 5 seats</p>
                   <div className="flex items-baseline space-x-2">
                     <span className="text-4xl font-bold">$299</span>
                     <span className="text-white/80">/month</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">3-5 users • Team management</div>
+                  <div className="text-sm text-white/70 mt-2">1,500 tokens + 5 seats • Extra seats $30/mo</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Everything in Pro</span>
+                      <span className="text-gray-600">1,500 tokens included monthly</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Multi-user accounts (5-50 users)</span>
+                      <span className="text-gray-600">5 user seats included</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
+                      <span className="text-gray-600">Extra seats available at $30/month</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />

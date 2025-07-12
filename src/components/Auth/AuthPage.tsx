@@ -102,7 +102,7 @@ const AuthPage = () => {
           <div className="text-center mb-8">
             <Badge className="mb-4">
               <Clock className="w-4 h-4 mr-2" />
-              25 Monthly Tokens • Tokens Never Expire
+              25 Non-Expiring Tokens • No Credit Card
             </Badge>
           </div>
 

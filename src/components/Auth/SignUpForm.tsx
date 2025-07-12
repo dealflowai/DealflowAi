@@ -26,12 +26,12 @@ type SignUpFormData = z.infer<typeof signUpSchema>;
 const plans = [
   {
     id: 'starter',
-    name: "Free",
+    name: "Entry / Free",
     price: 0,
     originalPrice: 0,
-    description: "Get started with 25 monthly tokens",
+    description: "25 non-expiring tokens, no credit card required",
     features: [
-      "25 monthly tokens (never expire)",
+      "25 non-expiring tokens included",
       "Basic AI discovery",
       "Email support",
       "1 user included"
@@ -40,12 +40,12 @@ const plans = [
   },
   {
     id: 'pro',
-    name: "Pro", 
+    name: "Core Plan", 
     price: 49,
-    originalPrice: 99,
-    description: "Advanced features with 50 monthly tokens + 100 starter credits",
+    originalPrice: 0,
+    description: "$49/month recurring with 25 tokens every month",
     features: [
-      "50 monthly tokens + 100 starter credits",
+      "25 tokens included every month",
       "Advanced AI buyer discovery",
       "Unlimited deal analysis",
       "Priority support", 
@@ -58,11 +58,12 @@ const plans = [
     id: 'agency',
     name: "Agency",
     price: 299,
-    originalPrice: 399,
-    description: "3–5 users + full outreach campaigns, templates",
+    originalPrice: 0,
+    description: "$299/month includes 1,500 tokens + 5 seats",
     features: [
-      "Everything in Pro",
-      "3-5 user accounts",
+      "1,500 tokens included monthly",
+      "5 user seats included",
+      "Extra seats $30/month",
       "Full outreach campaigns",
       "Custom templates",
       "Dedicated account manager"
@@ -200,9 +201,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
                          <>
                            <span className="text-2xl font-bold">${plan.price}</span>
                            <span className="text-sm text-muted-foreground">/mo</span>
-                           {plan.originalPrice > plan.price && (
-                             <span className="text-sm line-through text-muted-foreground">${plan.originalPrice}</span>
-                           )}
                          </>
                        )}
                      </div>
