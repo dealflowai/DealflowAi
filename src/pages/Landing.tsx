@@ -924,7 +924,7 @@ const Landing = () => {
             </div>
             
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Tokens never expire and work across all AI features. Start with 25 free tokens, then buy only what you need.
+              Monthly token allocation resets based on your subscription plan. Start with 25 free tokens per month, then upgrade for more.
             </p>
           </motion.div>
         </div>
@@ -1206,7 +1206,7 @@ const Landing = () => {
             <div className="mt-12 flex items-center justify-center space-x-8 text-white/80">
               <div className="flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2" />
-                <span>Free forever</span>
+                <span>25 tokens monthly</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2" />

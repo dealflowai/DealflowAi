@@ -163,7 +163,7 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
             Choose Your Token Package
           </DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
-            Pay only for what you use. Each token powers our advanced AI features.
+            Buy extra tokens to add to your monthly allowance. Tokens reset monthly based on your subscription plan.
           </DialogDescription>
         </DialogHeader>
 
