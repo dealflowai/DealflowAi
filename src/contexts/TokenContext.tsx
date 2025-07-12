@@ -39,8 +39,18 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
     
     setLoading(true);
     try {
+      // First get the profile UUID from Clerk ID
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (!profile) throw new Error('Profile not found');
+
       const { data, error } = await supabase.rpc('get_user_tokens', {
-        p_user_id: user.id
+        p_user_id: profile.id
       });
 
       if (error) throw error;
@@ -68,8 +78,18 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
     if (!user) return false;
     
     try {
+      // First get the profile UUID from Clerk ID
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (!profile) throw new Error('Profile not found');
+
       const { data, error } = await supabase.rpc('deduct_tokens', {
-        p_user_id: user.id,
+        p_user_id: profile.id,
         p_tokens: amount
       });
 

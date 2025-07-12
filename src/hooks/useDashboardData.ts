@@ -11,10 +11,23 @@ export const useDashboardData = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
+      // First get the profile UUID from Clerk ID
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return [];
+      }
+      if (!profile) return [];
+
       const { data, error } = await supabase
         .from('buyers')
         .select('*')
-        .eq('owner_id', user.id);
+        .eq('owner_id', profile.id);
       
       if (error) {
         console.error('Error fetching buyers:', error);
