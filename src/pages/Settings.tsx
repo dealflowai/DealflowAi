@@ -49,32 +49,57 @@ const Settings = () => {
   const { toast } = useToast();
   const { tokenBalance, loading: tokenLoading } = useTokens();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('check-subscription');
+        if (data) {
+          setSubscriptionStatus(data);
+        }
+      } catch (error) {
+        console.error('Error fetching subscription status:', error);
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchSubscriptionStatus();
+    }
+  }, [user]);
 
   const plans = [
     {
-      name: "Free Trial",
+      name: "Entry / Free",
       price: 0,
       period: "",
-      description: "Perfect for testing our platform",
+      description: "25 non-expiring tokens, no credit card required",
       features: [
-        "25 free tokens",
-        "All AI features included",
-        "No credit card required"
+        "25 non-expiring tokens included",
+        "Basic AI discovery",
+        "Email support",
+        "1 user included"
       ],
       popular: false,
       gradient: "from-emerald-500 to-blue-600",
       planId: "free"
     },
     {
-      name: "Pro",
+      name: "Core Plan",
       price: 49,
-      period: "",
-      description: "100 tokens + option to buy more",
+      period: "/month",
+      description: "25 tokens included every month",
       features: [
-        "100 tokens included",
-        "Buy additional token packs",
-        "All premium features",
-        "Priority support"
+        "25 tokens included every month",
+        "Advanced AI buyer discovery",
+        "Unlimited deal analysis",
+        "Priority support",
+        "Advanced CRM features",
+        "API access"
       ],
       popular: true,
       gradient: "from-blue-500 to-purple-600",
@@ -82,11 +107,13 @@ const Settings = () => {
     },
     {
       name: "Agency",
-      price: 899,
-      period: "",
-      description: "Team package for small agencies",
+      price: 299,
+      period: "/month",
+      description: "1,500 tokens + 5 seats, extra seats $30/month",
       features: [
-        "5 seats + 2,000 tokens",
+        "1,500 tokens included monthly",
+        "5 user seats included",
+        "Extra seats $30/month",
         "Team collaboration",
         "Priority support",
         "Custom branding"
@@ -290,6 +317,74 @@ const Settings = () => {
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-4">
+            {/* Current Plan */}
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  <span>Current Plan</span>
+                </CardTitle>
+                <CardDescription className="text-sm">Your current subscription plan and billing details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {subscriptionLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Loading plan information...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-primary/10 to-blue-50 dark:from-primary/20 dark:to-blue-900/20 rounded-lg p-6 border border-primary/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-primary mb-1">
+                            {subscriptionStatus?.subscribed ? 
+                              (subscriptionStatus.subscription_tier === 'pro' ? 'Core Plan' :
+                               subscriptionStatus.subscription_tier === 'agency' ? 'Agency Plan' :
+                               'Entry / Free') : 
+                              'Entry / Free'}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {subscriptionStatus?.subscribed ? 
+                              (subscriptionStatus.subscription_tier === 'pro' ? '$49/month • 25 tokens every month' :
+                               subscriptionStatus.subscription_tier === 'agency' ? '$299/month • 1,500 tokens + 5 seats' :
+                               '25 non-expiring tokens, no credit card required') : 
+                              '25 non-expiring tokens, no credit card required'}
+                          </p>
+                        </div>
+                        <Badge variant={subscriptionStatus?.subscribed ? "default" : "secondary"}>
+                          {subscriptionStatus?.subscribed ? "Active" : "Free"}
+                        </Badge>
+                      </div>
+                      
+                      {subscriptionStatus?.subscribed && subscriptionStatus.subscription_end && (
+                        <div className="text-sm text-muted-foreground mb-4">
+                          <span>Next billing date: </span>
+                          <span className="font-medium">
+                            {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {!subscriptionStatus?.subscribed && (
+                          <Button className="bg-primary hover:bg-primary/90 text-white flex-1">
+                            <ArrowRight className="mr-2" size={14} />
+                            Upgrade to Core Plan
+                          </Button>
+                        )}
+                        {subscriptionStatus?.subscribed && (
+                          <Button variant="outline" className="flex-1">
+                            <SettingsIcon className="mr-2" size={14} />
+                            Manage Subscription
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             {/* Token Balance */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardHeader className="pb-3">
