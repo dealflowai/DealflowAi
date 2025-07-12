@@ -26,12 +26,12 @@ type SignUpFormData = z.infer<typeof signUpSchema>;
 const plans = [
   {
     id: 'starter',
-    name: "Starter",
-    price: 99,
-    originalPrice: 129,
-    description: "Solo wholesaler or coach's student",
+    name: "Free",
+    price: 0,
+    originalPrice: 0,
+    description: "Get started with 25 monthly tokens",
     features: [
-      "Import buyers and analyze deals",
+      "25 monthly tokens (never expire)",
       "Basic AI discovery",
       "Email support",
       "1 user included"
@@ -41,10 +41,11 @@ const plans = [
   {
     id: 'pro',
     name: "Pro", 
-    price: 149,
-    originalPrice: 199,
-    description: "Mid-level wholesaler doing 2+ deals/month",
+    price: 49,
+    originalPrice: 99,
+    description: "Advanced features with 50 monthly tokens + 100 starter credits",
     features: [
+      "50 monthly tokens + 100 starter credits",
       "Advanced AI buyer discovery",
       "Unlimited deal analysis",
       "Priority support", 
@@ -192,11 +193,19 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{plan.description}</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold">${plan.price}</span>
-                      <span className="text-sm text-muted-foreground">/mo</span>
-                      <span className="text-sm line-through text-muted-foreground">${plan.originalPrice}</span>
-                    </div>
+                     <div className="flex items-baseline gap-2">
+                       {plan.price === 0 ? (
+                         <span className="text-2xl font-bold">Free</span>
+                       ) : (
+                         <>
+                           <span className="text-2xl font-bold">${plan.price}</span>
+                           <span className="text-sm text-muted-foreground">/mo</span>
+                           {plan.originalPrice > plan.price && (
+                             <span className="text-sm line-through text-muted-foreground">${plan.originalPrice}</span>
+                           )}
+                         </>
+                       )}
+                     </div>
                   </div>
                   <div className="ml-4">
                     <div className={`w-4 h-4 rounded-full border-2 ${

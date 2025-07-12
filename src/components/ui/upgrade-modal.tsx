@@ -20,41 +20,35 @@ interface UpgradeModalProps {
 
 const PLAN_FEATURES = {
   starter: [
-    '10 deals/month',
-    '50 buyers in CRM',
-    '10 AI Analyzer runs/month',
-    '50 AI Buyer Matching runs/month',
-    '20 AI Discovery runs/month',
-    'Contact up to 5 buyers/sellers/month',
-    '10 contracts/month',
+    '25 monthly tokens (never expire)',
+    'Basic AI discovery',
+    'Email support',
+    '1 user included',
     'Basic analytics overview',
     '5 contract templates',
   ],
   pro: [
-    '50 deals/month',
-    '500 buyers in CRM',
-    '100 AI Analyzer runs/month',
-    '250 AI Matching runs/month',
-    '100 AI Discovery runs/month',
-    'Contact up to 30 buyers/sellers/month',
-    '50 contracts/month with e-signatures',
+    '50 monthly tokens + 100 starter credits',
+    'Advanced AI buyer discovery',
+    'Unlimited deal analysis',
+    'Priority support',
+    'Advanced CRM features',
+    'API access',
     'Full analytics dashboard',
-    '15 marketplace listings',
     'Manual AI outreach campaigns',
     'Voice/text AI agents',
+    'E-signature support',
   ],
   agency: [
-    'Unlimited deals & buyers',
-    'Unlimited AI Analyzer & Matching',
-    '500 AI Discovery runs/month',
-    'Unlimited buyer/seller contacts',
-    'Unlimited contracts + full library',
-    'Unlimited marketplace listings',
-    'Bulk AI outreach campaigns',
-    'Dynamic voice/text agents',
+    'Everything in Pro',
+    '3-5 user accounts',
+    'Full outreach campaigns',
+    'Custom templates',
+    'Dedicated account manager',
     'Team management & role routing',
     'Full analytics & predictions',
     'White-label branding option',
+    'Unlimited tokens for team',
   ],
 };
 
@@ -105,10 +99,10 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Star className="h-5 w-5 text-yellow-500" />
-                  <h3 className="text-xl font-semibold">Starter</h3>
+                  <h3 className="text-xl font-semibold">Free</h3>
                 </div>
-                <div className="text-3xl font-bold">$99<span className="text-sm font-normal">/mo</span></div>
-                <p className="text-sm text-muted-foreground">Perfect for getting started</p>
+                <div className="text-3xl font-bold">Free</div>
+                <p className="text-sm text-muted-foreground">25 monthly tokens (never expire)</p>
               </div>
               
               <ul className="space-y-2 text-sm">
@@ -126,7 +120,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                 variant={isPlanActive('starter') ? 'outline' : 'default'}
                 disabled={isPlanActive('starter')}
               >
-                {isPlanActive('starter') ? 'Current Plan' : 'Upgrade to Starter'}
+                {isPlanActive('starter') ? 'Current Plan' : 'Get Started Free'}
               </Button>
             </div>
           )}
@@ -143,8 +137,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   <Zap className="h-5 w-5 text-blue-500" />
                   <h3 className="text-xl font-semibold">Pro</h3>
                 </div>
-                <div className="text-3xl font-bold">$149<span className="text-sm font-normal">/mo</span></div>
-                <p className="text-sm text-muted-foreground">Advanced features & automation</p>
+                <div className="text-3xl font-bold">$49<span className="text-sm font-normal">/mo</span></div>
+                <p className="text-sm text-muted-foreground">50 monthly tokens + 100 starter credits</p>
               </div>
               
               <ul className="space-y-2 text-sm">

@@ -814,7 +814,7 @@ const Landing = () => {
                     <span className="text-4xl font-bold">100</span>
                     <span className="text-white/80">tokens</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">$49 • Buy more anytime</div>
+                  <div className="text-sm text-white/70 mt-2">$49/month • 50 monthly tokens + 100 starter credits</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
