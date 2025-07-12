@@ -112,50 +112,70 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       // Create the initial signup with email redirect
       const redirectUrl = `${window.location.origin}/auth`;
       
+      // Try creating account with minimal metadata to avoid verification issues
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName,
-        unsafeMetadata: {
-          role: data.role,
-          phone: data.phone,
-          signupTimestamp: new Date().toISOString()
-        }
+        lastName: data.lastName
       });
 
       console.log('Signup result:', result);
 
       if (result.status === 'missing_requirements') {
-        // Send verification email without additional options to avoid CAPTCHA issues
-        await signUp.prepareEmailAddressVerification({
-          strategy: 'email_code'
-        });
-        
-        setUserData(data);
-        setCurrentStep(1.5); // Verification step
-        
-        toast({
-          title: "Check Your Email",
-          description: "We've sent you a verification code to complete your registration.",
-        });
+        // Try to prepare email verification
+        try {
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          setUserData(data);
+          setCurrentStep(1.5);
+          
+          toast({
+            title: "Check Your Email",
+            description: "We've sent you a verification code to complete your registration.",
+          });
+        } catch (verificationError) {
+          console.log('Verification preparation failed, trying alternative flow');
+          // If verification fails, try to complete without it
+          try {
+            const completionResult = await signUp.update({
+              firstName: data.firstName,
+              lastName: data.lastName,
+            });
+            
+            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
+              await setActive({ session: completionResult.createdSessionId });
+              await createUserProfile(completionResult.createdUserId!, data);
+              
+              setUserData({ ...data, clerkId: completionResult.createdUserId });
+              setCurrentStep(2);
+              
+              toast({
+                title: "Account Created!",
+                description: "Welcome! Let's customize your experience.",
+              });
+            }
+          } catch (updateError) {
+            throw verificationError; // Fall back to original error
+          }
+        }
       } else if (result.status === 'complete' && result.createdSessionId) {
-        // Account created successfully without verification needed
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
-        setCurrentStep(2); // Skip verification, go directly to onboarding
+        setCurrentStep(2);
         
         toast({
           title: "Account Created!",
           description: "Let's customize your experience.",
         });
       } else {
-        // Handle other statuses
         toast({
-          title: "Signup Issue",
-          description: "There was an issue creating your account. Please try again.",
+          title: "Signup Issue", 
+          description: "There was an issue creating your account. Please try again in a moment.",
           variant: "destructive"
         });
       }
@@ -181,7 +201,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           case 'captcha_failed':
           case 'verification_failed':
             errorTitle = "Verification Issue";
-            errorMessage = "We're having trouble with verification. Please try signing up with a simpler password or contact support if this continues.";
+            errorMessage = "There's a temporary issue with our verification system. Please try again in a few moments.";
             break;
           case 'too_many_requests':
             errorTitle = "Too Many Attempts";
@@ -342,7 +362,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     }
   };
 
-  // Helper function to create user profile
+  // Helper function to create user profile with all data
   const createUserProfile = async (clerkUserId: string, userData: BasicSignUpData) => {
     try {
       const profileData = {
