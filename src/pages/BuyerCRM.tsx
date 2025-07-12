@@ -14,6 +14,7 @@ import AddBuyerDialog from '@/components/BuyerCRM/AddBuyerDialog';
 import BuyerScraper from '@/components/BuyerCRM/BuyerScraper';
 import BuyerStats from '@/components/BuyerCRM/BuyerStats';
 import AIOutreach from '@/components/BuyerCRM/AIOutreach';
+import RealEstateLeadGenerator from '@/components/BuyerCRM/RealEstateLeadGenerator';
 
 const BuyerCRM = () => {
   const { user } = useUser();
@@ -441,7 +442,7 @@ const BuyerCRM = () => {
           </TabsContent>
 
           <TabsContent value="discovery" className="space-y-6">
-            <BuyerScraper onBuyersImported={refetch} />
+            <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
           </TabsContent>
 
           <TabsContent value="ai-outreach" className="space-y-6">
