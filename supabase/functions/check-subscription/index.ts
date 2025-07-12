@@ -135,10 +135,22 @@ serve(async (req) => {
         })
         .eq('id', profile.id);
       
-      logStep("Set subscription start date for new subscriber", { 
-        userId: profile.id, 
-        subscriptionTier 
-      });
+      // Grant initial tokens for new core/pro subscribers
+      if (hasActiveSub && profile?.id && !profile.subscription_start_date) {
+        const planTokens = subscriptionTier?.toLowerCase() === 'pro' || subscriptionTier?.toLowerCase() === 'starter' ? 100 : 25;
+        
+        // Grant initial tokens
+        await supabaseClient.rpc('grant_tokens_to_user', {
+          p_user_id: profile.id,
+          p_tokens: planTokens
+        });
+        
+        logStep("Granted initial tokens to new subscriber", { 
+          userId: profile.id, 
+          tokensGranted: planTokens,
+          subscriptionTier 
+        });
+      }
     }
 
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
