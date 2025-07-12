@@ -281,6 +281,10 @@ const Settings = () => {
     if (!user) return;
 
     try {
+      console.log('[MANAGE_SUBSCRIPTION] Starting...');
+      console.log('[MANAGE_SUBSCRIPTION] User email:', user.primaryEmailAddress?.emailAddress);
+      console.log('[MANAGE_SUBSCRIPTION] User ID:', user.id);
+      
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         body: {
           userEmail: user.primaryEmailAddress?.emailAddress,
@@ -288,16 +292,25 @@ const Settings = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('[MANAGE_SUBSCRIPTION] Response:', { data, error });
+
+      if (error) {
+        console.error('[MANAGE_SUBSCRIPTION] Supabase function error:', error);
+        throw error;
+      }
 
       if (data?.url) {
+        console.log('[MANAGE_SUBSCRIPTION] Opening portal URL:', data.url);
         window.open(data.url, '_blank');
+      } else {
+        console.error('[MANAGE_SUBSCRIPTION] No URL in response');
+        throw new Error('No portal URL received');
       }
     } catch (error) {
-      console.error('Error opening customer portal:', error);
+      console.error('[MANAGE_SUBSCRIPTION] Full error:', error);
       toast({
         title: "Portal Error", 
-        description: "Unable to open subscription management. Please try again.",
+        description: `Unable to open subscription management: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
