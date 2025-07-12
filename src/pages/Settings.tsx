@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useUser, UserProfile } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
@@ -47,6 +47,22 @@ const Settings = () => {
   const { subscriptionTier, subscribed, loading: subscriptionLoading, refreshSubscription } = useSubscription();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  
+  // Profile form state
+  const [profileData, setProfileData] = useState({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    company_name: '',
+    brokerage_name: '',
+    user_role: '',
+    primary_markets: [],
+    property_types: [],
+    budget_min: '',
+    budget_max: '',
+    bio: ''
+  });
+  const [saving, setSaving] = useState(false);
 
   const getCurrentPlan = () => {
     if (!subscribed) return 'free';
@@ -70,6 +86,109 @@ const Settings = () => {
     if (plan === 'core') return '$49/month • 25 tokens every month';
     if (plan === 'agency') return '$299/month • 1,500 tokens + 5 seats';
     return '25 non-expiring tokens, no credit card required';
+  };
+
+  // Load profile data on component mount
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (!user) return;
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('clerk_id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setProfileData({
+            first_name: profile.first_name || user.firstName || '',
+            last_name: profile.last_name || user.lastName || '',
+            phone: profile.phone || user.primaryPhoneNumber?.phoneNumber || '',
+            company_name: profile.company_name || '',
+            brokerage_name: profile.brokerage_name || '',
+            user_role: profile.user_role || '',
+            primary_markets: profile.primary_markets || [],
+            property_types: profile.property_types || [],
+            budget_min: profile.budget_min?.toString() || '',
+            budget_max: profile.budget_max?.toString() || '',
+            bio: profile.bio || ''
+          });
+        } else {
+          // Initialize with Clerk data if no profile exists
+          setProfileData(prev => ({
+            ...prev,
+            first_name: user.firstName || '',
+            last_name: user.lastName || '',
+            phone: user.primaryPhoneNumber?.phoneNumber || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfileData();
+  }, [user]);
+
+  const handleProfileSave = async () => {
+    if (!user) return;
+
+    setSaving(true);
+    try {
+      const profileUpdate = {
+        clerk_id: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        phone: profileData.phone,
+        company_name: profileData.company_name,
+        brokerage_name: profileData.brokerage_name,
+        user_role: profileData.user_role,
+        primary_markets: profileData.primary_markets,
+        property_types: profileData.property_types,
+        budget_min: profileData.budget_min ? parseInt(profileData.budget_min) : null,
+        budget_max: profileData.budget_max ? parseInt(profileData.budget_max) : null,
+        bio: profileData.bio,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(profileUpdate, { onConflict: 'clerk_id' });
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Save Error",
+        description: "Unable to save profile. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handlePropertyTypeChange = (type: string, checked: boolean) => {
+    setProfileData(prev => ({
+      ...prev,
+      property_types: checked 
+        ? [...prev.property_types, type]
+        : prev.property_types.filter(t => t !== type)
+    }));
   };
 
   const handleUpgrade = async (planType: string) => {
@@ -208,14 +327,10 @@ const Settings = () => {
           transition={{ delay: 0.2 }}
         >
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8 bg-gray-50 dark:bg-gray-800 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-50 dark:bg-gray-800 p-1 rounded-xl">
               <TabsTrigger value="profile" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Profile</span>
-              </TabsTrigger>
-              <TabsTrigger value="account" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
-                <SettingsIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Account</span>
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center justify-center space-x-2 py-3 rounded-lg transition-all">
                 <CreditCard className="w-4 h-4" />
@@ -233,6 +348,61 @@ const Settings = () => {
 
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-8 mt-8">
+              {/* Account Overview Card */}
+              <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
+                <CardHeader className="pb-6 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-t-xl">
+                  <CardTitle className="flex items-center space-x-3 text-xl">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <User className="w-6 h-6" />
+                    </div>
+                    <span>Account Overview</span>
+                  </CardTitle>
+                  <CardDescription className="text-white/90 text-base">Manage your profile and account settings</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-6">
+                  {/* Account Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                          <p className="font-medium truncate">{user?.primaryEmailAddress?.emailAddress}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                          <p className="font-medium">{profileData.phone || 'Not set'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                          <p className="font-medium text-green-600">Active</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Star className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Member since</p>
+                          <p className="font-medium">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Recently'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Profile Information Card */}
               <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
                 <CardHeader className="pb-6">
                   <CardTitle className="flex items-center space-x-3 text-xl">
@@ -249,7 +419,8 @@ const Settings = () => {
                       <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
                       <Input 
                         id="firstName" 
-                        defaultValue={user?.firstName || ''} 
+                        value={profileData.first_name}
+                        onChange={(e) => handleInputChange('first_name', e.target.value)}
                         className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                       />
                     </div>
@@ -257,7 +428,8 @@ const Settings = () => {
                       <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
                       <Input 
                         id="lastName" 
-                        defaultValue={user?.lastName || ''} 
+                        value={profileData.last_name}
+                        onChange={(e) => handleInputChange('last_name', e.target.value)}
                         className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                       />
                     </div>
@@ -270,11 +442,12 @@ const Settings = () => {
                       <Input 
                         id="email" 
                         type="email"
-                        defaultValue={user?.primaryEmailAddress?.emailAddress || ''} 
+                        value={user?.primaryEmailAddress?.emailAddress || ''} 
                         disabled
                         className="h-11 pl-10 rounded-lg bg-gray-50 border-gray-200"
                       />
                     </div>
+                    <p className="text-xs text-gray-500">Email is managed through your account settings</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -285,7 +458,8 @@ const Settings = () => {
                         <Input 
                           id="phone" 
                           type="tel" 
-                          defaultValue={user?.primaryPhoneNumber?.phoneNumber || ''} 
+                          value={profileData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
                           className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                         />
                       </div>
@@ -296,6 +470,8 @@ const Settings = () => {
                         <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input 
                           id="company" 
+                          value={profileData.company_name}
+                          onChange={(e) => handleInputChange('company_name', e.target.value)}
                           placeholder="Your Company Name" 
                           className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                         />
@@ -304,13 +480,84 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+                    <Label htmlFor="brokerage" className="text-sm font-medium">Brokerage Name</Label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input 
-                        id="location" 
-                        placeholder="City, State" 
+                        id="brokerage" 
+                        value={profileData.brokerage_name}
+                        onChange={(e) => handleInputChange('brokerage_name', e.target.value)}
+                        placeholder="Your Brokerage Name" 
                         className="h-11 pl-10 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-sm font-medium">Your Role</Label>
+                    <select 
+                      className="w-full h-11 px-3 border rounded-lg bg-background border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      value={profileData.user_role}
+                      onChange={(e) => handleInputChange('user_role', e.target.value)}
+                    >
+                      <option value="">Select your role</option>
+                      <option value="buyer">Buyer/Investor</option>
+                      <option value="wholesaler">Wholesaler</option>
+                      <option value="real_estate_agent">Real Estate Agent</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="markets" className="text-sm font-medium">Primary Markets</Label>
+                    <Textarea 
+                      id="markets" 
+                      value={profileData.primary_markets.join(', ')}
+                      onChange={(e) => handleInputChange('primary_markets', e.target.value.split(',').map(m => m.trim()).filter(m => m))}
+                      className="rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none" 
+                      rows={3}
+                      placeholder="e.g., Austin, Dallas, Houston..."
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Property Types of Interest</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {['Single Family', 'Multi Family', 'Vacant Land', 'Commercial'].map((type) => (
+                        <label key={type} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={profileData.property_types.includes(type)}
+                            onChange={(e) => handlePropertyTypeChange(type, e.target.checked)}
+                            className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" 
+                          />
+                          <span className="text-sm font-medium">{type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget</Label>
+                      <Input 
+                        id="budgetMin" 
+                        type="number" 
+                        value={profileData.budget_min}
+                        onChange={(e) => handleInputChange('budget_min', e.target.value)}
+                        placeholder="50000" 
+                        className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget</Label>
+                      <Input 
+                        id="budgetMax" 
+                        type="number" 
+                        value={profileData.budget_max}
+                        onChange={(e) => handleInputChange('budget_max', e.target.value)}
+                        placeholder="500000" 
+                        className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                       />
                     </div>
                   </div>
@@ -319,6 +566,8 @@ const Settings = () => {
                     <Label htmlFor="bio" className="text-sm font-medium">Bio</Label>
                     <Textarea 
                       id="bio" 
+                      value={profileData.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
                       className="rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none" 
                       rows={4}
                       placeholder="Tell us about yourself and your investment focus..."
@@ -326,85 +575,16 @@ const Settings = () => {
                   </div>
 
                   <div className="pt-4">
-                    <Button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-3 rounded-lg">
-                      Save Changes
+                    <Button 
+                      onClick={handleProfileSave}
+                      disabled={saving}
+                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-3 rounded-lg"
+                    >
+                      {saving ? 'Saving...' : 'Save Profile'}
                     </Button>
                   </div>
-              </CardContent>
-            </Card>
-
-            {/* Role and Preferences Card */}
-            <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
-              <CardHeader className="pb-6">
-                <CardTitle className="flex items-center space-x-3 text-xl">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
-                    <Target className="w-5 h-5 text-white" />
-                  </div>
-                  <span>Role & Preferences</span>
-                </CardTitle>
-                <CardDescription className="text-base">Update your role and business preferences</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-0">
-                <div className="space-y-2">
-                  <Label htmlFor="role" className="text-sm font-medium">Your Role</Label>
-                  <select className="w-full h-11 px-3 border rounded-lg bg-background border-gray-200 focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="buyer">Buyer/Investor</option>
-                    <option value="wholesaler">Wholesaler</option>
-                    <option value="real_estate_agent">Real Estate Agent</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="markets" className="text-sm font-medium">Primary Markets</Label>
-                  <Textarea 
-                    id="markets" 
-                    className="rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none" 
-                    rows={3}
-                    placeholder="e.g., Austin, Dallas, Houston..."
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Property Types of Interest</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    {['Single Family', 'Multi Family', 'Vacant Land', 'Commercial'].map((type) => (
-                      <label key={type} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                        <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
-                        <span className="text-sm font-medium">{type}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget</Label>
-                    <Input 
-                      id="budgetMin" 
-                      type="number" 
-                      placeholder="$50,000" 
-                      className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget</Label>
-                    <Input 
-                      id="budgetMax" 
-                      type="number" 
-                      placeholder="$500,000" 
-                      className="h-11 rounded-lg border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <Button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-3 rounded-lg">
-                    Update Preferences
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
             <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
               <CardHeader className="pb-6">
