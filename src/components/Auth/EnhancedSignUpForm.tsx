@@ -107,64 +107,63 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     setIsLoading(true);
     
     try {
-      // Create account with standard flow
+      console.log('Starting signup process...');
+      
+      // Create the initial signup with email redirect
+      const redirectUrl = `${window.location.origin}/auth`;
+      
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName
+        lastName: data.lastName,
+        unsafeMetadata: {
+          role: data.role,
+          phone: data.phone,
+          signupTimestamp: new Date().toISOString()
+        }
       });
 
-      if (result.status === 'complete' && result.createdSessionId) {
+      console.log('Signup result:', result);
+
+      if (result.status === 'missing_requirements') {
+        // Send verification email without additional options to avoid CAPTCHA issues
+        await signUp.prepareEmailAddressVerification({
+          strategy: 'email_code'
+        });
+        
+        setUserData(data);
+        setCurrentStep(1.5); // Verification step
+        
+        toast({
+          title: "Check Your Email",
+          description: "We've sent you a verification code to complete your registration.",
+        });
+      } else if (result.status === 'complete' && result.createdSessionId) {
+        // Account created successfully without verification needed
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
-        setCurrentStep(2);
+        setCurrentStep(2); // Skip verification, go directly to onboarding
         
         toast({
           title: "Account Created!",
-          description: "Welcome! Let's customize your experience.",
+          description: "Let's customize your experience.",
         });
       } else {
-        // Skip verification step completely
-        try {
-          const completeResult = await signUp.create({
-            emailAddress: data.email,
-            password: data.password,
-            firstName: data.firstName,
-            lastName: data.lastName
-          });
-          
-          if (completeResult.createdSessionId) {
-            await setActive({ session: completeResult.createdSessionId });
-            await createUserProfile(completeResult.createdUserId!, data);
-            
-            setUserData({ ...data, clerkId: completeResult.createdUserId });
-            setCurrentStep(2);
-            
-            toast({
-              title: "Account Created!",
-              description: "Welcome! Let's customize your experience.",
-            });
-          }
-        } catch {
-          // Create profile in Supabase directly
-          await createUserProfile(data.email, data);
-          setUserData(data);
-          setCurrentStep(2);
-          
-          toast({
-            title: "Account Created!",
-            description: "Welcome! Let's customize your experience.",
-          });
-        }
+        // Handle other statuses
+        toast({
+          title: "Signup Issue",
+          description: "There was an issue creating your account. Please try again.",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
       console.error('Signup error:', error);
       
-      let errorMessage = "Please try again.";
-      let errorTitle = "Signup Issue";
+      let errorMessage = "An error occurred during signup. Please try again.";
+      let errorTitle = "Signup Failed";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
@@ -175,12 +174,25 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorMessage = "An account with this email already exists. Please sign in instead.";
             break;
           case 'form_password_pwned':
-            errorTitle = "Choose Different Password";
-            errorMessage = "Please choose a different password.";
+            errorTitle = "Weak Password";
+            errorMessage = "This password has been found in a data breach. Please choose a different password.";
+            break;
+          case 'captcha_invalid':
+          case 'captcha_failed':
+          case 'verification_failed':
+            errorTitle = "Verification Issue";
+            errorMessage = "We're having trouble with verification. Please try signing up with a simpler password or contact support if this continues.";
+            break;
+          case 'too_many_requests':
+            errorTitle = "Too Many Attempts";
+            errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
-            errorMessage = "Please try again in a moment.";
+            errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
+      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
+        errorTitle = "Verification Required";
+        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
       }
       
       toast({
@@ -330,7 +342,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     }
   };
 
-  // Helper function to create user profile with all data
+  // Helper function to create user profile
   const createUserProfile = async (clerkUserId: string, userData: BasicSignUpData) => {
     try {
       const profileData = {
