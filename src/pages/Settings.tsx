@@ -439,110 +439,40 @@ const Settings = () => {
             </TabsContent>
             {/* Account Management Tab */}
             <TabsContent value="account" className="space-y-8 mt-8">
-              {/* Account Overview Card */}
-              <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl overflow-hidden">
-                <CardHeader className="pb-6 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20">
+              <Card className="dark:bg-gray-800 dark:border-gray-700 shadow-lg border-0 bg-white rounded-xl">
+                <CardHeader className="pb-6">
                   <CardTitle className="flex items-center space-x-3 text-xl">
-                    <div className="p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl shadow-lg">
-                      <SettingsIcon className="w-6 h-6 text-white" />
+                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg">
+                      <SettingsIcon className="w-5 h-5 text-white" />
                     </div>
-                    <div>
-                      <span className="bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent">
-                        Account Management
-                      </span>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
-                        Secure access to your account settings
-                      </p>
-                    </div>
+                    <span>Account Management</span>
                   </CardTitle>
+                  <CardDescription className="text-base">
+                    Manage your account settings, change password, and update security preferences
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="p-8">
-                  {/* Account Info Summary */}
-                  <div className="mb-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center">
-                      <User className="w-5 h-5 mr-3 text-emerald-600" />
-                      Account Overview
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-3">
-                          <Mail className="w-4 h-4 text-gray-500" />
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-                            <p className="font-medium">{user?.primaryEmailAddress?.emailAddress}</p>
-                          </div>
-                        </div>
-                        {user?.primaryPhoneNumber?.phoneNumber && (
-                          <div className="flex items-center space-x-3">
-                            <Phone className="w-4 h-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
-                              <p className="font-medium">{user.primaryPhoneNumber.phoneNumber}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-3">
-                          <CheckCircle className="w-4 h-4 text-emerald-500" />
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Account Status</p>
-                            <p className="font-medium text-emerald-600">Active & Verified</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Member Since</p>
-                            <p className="font-medium">{new Date(user?.createdAt || '').toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Clerk Account Management */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                      <h3 className="text-lg font-semibold flex items-center">
-                        <Shield className="w-5 h-5 mr-3 text-emerald-600" />
-                        Security & Profile Settings
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Manage passwords, two-factor authentication, and profile details
-                      </p>
-                    </div>
-                    <div className="p-0">
-                      <UserProfile
-                        appearance={{
-                          elements: {
-                            card: "shadow-none border-0 bg-transparent",
-                            navbar: "hidden",
-                            header: "hidden",
-                            profileSectionPrimaryButton: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-0 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg",
-                            formButtonPrimary: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-0 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg",
-                            page: "p-6 bg-transparent",
-                            profileSection: "border border-gray-200 dark:border-gray-700 rounded-lg mb-4 overflow-hidden bg-white dark:bg-gray-800",
-                            profileSectionContent: "p-6",
-                            profileSectionTitle: "text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4",
-                            formField: "mb-4",
-                            formFieldLabel: "text-sm font-medium text-gray-700 dark:text-gray-300 mb-2",
-                            formFieldInput: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-gray-800",
-                            dividerLine: "border-gray-200 dark:border-gray-700",
-                            dividerText: "text-gray-500 dark:text-gray-400"
-                          },
-                          variables: {
-                            colorPrimary: "hsl(var(--emerald-600))",
-                            colorText: "hsl(var(--foreground))",
-                            colorTextSecondary: "hsl(var(--muted-foreground))",
-                            colorBackground: "transparent",
-                            colorInputBackground: "hsl(var(--background))",
-                            borderRadius: "0.75rem",
-                            spacingUnit: "1rem"
-                          }
-                        }}
-                      />
-                    </div>
+                <CardContent className="pt-0">
+                  <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <UserProfile
+                      appearance={{
+                        elements: {
+                          card: "shadow-none border-0",
+                          navbar: "hidden",
+                          header: "hidden",
+                          profileSectionPrimaryButton: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+                          formButtonPrimary: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+                          page: "p-6"
+                        },
+                        variables: {
+                          colorPrimary: "hsl(var(--primary))",
+                          colorText: "hsl(var(--foreground))",
+                          colorTextSecondary: "hsl(var(--muted-foreground))",
+                          colorBackground: "hsl(var(--background))",
+                          colorInputBackground: "hsl(var(--background))",
+                          borderRadius: "0.75rem"
+                        }
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>
