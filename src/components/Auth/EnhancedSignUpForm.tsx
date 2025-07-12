@@ -462,19 +462,19 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
                 <div className="mt-2 text-xs space-y-1">
                   <p className="text-muted-foreground">Password requirements:</p>
                   <div className="grid grid-cols-1 gap-1">
-                    <div className={`flex items-center gap-2 ${passwordRequirements.length ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.length ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                       {passwordRequirements.length ? '✓' : '○'} At least 8 characters
                     </div>
-                    <div className={`flex items-center gap-2 ${passwordRequirements.uppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.uppercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                       {passwordRequirements.uppercase ? '✓' : '○'} One uppercase letter
                     </div>
-                    <div className={`flex items-center gap-2 ${passwordRequirements.lowercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.lowercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                       {passwordRequirements.lowercase ? '✓' : '○'} One lowercase letter
                     </div>
-                    <div className={`flex items-center gap-2 ${passwordRequirements.number ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.number ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                       {passwordRequirements.number ? '✓' : '○'} One number
                     </div>
-                    <div className={`flex items-center gap-2 ${passwordRequirements.special ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-2 ${passwordRequirements.special ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                       {passwordRequirements.special ? '✓' : '○'} One special character
                     </div>
                   </div>

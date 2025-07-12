@@ -106,8 +106,7 @@ const AuthPage = () => {
               <SignInForm 
                 onSwitchToSignUp={() => setActiveTab("signup")} 
                 onSuccess={() => {
-                  // After successful sign in, redirect to dashboard
-                  window.location.href = '/';
+                  // After successful sign in, redirect to dashboard - handled by onSuccess
                 }}
               />
             </TabsContent>
