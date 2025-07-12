@@ -69,13 +69,16 @@ serve(async (req) => {
 async function handleRealEstateLeadGeneration(searchCriteria: any, firecrawlApiKey: string, openAIApiKey: string) {
   logStep("Starting REAL real estate lead generation with Firecrawl");
   
+  const city = (searchCriteria.filters?.location?.city || 'Austin').toLowerCase().replace(/\s+/g, '-');
+  const state = (searchCriteria.filters?.location?.state || 'TX').toLowerCase();
+  
   // Use real estate websites that actually contain property data
   const realEstateTargets = [
-    `https://www.realtor.com/realestateandhomes-search/${searchCriteria.filters?.location?.city || 'Austin'}_${searchCriteria.filters?.location?.state || 'TX'}`,
-    `https://www.zillow.com/homes/for_sale/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}_rb/`,
-    `https://www.redfin.com/city/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}`,
-    `https://www.homes.com/real-estate/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}`,
-    `https://www.movoto.com/homes-for-sale/${searchCriteria.filters?.location?.city || 'Austin'}-${searchCriteria.filters?.location?.state || 'TX'}`
+    `https://www.realtor.com/realestateandhomes-search/${city}_${state.toUpperCase()}`,
+    `https://www.zillow.com/homes/for_sale/${city}-${state}_rb/`,
+    `https://www.redfin.com/state/${state}/city/${city}`,
+    `https://www.homes.com/real-estate/${city}-${state}`,
+    `https://www.movoto.com/homes-for-sale/${city}-${state}`
   ];
 
   const scrapedData = [];
@@ -113,10 +116,12 @@ async function handleRealEstateLeadGeneration(searchCriteria: any, firecrawlApiK
           });
           logStep(`SUCCESS: Scraped real data from ${url}`, { contentLength: scrapeData.data.markdown.length });
         }
-      } else {
-        const errorText = await scrapeResponse.text();
-        logStep(`FAILED to scrape: ${url}`, { status: scrapeResponse.status, error: errorText });
-      }
+        } else {
+          const errorText = await scrapeResponse.text();
+          logStep(`FAILED to scrape: ${url}`, { status: scrapeResponse.status, error: errorText });
+          // Try alternative scraping method for this URL
+          await tryAlternativeScraping(url, firecrawlApiKey, scrapedData);
+        }
     } catch (error) {
       logStep(`ERROR scraping ${url}`, { error: error.message });
     }
@@ -200,15 +205,17 @@ async function handleRealEstateLeadGeneration(searchCriteria: any, firecrawlApiK
           });
         }
       } catch (parseError) {
-        logStep("Failed to parse AI response, falling back to simulated data");
+        logStep("Failed to parse AI response", { error: parseError.message });
+        throw new Error("AI returned invalid JSON format - cannot process scraped data");
       }
     }
   } catch (aiError) {
-    logStep("AI analysis failed, falling back to simulated data", { error: aiError.message });
+    logStep("AI analysis failed", { error: aiError.message });
+    throw new Error(`Failed to analyze scraped data with AI: ${aiError.message}`);
   }
 
-  // Fallback to simulated data
-  return generateSimulatedRealEstateLeads(searchCriteria);
+  // If we get here, everything failed
+  throw new Error("Failed to process real estate data - no valid leads could be generated from scraped content");
 }
 
 async function handleBuyerDiscovery(searchCriteria: any, openAIApiKey: string) {
@@ -316,69 +323,39 @@ async function handleBuyerDiscovery(searchCriteria: any, openAIApiKey: string) {
   });
 }
 
-function generateSimulatedRealEstateLeads(searchCriteria: any) {
-  logStep("Generating simulated real estate leads");
-  
-  const leads = [];
-  const cities = ['Austin', 'Dallas', 'Houston', 'San Antonio', 'Fort Worth'];
-  const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa', 'Robert', 'Emily', 'James', 'Ashley'];
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson'];
-  const propertyTypes = ['Single Family', 'Multi Family', 'Condo', 'Townhouse', 'Land'];
-  const streets = ['Main St', 'Oak Ave', 'Pine Dr', 'Maple Ln', 'Cedar Blvd', 'Elm St', 'Park Ave', 'First St'];
-
-  for (let i = 0; i < 20; i++) {
-    const city = cities[Math.floor(Math.random() * cities.length)];
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const propertyType = propertyTypes[Math.floor(Math.random() * propertyTypes.length)];
-    const street = streets[Math.floor(Math.random() * streets.length)];
+async function tryAlternativeScraping(url: string, firecrawlApiKey: string, scrapedData: any[]) {
+  try {
+    logStep(`Trying alternative scraping for: ${url}`);
     
-    const assessedValue = 150000 + Math.random() * 850000;
-    const equityPercentage = 30 + Math.random() * 70;
-    const equity = (assessedValue * equityPercentage) / 100;
-    const ownershipLength = 1 + Math.random() * 25;
-    
-    leads.push({
-      id: `lead-${i + 1}`,
-      ownerName: `${firstName} ${lastName}`,
-      ownerPhone: Math.random() > 0.3 ? `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}` : null,
-      ownerEmail: Math.random() > 0.5 ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com` : null,
-      propertyAddress: `${Math.floor(Math.random() * 9999) + 1} ${street}`,
-      city,
-      state: 'TX',
-      zipCode: `7${Math.floor(Math.random() * 9000) + 1000}`,
-      propertyType,
-      assessedValue: Math.round(assessedValue),
-      lastSaleDate: new Date(Date.now() - ownershipLength * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      lastSalePrice: Math.round(assessedValue * (0.6 + Math.random() * 0.4)),
-      equity: Math.round(equity),
-      equityPercentage: Math.round(equityPercentage),
-      mortgageBalance: Math.round(assessedValue - equity),
-      status: ['Owner Occupied', 'Rental', 'Vacant'][Math.floor(Math.random() * 3)],
-      ownershipLength: Math.round(ownershipLength),
-      distressed: Math.random() > 0.85,
-      vacant: Math.random() > 0.9,
-      absenteeOwner: Math.random() > 0.75,
-      foreclosureStatus: Math.random() > 0.95 ? 'Pre-Foreclosure' : null,
-      mlsStatus: Math.random() > 0.9 ? 'Off Market' : null,
-      confidenceScore: Math.round(60 + Math.random() * 40),
-      source: 'Web Scraping + AI Analysis',
-      scrapedAt: new Date().toISOString(),
-      apn: `${Math.floor(Math.random() * 900000) + 100000}`,
-      sqft: Math.round(1000 + Math.random() * 3000),
-      bedrooms: Math.floor(Math.random() * 5) + 2,
-      bathrooms: Math.floor(Math.random() * 3) + 1,
-      yearBuilt: Math.floor(Math.random() * 50) + 1970
+    const altResponse = await fetch('https://api.firecrawl.dev/v0/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${firecrawlApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: url,
+        formats: ['html'],
+        onlyMainContent: false,
+        waitFor: 5000,
+        timeout: 60000
+      }),
     });
-  }
 
-  return new Response(JSON.stringify({
-    leads,
-    scrapedSources: 0,
-    generatedAt: new Date().toISOString(),
-    searchCriteria,
-    note: "Simulated data - upgrade to premium for real web scraping"
-  }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+    if (altResponse.ok) {
+      const altData = await altResponse.json();
+      if (altData.data && altData.data.html) {
+        scrapedData.push({
+          url: url,
+          title: altData.data.metadata?.title || '',
+          content: altData.data.html.substring(0, 5000), // Limit HTML content
+          timestamp: new Date().toISOString(),
+          method: 'alternative'
+        });
+        logStep(`SUCCESS: Alternative scraping worked for ${url}`);
+      }
+    }
+  } catch (error) {
+    logStep(`Alternative scraping also failed for ${url}`, { error: error.message });
+  }
 }
