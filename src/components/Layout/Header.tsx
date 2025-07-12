@@ -33,7 +33,7 @@ const Header = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Get user profile for notifications
+  // Get user profile for notifications and plan info
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -41,13 +41,30 @@ const Header = () => {
       
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, selected_plan, role')
         .eq('clerk_id', user.id)
         .single();
       
       return profileData;
     },
     enabled: !!user?.id,
+  });
+
+  // Get subscription info
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data: subData } = await supabase
+        .from('subscribers')
+        .select('subscription_tier, subscribed')
+        .eq('user_id', profile?.id)
+        .single();
+      
+      return subData;
+    },
+    enabled: !!profile?.id,
   });
 
   // Fetch real notifications
@@ -213,6 +230,17 @@ const Header = () => {
   };
 
   const totalResults = searchResults.deals.length + searchResults.buyers.length + searchResults.contracts.length;
+
+  // Get user plan display name
+  const getUserPlanDisplay = () => {
+    if (subscription?.subscribed && subscription?.subscription_tier) {
+      return subscription.subscription_tier.charAt(0).toUpperCase() + subscription.subscription_tier.slice(1) + ' Plan';
+    }
+    if (profile?.selected_plan) {
+      return profile.selected_plan.charAt(0).toUpperCase() + profile.selected_plan.slice(1) + ' Plan';
+    }
+    return 'Free Plan';
+  };
 
   return (
     <header className={cn(
@@ -440,7 +468,7 @@ const Header = () => {
                 <p className="text-sm font-medium text-foreground truncate max-w-24">
                   {user?.firstName || user?.emailAddresses[0]?.emailAddress || 'User'}
                 </p>
-                <p className="text-xs text-muted-foreground">Token User</p>
+                <p className="text-xs text-muted-foreground">{getUserPlanDisplay()}</p>
               </div>
             )}
             <UserButton 
