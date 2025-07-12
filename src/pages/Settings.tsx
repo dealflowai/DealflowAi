@@ -73,10 +73,12 @@ const Settings = () => {
   const isPhoneVerified = user?.primaryPhoneNumber?.verification?.status === 'verified';
 
   const getCurrentPlan = () => {
-    if (!subscribed) return 'free';
+    // Use subscription context tier directly (includes admin-set plans)
     const tier = subscriptionTier?.toLowerCase();
-    if (tier === 'pro') return 'core';
+    if (tier === 'core') return 'core';
+    if (tier === 'pro') return 'core'; // Map pro to core
     if (tier === 'agency') return 'agency';
+    if (tier === 'starter') return 'starter';
     return 'free';
   };
 
@@ -85,6 +87,7 @@ const Settings = () => {
     if (plan === 'free') return 'Entry / Free';
     if (plan === 'core') return 'Core Plan';
     if (plan === 'agency') return 'Agency Plan';
+    if (plan === 'starter') return 'Starter Plan';
     return 'Entry / Free';
   };
 
@@ -93,6 +96,7 @@ const Settings = () => {
     if (plan === 'free') return '25 non-expiring tokens, no credit card required';
     if (plan === 'core') return '$49/month • 25 tokens every month';
     if (plan === 'agency') return '$299/month • 1,500 tokens + 5 seats';
+    if (plan === 'starter') return '$19/month • 10 tokens every month';
     return '25 non-expiring tokens, no credit card required';
   };
 

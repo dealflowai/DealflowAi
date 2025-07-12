@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTokens } from '@/contexts/TokenContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Gem, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,10 @@ interface TokenBalanceDisplayProps {
 
 export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens, userPlan }: TokenBalanceDisplayProps) {
   const { tokenBalance, loading } = useTokens();
+  const { subscriptionTier } = useSubscription();
+  
+  // Use subscription context tier if userPlan prop is not provided
+  const currentPlan = userPlan || subscriptionTier || 'free';
 
   if (loading || !tokenBalance) {
     return (
@@ -24,7 +29,7 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens, userPla
 
   const isLow = tokenBalance.remainingTokens < 10;
   const isEmpty = tokenBalance.remainingTokens === 0;
-  const isFreePlan = userPlan?.toLowerCase().includes('free');
+  const isFreePlan = !currentPlan || currentPlan.toLowerCase() === 'free' || currentPlan.toLowerCase().includes('free');
 
   return (
     <div className="flex items-center gap-2">
