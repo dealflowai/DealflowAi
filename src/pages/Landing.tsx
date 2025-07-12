@@ -245,11 +245,6 @@ const Navigation: React.FC = () => {
           </nav>
           
           <div className="hidden md:flex items-center space-x-3">
-            <Link to="/auth">
-              <Button variant="ghost" size="sm" className={`${scrolled ? "text-gray-700 hover:bg-gray-100" : "text-gray-800 hover:bg-white/20"} font-medium text-base`}>
-                Sign In
-              </Button>
-            </Link>
             <motion.div whileHover={{
             scale: 1.05
           }} whileTap={{
@@ -285,9 +280,6 @@ const Navigation: React.FC = () => {
                   {item.label}
                 </a>)}
               <div className="pt-4 space-y-3 border-t border-gray-200">
-                <Link to="/auth">
-                  <Button variant="ghost" className="w-full justify-start text-base">Sign In</Button>
-                </Link>
                 <Link to="/auth">
                   <Button className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 text-base">
                     Get Started Free
