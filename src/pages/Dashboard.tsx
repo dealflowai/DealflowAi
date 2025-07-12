@@ -7,7 +7,7 @@ import AdvancedCharts from '@/components/Dashboard/AdvancedCharts';
 import OnboardingPrompts from '@/components/Dashboard/OnboardingPrompts';
 import QuickActions from '@/components/Dashboard/QuickActions';
 import DealBuyerSnapshot from '@/components/Dashboard/DealBuyerSnapshot';
-import DemoDataBanner from '@/components/Dashboard/DemoDataBanner';
+
 import GuidedTour from '@/components/Onboarding/GuidedTour';
 import { Users, Calculator, FileText, DollarSign, TrendingUp, Target, Lightbulb, Plus, Bot, Gem, BarChart3, Activity, Award, Zap, Gauge } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -134,18 +134,9 @@ const Dashboard = () => {
   const { tokenBalance, loading: tokenLoading } = useTokens();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
-  const [showDemoBanner, setShowDemoBanner] = useState(false);
+  
   const { toast } = useToast();
 
-  // Check if user should see demo banner and onboarding prompts
-  useEffect(() => {
-    const hasSeenDemo = localStorage.getItem('hasSeenDemoBanner');
-    const totalActivity = stats.totalBuyers + stats.totalDeals + stats.totalContracts;
-    
-    if (!hasSeenDemo && totalActivity === 0) {
-      setShowDemoBanner(true);
-    }
-  }, [stats]);
 
   // Check if user has completed onboarding
   const { data: hasCompletedOnboarding } = useQuery({
@@ -301,75 +292,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Demo Data Banner */}
-        {showDemoBanner && (
-          <DemoDataBanner 
-            onDismiss={() => {
-              setShowDemoBanner(false);
-              localStorage.setItem('hasSeenDemoBanner', 'true');
-            }}
-            onImportDemo={async () => {
-              // Import actual demo data to the database
-              try {
-                // First get the user's profile to get the owner_id
-                const { data: profileData } = await supabase
-                  .from('profiles')
-                  .select('id')
-                  .eq('clerk_id', user?.id)
-                  .single();
-
-                if (!profileData?.id) {
-                  throw new Error('Profile not found. Please complete your profile setup first.');
-                }
-
-                const demoData = {
-                  owner_id: profileData.id,
-                  name: 'Michael Rodriguez',
-                  email: 'michael.rodriguez@example.com',
-                  phone: '(512) 555-0123',
-                  city: 'Austin',
-                  state: 'TX',
-                  budget_min: 400000,
-                  budget_max: 600000,
-                  status: 'qualified',
-                  markets: ['Austin', 'Round Rock', 'Cedar Park'],
-                  property_type_interest: ['Single Family', 'Duplex'],
-                  financing_type: 'Cash',
-                  source: 'Demo Import'
-                };
-
-                const { error } = await supabase.from('buyers').insert([demoData]);
-                
-                if (error) throw error;
-
-                toast({
-                  title: "Demo Data Imported",
-                  description: "Sample buyer Michael Rodriguez has been added to your pipeline.",
-                });
-
-                // Create notification for demo data import
-                await NotificationService.notifyBuyerAdded(
-                  profileData.id,
-                  'Michael Rodriguez',
-                  600000
-                );
-                
-                setShowDemoBanner(false);
-                localStorage.setItem('hasSeenDemoBanner', 'true');
-                
-                // Refresh the data
-                window.location.reload();
-              } catch (error) {
-                console.error('Error importing demo data:', error);
-                toast({
-                  title: "Error",
-                  description: "Failed to import demo data. Please try again.",
-                  variant: "destructive"
-                });
-              }
-            }}
-          />
-        )}
 
         {/* Fresh Insights Card */}
         {insights && insights.length > 0 && (
