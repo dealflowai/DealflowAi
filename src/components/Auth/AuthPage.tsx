@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Brain, Zap, Shield, Target, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { EnhancedSignUpForm } from './EnhancedSignUpForm';
+import ErrorBoundary from '../ErrorBoundary';
 import { SignInForm } from './SignInForm';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -96,19 +97,23 @@ const AuthPage = () => {
             </TabsList>
             
             <TabsContent value="signup">
-              <EnhancedSignUpForm 
-                onSwitchToSignIn={() => setActiveTab("signin")} 
-                onSuccess={() => setHasCompletedOnboarding(true)}
-              />
+              <ErrorBoundary>
+                <EnhancedSignUpForm 
+                  onSwitchToSignIn={() => setActiveTab("signin")} 
+                  onSuccess={() => setHasCompletedOnboarding(true)}
+                />
+              </ErrorBoundary>
             </TabsContent>
             
             <TabsContent value="signin">
-              <SignInForm 
-                onSwitchToSignUp={() => setActiveTab("signup")} 
-                onSuccess={() => {
-                  // After successful sign in, redirect to dashboard - handled by onSuccess
-                }}
-              />
+              <ErrorBoundary>
+                <SignInForm 
+                  onSwitchToSignUp={() => setActiveTab("signup")} 
+                  onSuccess={() => {
+                    // After successful sign in, redirect to dashboard - handled by onSuccess
+                  }}
+                />
+              </ErrorBoundary>
             </TabsContent>
           </Tabs>
 

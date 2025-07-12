@@ -109,7 +109,9 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     try {
       console.log('Starting signup process...');
       
-      // Create the initial signup
+      // Create the initial signup with email redirect
+      const redirectUrl = `${window.location.origin}/auth`;
+      
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
@@ -118,7 +120,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         unsafeMetadata: {
           role: data.role,
           phone: data.phone,
-          signupTimestamp: new Date().toISOString()
+          signupTimestamp: new Date().toISOString(),
+          emailRedirectTo: redirectUrl
         }
       });
 
