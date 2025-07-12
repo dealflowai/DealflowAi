@@ -97,9 +97,10 @@ const AdminDataTables = ({ type }: AdminDataTablesProps) => {
               <TableCell>
                 {user.selected_plan ? (
                   <Badge variant="outline" className="text-blue-600 border-blue-200">
-                     {user.selected_plan === 'starter' ? 'Starter' :
+                     {user.selected_plan === 'core' ? 'Core Plan' :
+                     user.selected_plan === 'starter' ? 'Starter' :
                      user.selected_plan === 'pro' ? 'Pro' :
-                     user.selected_plan === 'agency' ? 'Agency' :
+                     user.selected_plan === 'agency' ? 'Agency Plan' :
                      user.selected_plan}
                   </Badge>
                 ) : (

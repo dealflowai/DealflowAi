@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
-export interface PlanLimits {
+interface PlanLimits {
   users: number;
   deals: number;
   buyers: number;
@@ -23,7 +23,7 @@ export interface PlanLimits {
   contractTemplates: number;
 }
 
-export interface Usage {
+interface Usage {
   ai_analyzer_runs: number;
   ai_matching_runs: number;
   ai_discovery_runs: number;
@@ -64,6 +64,25 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
     hasESignatures: false,
     hasTeamFeatures: false,
     contractTemplates: 1,
+  },
+  core: {
+    users: 1,
+    deals: 25,
+    buyers: 250,
+    savedSearches: 5,
+    aiAnalyzerRuns: 50,
+    aiMatchingRuns: 100,
+    aiDiscoveryRuns: 50,
+    buyerContacts: 15,
+    sellerContacts: 15,
+    contracts: 25,
+    marketplaceListings: 25,
+    hasAnalyticsDashboard: true,
+    hasAIOutreach: true,
+    hasVoiceAgents: false,
+    hasESignatures: true,
+    hasTeamFeatures: false,
+    contractTemplates: 10,
   },
   starter: {
     users: 1,
@@ -128,10 +147,8 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoaded } = useUser();
-  const { toast } = useToast();
-  
-  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [subscribed, setSubscribed] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [usage, setUsage] = useState<Usage>({
     ai_analyzer_runs: 0,
     ai_matching_runs: 0,
@@ -149,6 +166,21 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!user?.primaryEmailAddress?.emailAddress) return;
 
     try {
+      // First check the user's selected_plan in profiles table (admin override)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('selected_plan')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (profile?.selected_plan && profile.selected_plan !== 'free') {
+        // Use admin-set plan
+        setSubscribed(true);
+        setSubscriptionTier(profile.selected_plan);
+        return;
+      }
+
+      // If no admin plan set, check Stripe subscription
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         body: {
           userEmail: user.primaryEmailAddress.emailAddress,

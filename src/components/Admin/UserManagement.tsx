@@ -496,7 +496,7 @@ const UserManagement = () => {
                             });
                             toast({ 
                               title: 'Plan Updated', 
-                              description: `User's plan has been changed to ${newPlan}` 
+                              description: `User's plan has been changed to ${newPlan}. Changes will take effect on their next login.` 
                             });
                           }}
                         >
