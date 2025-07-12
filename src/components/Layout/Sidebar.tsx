@@ -51,6 +51,30 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
 
+  // Get user's subscription info for plan restrictions
+  const { data: subscriptionData } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('subscribers')
+        .select('subscription_tier')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching subscription:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const userPlan = subscriptionData?.subscription_tier || 'free';
+
   // Close mobile sidebar when route changes
   useEffect(() => {
     setMobileOpen(false);
@@ -243,16 +267,22 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
                       : 'Recharge to continue using AI features'
                     }
                   </p>
-                  <Button 
-                    onClick={() => setTokenModalOpen(true)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-2 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
-                    size="sm"
-                  >
-                    <Plus className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">
-                      {tokenBalance.remainingTokens > 0 ? 'Buy More' : 'Recharge'}
-                    </span>
-                  </Button>
+                  {userPlan === 'free' ? (
+                    <div className="w-full bg-muted text-muted-foreground text-xs py-2 px-3 rounded-md text-center">
+                      <span className="block truncate">Upgrade to buy tokens</span>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={() => setTokenModalOpen(true)}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-2 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
+                      size="sm"
+                    >
+                      <Plus className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">
+                        {tokenBalance.remainingTokens > 0 ? 'Buy More' : 'Recharge'}
+                      </span>
+                    </Button>
+                  )}
                 </>
               ) : (
                 <>
@@ -263,14 +293,20 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
                   <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
                     Try our AI features with your free tokens
                   </p>
-                  <Button 
-                    onClick={() => setTokenModalOpen(true)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-2 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
-                    size="sm"
-                  >
-                    <Plus className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">Buy Tokens</span>
-                  </Button>
+                  {userPlan === 'free' ? (
+                    <div className="w-full bg-muted text-muted-foreground text-xs py-2 px-3 rounded-md text-center">
+                      <span className="block truncate">Upgrade to buy tokens</span>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={() => setTokenModalOpen(true)}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-2 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
+                      size="sm"
+                    >
+                      <Plus className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Buy Tokens</span>
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -279,7 +315,8 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         
         <TokenPricingModal 
           open={tokenModalOpen} 
-          onOpenChange={setTokenModalOpen} 
+          onOpenChange={setTokenModalOpen}
+          userPlan={userPlan}
         />
       </div>
     </>
