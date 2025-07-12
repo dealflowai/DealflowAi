@@ -23,11 +23,18 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
+import React from "react";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 
 // Lazy load heavy pages
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Careers = lazy(() => import("./pages/Careers"));
+const Help = lazy(() => import("./pages/Help"));
+const ApiDocs = lazy(() => import("./pages/ApiDocs"));
+const Community = lazy(() => import("./pages/Community"));
 
 const PUBLISHABLE_KEY = "pk_test_ZW5kbGVzcy1tYXJtb3NldC00Ni5jbGVyay5hY2NvdW50cy5kZXYk";
 
@@ -121,6 +128,36 @@ const AppContent = () => {
         <Route path="/token-purchase-success" element={<TokenPurchaseSuccess />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/about" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <About />
+          </Suspense>
+        } />
+        <Route path="/contact" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <Contact />
+          </Suspense>
+        } />
+        <Route path="/careers" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <Careers />
+          </Suspense>
+        } />
+        <Route path="/help" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <Help />
+          </Suspense>
+        } />
+        <Route path="/api-docs" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <ApiDocs />
+          </Suspense>
+        } />
+        <Route path="/community" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <Community />
+          </Suspense>
+        } />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

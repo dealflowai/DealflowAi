@@ -1244,28 +1244,28 @@ const Landing = () => {
             <div>
               <h4 className="font-semibold mb-4">Platform</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>AI Buyer Engine</li>
-                <li>Deal Analyzer</li>
-                <li>Contract Generator</li>
-                <li>CRM Dashboard</li>
+                <li><Link to="/buyers" className="hover:text-white transition-colors">AI Buyer Engine</Link></li>
+                <li><Link to="/analyzer" className="hover:text-white transition-colors">Deal Analyzer</Link></li>
+                <li><Link to="/contracts" className="hover:text-white transition-colors">Contract Generator</Link></li>
+                <li><Link to="/analytics" className="hover:text-white transition-colors">CRM Dashboard</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>About Us</li>
-                <li>Vision 2028</li>
-                <li>Careers</li>
-                <li>Contact</li>
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Help Center</li>
-                <li>API Documentation</li>
-                <li>Community</li>
-                <li>System Status</li>
+                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/api-docs" className="hover:text-white transition-colors">API Documentation</Link></li>
+                <li><Link to="/community" className="hover:text-white transition-colors">Community</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
