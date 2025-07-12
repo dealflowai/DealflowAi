@@ -912,23 +912,6 @@ const Landing = () => {
           </div>
           
           {/* Token Usage Guide */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="mt-16 text-center"
-          >
-            <div className="inline-flex items-center px-6 py-3 bg-emerald-50 border border-emerald-200 rounded-full mb-8">
-              <Gem className="w-5 h-5 text-emerald-600 mr-2" />
-              <span className="text-emerald-700 font-medium">
-                Token Guide: AI Discovery (5 tokens) • Deal Analysis (3 tokens) • Contract Generation (2 tokens)
-              </span>
-            </div>
-            
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Tokens never expire and work across all AI features. Get 25 monthly tokens free, or upgrade to Pro for 50 monthly tokens plus 100 starter credits.
-            </p>
-          </motion.div>
         </div>
       </section>
 
