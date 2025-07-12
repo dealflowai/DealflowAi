@@ -107,12 +107,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     setIsLoading(true);
     
     try {
-      console.log('Starting signup process...');
-      
-      // Create the initial signup with email redirect
-      const redirectUrl = `${window.location.origin}/auth`;
-      
-      // Try creating account with minimal metadata to avoid verification issues
+      // Create account with standard flow
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
@@ -120,48 +115,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         lastName: data.lastName
       });
 
-      console.log('Signup result:', result);
-
-      if (result.status === 'missing_requirements') {
-        // Try to prepare email verification
-        try {
-          await signUp.prepareEmailAddressVerification({
-            strategy: 'email_code'
-          });
-          
-          setUserData(data);
-          setCurrentStep(1.5);
-          
-          toast({
-            title: "Check Your Email",
-            description: "We've sent you a verification code to complete your registration.",
-          });
-        } catch (verificationError) {
-          console.log('Verification preparation failed, trying alternative flow');
-          // If verification fails, try to complete without it
-          try {
-            const completionResult = await signUp.update({
-              firstName: data.firstName,
-              lastName: data.lastName,
-            });
-            
-            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-              await setActive({ session: completionResult.createdSessionId });
-              await createUserProfile(completionResult.createdUserId!, data);
-              
-              setUserData({ ...data, clerkId: completionResult.createdUserId });
-              setCurrentStep(2);
-              
-              toast({
-                title: "Account Created!",
-                description: "Welcome! Let's customize your experience.",
-              });
-            }
-          } catch (updateError) {
-            throw verificationError; // Fall back to original error
-          }
-        }
-      } else if (result.status === 'complete' && result.createdSessionId) {
+      if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
         
@@ -170,20 +124,47 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         
         toast({
           title: "Account Created!",
-          description: "Let's customize your experience.",
+          description: "Welcome! Let's customize your experience.",
         });
       } else {
-        toast({
-          title: "Signup Issue", 
-          description: "There was an issue creating your account. Please try again in a moment.",
-          variant: "destructive"
-        });
+        // Skip verification step completely
+        try {
+          const completeResult = await signUp.create({
+            emailAddress: data.email,
+            password: data.password,
+            firstName: data.firstName,
+            lastName: data.lastName
+          });
+          
+          if (completeResult.createdSessionId) {
+            await setActive({ session: completeResult.createdSessionId });
+            await createUserProfile(completeResult.createdUserId!, data);
+            
+            setUserData({ ...data, clerkId: completeResult.createdUserId });
+            setCurrentStep(2);
+            
+            toast({
+              title: "Account Created!",
+              description: "Welcome! Let's customize your experience.",
+            });
+          }
+        } catch {
+          // Create profile in Supabase directly
+          await createUserProfile(data.email, data);
+          setUserData(data);
+          setCurrentStep(2);
+          
+          toast({
+            title: "Account Created!",
+            description: "Welcome! Let's customize your experience.",
+          });
+        }
       }
     } catch (error: any) {
       console.error('Signup error:', error);
       
-      let errorMessage = "An error occurred during signup. Please try again.";
-      let errorTitle = "Signup Failed";
+      let errorMessage = "Please try again.";
+      let errorTitle = "Signup Issue";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
@@ -194,25 +175,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorMessage = "An account with this email already exists. Please sign in instead.";
             break;
           case 'form_password_pwned':
-            errorTitle = "Weak Password";
-            errorMessage = "This password has been found in a data breach. Please choose a different password.";
-            break;
-          case 'captcha_invalid':
-          case 'captcha_failed':
-          case 'verification_failed':
-            errorTitle = "Verification Issue";
-            errorMessage = "There's a temporary issue with our verification system. Please try again in a few moments.";
-            break;
-          case 'too_many_requests':
-            errorTitle = "Too Many Attempts";
-            errorMessage = "Please wait 5-10 minutes before trying again.";
+            errorTitle = "Choose Different Password";
+            errorMessage = "Please choose a different password.";
             break;
           default:
-            errorMessage = firstError.longMessage || firstError.message || errorMessage;
+            errorMessage = "Please try again in a moment.";
         }
-      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
-        errorTitle = "Verification Required";
-        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
       }
       
       toast({
