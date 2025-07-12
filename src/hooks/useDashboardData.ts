@@ -193,46 +193,96 @@ export const useDashboardData = () => {
     };
   });
 
-  // Generate recent activity from all data sources
-  const allActivity = [
-    ...buyers.map(buyer => ({
-      id: `buyer-${buyer.id}`,
-      type: 'buyer_added',
-      title: 'New buyer added',
-      description: `${buyer.name || 'Unknown'} - ${buyer.status} status`,
-      time: getTimeAgo(buyer.created_at),
-      timestamp: new Date(buyer.created_at || '').getTime(),
-      icon: 'User',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    })),
-    ...deals.map(deal => ({
-      id: `deal-${deal.id}`,
-      type: 'deal_added',
-      title: 'New deal analyzed',
-      description: `${deal.address} - $${deal.list_price?.toLocaleString() || 'N/A'}`,
-      time: getTimeAgo(deal.created_at),
-      timestamp: new Date(deal.created_at || '').getTime(),
-      icon: 'Calculator',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    })),
-    ...contracts.map(contract => ({
-      id: `contract-${contract.id}`,
-      type: 'contract_generated',
-      title: 'Contract generated',
-      description: `${contract.title} - ${contract.status}`,
-      time: getTimeAgo(contract.created_at),
-      timestamp: new Date(contract.created_at || '').getTime(),
-      icon: 'FileText',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    }))
-  ];
+  // Generate recent activity from all data sources - ONLY real data
+  const allActivity = [];
 
-  const recentActivity = allActivity
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, 6);
+  // Add real buyer activities
+  if (buyers.length > 0) {
+    buyers.forEach(buyer => {
+      allActivity.push({
+        id: `buyer-${buyer.id}`,
+        type: 'buyer_added',
+        title: 'New buyer added',
+        description: `${buyer.name || 'Unknown buyer'} - ${buyer.status || 'new'} status`,
+        time: getTimeAgo(buyer.created_at),
+        timestamp: new Date(buyer.created_at || '').getTime(),
+        icon: 'User',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50'
+      });
+
+      // Add buyer status changes if updated recently
+      if (buyer.updated_at !== buyer.created_at && buyer.updated_at) {
+        allActivity.push({
+          id: `buyer-update-${buyer.id}`,
+          type: 'buyer_updated',
+          title: 'Buyer status updated',
+          description: `${buyer.name || 'Unknown buyer'} changed to ${buyer.status || 'unknown'}`,
+          time: getTimeAgo(buyer.updated_at),
+          timestamp: new Date(buyer.updated_at).getTime(),
+          icon: 'User',
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50'
+        });
+      }
+    });
+  }
+
+  // Add real deal activities
+  if (deals.length > 0) {
+    deals.forEach(deal => {
+      allActivity.push({
+        id: `deal-${deal.id}`,
+        type: 'deal_added',
+        title: 'New deal analyzed',
+        description: `${deal.address} - $${deal.list_price?.toLocaleString() || 'Price TBD'}`,
+        time: getTimeAgo(deal.created_at),
+        timestamp: new Date(deal.created_at || '').getTime(),
+        icon: 'Calculator',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50'
+      });
+
+      // Add deal status changes
+      if (deal.updated_at !== deal.created_at && deal.updated_at) {
+        allActivity.push({
+          id: `deal-update-${deal.id}`,
+          type: 'deal_updated',
+          title: 'Deal status updated',
+          description: `${deal.address} - ${deal.status || 'updated'}`,
+          time: getTimeAgo(deal.updated_at),
+          timestamp: new Date(deal.updated_at).getTime(),
+          icon: 'TrendingUp',
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-50'
+        });
+      }
+    });
+  }
+
+  // Add real contract activities
+  if (contracts.length > 0) {
+    contracts.forEach(contract => {
+      allActivity.push({
+        id: `contract-${contract.id}`,
+        type: 'contract_generated',
+        title: 'Contract generated',
+        description: `${contract.title} - ${contract.status || 'draft'}`,
+        time: getTimeAgo(contract.created_at),
+        timestamp: new Date(contract.created_at || '').getTime(),
+        icon: 'FileText',
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50'
+      });
+    });
+  }
+
+  // If no real activity exists, show empty state instead of sample data
+  const recentActivity = allActivity.length > 0 
+    ? allActivity
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 8) // Show more recent activities
+    : [];
 
   // Market insights based on buyer data
   const marketInsights = {

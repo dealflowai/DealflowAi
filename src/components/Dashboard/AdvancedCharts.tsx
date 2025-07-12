@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { TrendingUp, Users, DollarSign, Target } from 'lucide-react';
 
@@ -24,12 +24,19 @@ const AdvancedCharts = ({ buyerChartData, marketInsights, stats, trends }: Advan
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={buyerChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="buyers" fill="#3B82F6" name="New Buyers" />
-              <Bar dataKey="deals" fill="#10B981" name="New Deals" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
+              <XAxis dataKey="date" stroke="#6B7280" />
+              <YAxis stroke="#6B7280" />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#1F2937',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  color: '#F9FAFB'
+                }}
+              />
+              <Bar dataKey="buyers" fill="#3B82F6" name="New Buyers" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="deals" fill="#10B981" name="New Deals" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -58,7 +65,14 @@ const AdvancedCharts = ({ buyerChartData, marketInsights, stats, trends }: Advan
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#1F2937',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  color: '#F9FAFB'
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>

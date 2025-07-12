@@ -412,58 +412,19 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-            <button 
-              onClick={() => window.location.href = '/analyzer'}
-              className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group"
-            >
-              <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">Analyze New Deal</span>
-            </button>
-            
-            <button 
-              onClick={() => window.location.href = '/buyers'}
-              className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group" 
-              data-tour="buyers-cta"
-            >
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-700 dark:group-hover:text-green-300">Add Buyer</span>
-            </button>
-            
-            <button 
-              onClick={() => window.location.href = '/contracts'}
-              className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 group"
-            >
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-300">Generate Contract</span>
-            </button>
-            
-            <button 
-              onClick={() => window.location.href = '/analytics'}
-              className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200 group"
-            >
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-300">View Analytics</span>
-            </button>
-          </div>
-        </div>
-
         {/* Guided Tour */}
-      <GuidedTour 
-        isOpen={showOnboarding || showWelcomeTour} 
-        onComplete={() => {
-          setShowOnboarding(false);
-          setShowWelcomeTour(false);
-        }} 
-      />
-      
-      <TokenPricingModal 
-        open={tokenModalOpen} 
-        onOpenChange={setTokenModalOpen} 
-      />
+        <GuidedTour 
+          isOpen={showOnboarding || showWelcomeTour} 
+          onComplete={() => {
+            setShowOnboarding(false);
+            setShowWelcomeTour(false);
+          }} 
+        />
+        
+        <TokenPricingModal 
+          open={tokenModalOpen} 
+          onOpenChange={setTokenModalOpen} 
+        />
       </div>
     </Layout>
   );
