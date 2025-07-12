@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@clerk/clerk-react";
+import { useTokens, TOKEN_COSTS } from "@/contexts/TokenContext";
 
 interface Buyer {
   id: string;
@@ -97,6 +98,7 @@ interface AIOutreachProps {
 
 const AIOutreach = ({ buyers, onRefresh }: AIOutreachProps) => {
   const { user } = useUser();
+  const { deductTokens } = useTokens();
   const [campaigns, setCampaigns] = useState<OutreachCampaign[]>([]);
   const [activities, setActivities] = useState<OutreachActivity[]>([]);
   const [selectedBuyers, setSelectedBuyers] = useState<string[]>([]);
@@ -245,6 +247,12 @@ const AIOutreach = ({ buyers, onRefresh }: AIOutreachProps) => {
   };
 
   const startCampaign = async (campaignId: string) => {
+    // Check and deduct tokens before starting voice outreach
+    const tokenDeducted = await deductTokens(TOKEN_COSTS['Voice Outreach'], 'Voice Outreach');
+    if (!tokenDeducted) {
+      return; // Token deduction failed, user was notified
+    }
+
     try {
       setCampaigns(prev => prev.map(c => 
         c.id === campaignId ? { ...c, status: 'active' as const } : c

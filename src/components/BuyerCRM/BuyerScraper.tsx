@@ -14,6 +14,7 @@ import { Globe, Search, Download, Settings, Zap, CheckCircle, AlertCircle, User,
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@clerk/clerk-react";
+import { useTokens, TOKEN_COSTS } from "@/contexts/TokenContext";
 
 interface ScrapedBuyer {
   id?: string;
@@ -62,6 +63,7 @@ interface BuyerScraperProps {
 
 const BuyerScraper = ({ onBuyersImported }: BuyerScraperProps) => {
   const { user } = useUser();
+  const { deductTokens } = useTokens();
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [scrapeType, setScrapeType] = useState("linkedin");
   const [filters, setFilters] = useState<ScrapeFilters>({
@@ -84,6 +86,12 @@ const BuyerScraper = ({ onBuyersImported }: BuyerScraperProps) => {
     if (!scrapeUrl.trim()) {
       toast.error("Please enter a URL to scrape");
       return;
+    }
+
+    // Check and deduct tokens before starting discovery
+    const tokenDeducted = await deductTokens(TOKEN_COSTS['AI Buyer Discovery'], 'AI Buyer Discovery');
+    if (!tokenDeducted) {
+      return; // Token deduction failed, user was notified
     }
 
     setIsScrapingActive(true);

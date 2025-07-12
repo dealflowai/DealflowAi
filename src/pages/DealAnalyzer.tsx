@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
 
 interface Deal {
   id: string;
@@ -117,6 +118,7 @@ interface PropertyAnalysis {
 const DealAnalyzer = () => {
   const { user } = useUser();
   const { toast } = useToast();
+  const { deductTokens } = useTokens();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('analyzer');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -325,6 +327,12 @@ const DealAnalyzer = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Check and deduct tokens before running analysis
+    const tokenDeducted = await deductTokens(TOKEN_COSTS['AI Deal Analyzer'], 'AI Deal Analyzer');
+    if (!tokenDeducted) {
+      return; // Token deduction failed, user was notified
     }
 
     setIsAnalyzing(true);

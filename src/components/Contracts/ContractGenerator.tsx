@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Wand2, FileText, Send } from 'lucide-react';
+import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
 
 interface ContractGeneratorProps {
   onContractGenerated: (contract: any) => void;
@@ -29,6 +30,7 @@ const ContractGenerator = ({ onContractGenerated }: ContractGeneratorProps) => {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { deductTokens } = useTokens();
 
   const handleGenerateContract = async () => {
     if (!templateType) {
@@ -38,6 +40,12 @@ const ContractGenerator = ({ onContractGenerated }: ContractGeneratorProps) => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Check and deduct tokens before generating contract
+    const tokenDeducted = await deductTokens(TOKEN_COSTS['Contract Generator'], 'Contract Generator');
+    if (!tokenDeducted) {
+      return; // Token deduction failed, user was notified
     }
 
     setIsGenerating(true);
