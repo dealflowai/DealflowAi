@@ -25,9 +25,10 @@ type SignInFormData = z.infer<typeof signInSchema>;
 
 interface SignInFormProps {
   onSuccess?: () => void;
+  onSwitchToSignUp?: () => void;
 }
 
-export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
+export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onSwitchToSignUp }) => {
   const { signIn, setActive } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -203,11 +204,45 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
         <button 
           type="button" 
           className="text-sm text-primary hover:underline"
-          onClick={() => {
-            toast({
-              title: "Password Reset",
-              description: "Please contact support to reset your password.",
-            });
+          onClick={async () => {
+            const email = prompt("Enter your email address to reset your password:");
+            if (email) {
+              try {
+                const result = await signIn.create({
+                  strategy: "reset_password_email_code",
+                  identifier: email,
+                });
+                
+                if (result.status === 'needs_first_factor') {
+                  toast({
+                    title: "Reset Email Sent",
+                    description: "Check your email for password reset instructions.",
+                  });
+                } else {
+                  toast({
+                    title: "Reset Email Sent",
+                    description: "Check your email for password reset instructions.",
+                  });
+                }
+              } catch (error: any) {
+                let errorMessage = "Failed to send reset email. Please try again.";
+                
+                if (error.errors && error.errors.length > 0) {
+                  const firstError = error.errors[0];
+                  if (firstError.code === 'form_identifier_not_found') {
+                    errorMessage = "No account found with this email address.";
+                  } else {
+                    errorMessage = firstError.longMessage || firstError.message || errorMessage;
+                  }
+                }
+                
+                toast({
+                  title: "Reset Failed",
+                  description: errorMessage,
+                  variant: "destructive"
+                });
+              }
+            }
           }}
         >
           Forgot your password?
@@ -218,11 +253,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
           <button 
             type="button"
             className="text-primary hover:underline font-medium"
-            onClick={() => {
-              // Switch to signup tab
-              const signupTab = document.querySelector('[data-value="signup"]') as HTMLElement;
-              if (signupTab) signupTab.click();
-            }}
+            onClick={() => onSwitchToSignUp?.()}
           >
             Sign up here
           </button>

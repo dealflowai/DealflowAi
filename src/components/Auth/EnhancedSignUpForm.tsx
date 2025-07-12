@@ -91,9 +91,10 @@ type ConsentData = z.infer<typeof consentSchema>;
 
 interface EnhancedSignUpFormProps {
   onSuccess?: () => void;
+  onSwitchToSignIn?: () => void;
 }
 
-export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSuccess }) => {
+export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSuccess, onSwitchToSignIn }) => {
   const { signUp, setActive } = useSignUp();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -1366,11 +1367,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         <button 
           type="button"
           className="text-primary hover:underline font-medium"
-          onClick={() => {
-            // Switch to signin tab
-            const signinTab = document.querySelector('[data-value="signin"]') as HTMLElement;
-            if (signinTab) signinTab.click();
-          }}
+          onClick={() => onSwitchToSignIn?.()}
         >
           Sign in here
         </button>

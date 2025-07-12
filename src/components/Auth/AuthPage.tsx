@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Navigate, Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { SignInForm } from './SignInForm';
 
 const AuthPage = () => {
   const { isSignedIn, isLoaded } = useUser();
+  const [activeTab, setActiveTab] = useState("signup");
 
   // Redirect to dashboard if already signed in
   if (isLoaded && isSignedIn) {
@@ -79,18 +80,18 @@ const AuthPage = () => {
             </Badge>
           </div>
 
-          <Tabs defaultValue="signup" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="signup">Get Started Free</TabsTrigger>
               <TabsTrigger value="signin">Sign In</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signup">
-              <EnhancedSignUpForm />
+              <EnhancedSignUpForm onSwitchToSignIn={() => setActiveTab("signin")} />
             </TabsContent>
             
             <TabsContent value="signin">
-              <SignInForm />
+              <SignInForm onSwitchToSignUp={() => setActiveTab("signup")} />
             </TabsContent>
           </Tabs>
 
