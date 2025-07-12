@@ -1129,7 +1129,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     setIsLoading(true);
     
     try {
-      // Clean the verification code - remove all spaces, dashes, and normalize
+      // Clean and validate the verification code
       const cleanCode = verificationCode.trim().replace(/[\s-]/g, '');
       
       if (!cleanCode || cleanCode.length !== 6 || !/^\d{6}$/.test(cleanCode)) {
@@ -1142,215 +1142,104 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         return;
       }
 
-      console.log('=== VERIFICATION ATTEMPT ===');
-      console.log('Original code:', verificationCode);
+      console.log('🔍 Starting verification process...');
+      console.log('Code entered:', verificationCode);
       console.log('Cleaned code:', cleanCode);
-      console.log('Current signup status:', signUp.status);
-      console.log('Current verification status:', signUp.verifications?.emailAddress?.status);
-      console.log('Signup ID:', signUp.id);
       
-      // Force refresh the signup state before attempting verification
+      // Simple, direct verification approach
+      let result;
       try {
-        await signUp.reload();
-        console.log('Signup state refreshed');
-        console.log('Post-refresh status:', signUp.status);
-        console.log('Post-refresh verification status:', signUp.verifications?.emailAddress?.status);
-      } catch (reloadError) {
-        console.warn('Failed to refresh signup state:', reloadError);
-      }
-      
-      // If already verified, handle completion
-      if (signUp.verifications?.emailAddress?.status === 'verified') {
-        console.log('Email already verified, attempting completion...');
+        console.log('📧 Attempting email verification...');
+        result = await signUp.attemptEmailAddressVerification({
+          code: cleanCode,
+        });
+        console.log('✅ Verification attempt completed');
+        console.log('Result status:', result.status);
+        console.log('Email verification status:', result.verifications?.emailAddress?.status);
+      } catch (verificationError: any) {
+        console.error('❌ Verification attempt failed:', verificationError);
         
-        try {
-          // Update with required fields
-          const updateResult = await signUp.update({
-            firstName: userData.firstName || 'User',
-            lastName: userData.lastName || 'User',
-            unsafeMetadata: {
-              role: userData.role,
-              phone: userData.phone,
-              signupTimestamp: new Date().toISOString()
-            }
+        // Check if it's just a "code incorrect" error that might work on retry
+        if (verificationError.errors?.[0]?.code === 'form_code_incorrect') {
+          console.log('🔄 Code incorrect - this might be a timing issue, clearing for retry');
+          setVerificationCode('');
+          toast({
+            title: "Verification Failed",
+            description: "Invalid code. Please double-check the code from your email and try again.",
+            variant: "destructive"
           });
-          
-          console.log('Update result:', updateResult);
-          
-          if (updateResult.status === 'complete' && updateResult.createdSessionId) {
-            await setActive({ session: updateResult.createdSessionId });
-            
-            // Store profile data
-            const profileData = {
-              clerk_id: updateResult.createdUserId!,
-              email: userData.email,
-              first_name: userData.firstName || 'User',
-              last_name: userData.lastName || 'User',
-              phone: userData.phone || null,
-              user_role: userData.role || 'user',
-              onboarding_step: 2,
-              role: 'user',
-              created_at: new Date().toISOString(),
-              has_completed_onboarding: false,
-              consent_given: true
-            };
-
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .upsert(profileData, {
-                onConflict: 'clerk_id'
-              });
-
-            if (profileError) {
-              console.error('Profile creation error:', profileError);
-            }
-            
-            toast({
-              title: "Account Created!",
-              description: "Your account has been created successfully.",
-            });
-            
-            onSuccess?.();
-            return;
-          }
-        } catch (updateError) {
-          console.error('Update failed:', updateError);
+          setIsLoading(false);
+          return;
         }
+        
+        throw verificationError;
       }
       
-      console.log('Attempting email verification with code:', cleanCode);
-      
-      // Add a small delay to prevent rapid-fire requests
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Attempt verification
-      const verificationResult = await signUp.attemptEmailAddressVerification({
-        code: cleanCode,
-      });
-
-      console.log('=== VERIFICATION RESULT ===');
-      console.log('Full result:', verificationResult);
-      console.log('Status:', verificationResult.status);
-      console.log('Created session ID:', verificationResult.createdSessionId);
-      console.log('Created user ID:', verificationResult.createdUserId);
-      console.log('Email verification status:', verificationResult.verifications?.emailAddress?.status);
-      console.log('Missing fields:', verificationResult.missingFields);
-      
-      // Clear the verification code
+      // Clear the code after successful attempt
       setVerificationCode('');
       
-      // Check if email verification was successful
-      const emailVerified = verificationResult.verifications?.emailAddress?.status === 'verified';
-      
-      if (emailVerified) {
-        console.log('✅ Email verification successful');
+      // Check if email verification succeeded
+      if (result.verifications?.emailAddress?.status === 'verified') {
+        console.log('✅ Email verified successfully');
         
-        // Handle completion
-        if (verificationResult.status === 'complete' && verificationResult.createdSessionId) {
-          console.log('✅ Signup complete, setting session');
+        // Handle different completion scenarios
+        if (result.status === 'complete' && result.createdSessionId) {
+          console.log('✅ Signup complete with session');
           
-          await setActive({ session: verificationResult.createdSessionId });
+          // Set session and complete
+          await setActive({ session: result.createdSessionId });
           
-          // Store profile data
-          const profileData = {
-            clerk_id: verificationResult.createdUserId!,
-            email: userData.email,
-            first_name: userData.firstName || 'User',
-            last_name: userData.lastName || 'User',
-            phone: userData.phone || null,
-            user_role: userData.role || 'user',
-            onboarding_step: 2,
-            role: 'user',
-            created_at: new Date().toISOString(),
-            has_completed_onboarding: false,
-            consent_given: true
-          };
-
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert(profileData, {
-              onConflict: 'clerk_id'
-            });
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-          }
+          // Create profile
+          await createUserProfile(result.createdUserId!, userData);
           
           toast({
             title: "Account Created!",
-            description: "Your account has been created successfully.",
+            description: "Welcome to dealflow.ai!",
           });
           
           onSuccess?.();
           return;
           
-        } else if (verificationResult.missingFields && verificationResult.missingFields.length > 0) {
-          console.log('✅ Email verified, but missing fields:', verificationResult.missingFields);
+        } else {
+          console.log('📝 Email verified but signup incomplete, updating user details...');
           
-          // Try to complete with missing fields
+          // Try to complete signup by updating with required fields
           try {
-            const completionResult = await signUp.update({
+            const updateResult = await signUp.update({
               firstName: userData.firstName || 'User',
               lastName: userData.lastName || 'User',
             });
             
-            console.log('Completion result:', completionResult);
+            console.log('Update result:', updateResult);
             
-            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-              await setActive({ session: completionResult.createdSessionId });
-              
-              const profileData = {
-                clerk_id: completionResult.createdUserId!,
-                email: userData.email,
-                first_name: userData.firstName || 'User',
-                last_name: userData.lastName || 'User',
-                phone: userData.phone || null,
-                user_role: userData.role || 'user',
-                onboarding_step: 2,
-                role: 'user',
-                created_at: new Date().toISOString(),
-                has_completed_onboarding: false,
-                consent_given: true
-              };
-
-              const { error: profileError } = await supabase
-                .from('profiles')
-                .upsert(profileData, {
-                  onConflict: 'clerk_id'
-                });
-
-              if (profileError) {
-                console.error('Profile creation error:', profileError);
-              }
+            if (updateResult.status === 'complete' && updateResult.createdSessionId) {
+              await setActive({ session: updateResult.createdSessionId });
+              await createUserProfile(updateResult.createdUserId!, userData);
               
               toast({
                 title: "Account Created!",
-                description: "Your account has been created successfully.",
+                description: "Welcome to dealflow.ai!",
               });
               
               onSuccess?.();
               return;
             }
-          } catch (completionError) {
-            console.error('Failed to complete signup:', completionError);
+          } catch (updateError) {
+            console.log('Update failed, continuing to onboarding:', updateError);
           }
+          
+          // If completion failed, continue to onboarding
+          console.log('📋 Continuing to onboarding flow');
+          setUserData({ ...userData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+          
+          toast({
+            title: "Email Verified!",
+            description: "Please complete your profile setup.",
+          });
         }
-        
-        // If we get here, email is verified but signup isn't complete
-        console.log('✅ Email verified, proceeding to next step');
-        setUserData({ ...userData, clerkId: verificationResult.createdUserId });
-        setCurrentStep(2);
-        
-        toast({
-          title: "Email Verified!",
-          description: "Please complete your profile setup.",
-        });
-        
       } else {
-        // Verification failed
         console.log('❌ Email verification failed');
-        console.log('Verification status:', verificationResult.verifications?.emailAddress?.status);
-        
         toast({
           title: "Verification Failed",
           description: "The verification code is incorrect. Please check your email and try again.",
@@ -1359,43 +1248,28 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       }
       
     } catch (error: any) {
-      console.error('=== VERIFICATION ERROR ===');
-      console.error('Full error:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error message:', error.message);
-      console.error('Error errors:', error.errors);
-      
-      setVerificationCode(''); // Clear the code
+      console.error('💥 Verification process error:', error);
+      setVerificationCode('');
       
       let errorMessage = "Verification failed. Please try again.";
-      let shouldRetry = true;
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        console.error('First error:', firstError);
+        console.error('First error details:', firstError);
         
         switch (firstError.code) {
           case 'form_code_incorrect':
             errorMessage = "The verification code is incorrect. Please check your email and try again.";
-            shouldRetry = true;
             break;
           case 'verification_expired':
             errorMessage = "The verification code has expired. Please request a new one.";
-            shouldRetry = false;
-            break;
-          case 'verification_failed':
-            errorMessage = "Verification failed. Please check the code and try again.";
-            shouldRetry = true;
             break;
           case 'too_many_requests':
             errorMessage = "Too many attempts. Please wait a moment before trying again.";
-            shouldRetry = false;
             break;
           default:
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
-      } else if (error.message) {
-        errorMessage = error.message;
       }
       
       toast({
@@ -1404,13 +1278,37 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         variant: "destructive"
       });
       
-      // If it's a rate limit or expired code, show resend option
-      if (!shouldRetry) {
-        // Could add resend functionality here
-      }
-      
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Helper function to create user profile
+  const createUserProfile = async (clerkUserId: string, userData: any) => {
+    const profileData = {
+      clerk_id: clerkUserId,
+      email: userData.email,
+      first_name: userData.firstName || 'User',
+      last_name: userData.lastName || 'User',
+      phone: userData.phone || null,
+      user_role: userData.role || 'user',
+      onboarding_step: 2,
+      role: 'user',
+      created_at: new Date().toISOString(),
+      has_completed_onboarding: false,
+      consent_given: true
+    };
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert(profileData, {
+        onConflict: 'clerk_id'
+      });
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+    } else {
+      console.log('✅ Profile created successfully');
     }
   };
 
