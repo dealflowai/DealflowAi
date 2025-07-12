@@ -82,6 +82,11 @@ const Settings = () => {
     return 'free';
   };
 
+  const isAdminAssignedPlan = () => {
+    // Check if this is an admin-assigned plan (not from Stripe)
+    return subscriptionTier && !subscribed;
+  };
+
   const getPlanDisplayName = () => {
     const plan = getCurrentPlan();
     if (plan === 'free') return 'Entry / Free';
@@ -790,15 +795,28 @@ const Settings = () => {
                           </>
                         ) : (
                           <div className="flex flex-col sm:flex-row gap-2 w-full">
-                            <Button 
-                              onClick={handleManageSubscription}
-                              variant="outline" 
-                              className="flex-1"
-                            >
-                              <ExternalLink className="mr-2" size={14} />
-                              Manage Subscription
-                            </Button>
-                            {getCurrentPlan() === 'core' && (
+                            {isAdminAssignedPlan() ? (
+                              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    Admin Assigned
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-blue-700 dark:text-blue-300">
+                                  This plan was assigned by an administrator. Contact support to make changes.
+                                </p>
+                              </div>
+                            ) : (
+                              <Button 
+                                onClick={handleManageSubscription}
+                                variant="outline" 
+                                className="flex-1"
+                              >
+                                <ExternalLink className="mr-2" size={14} />
+                                Manage Subscription
+                              </Button>
+                            )}
+                            {getCurrentPlan() === 'core' && !isAdminAssignedPlan() && (
                               <Button 
                                 onClick={() => handleUpgrade('agency')}
                                 disabled={upgrading}

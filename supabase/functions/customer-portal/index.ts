@@ -56,6 +56,27 @@ serve(async (req) => {
       logStep("Found existing Stripe customer", { customerId });
     }
 
+    // Check if customer has any subscriptions or payment methods
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1
+    });
+    
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customerId,
+      limit: 1
+    });
+    
+    logStep("Checked customer data", { 
+      hasSubscriptions: subscriptions.data.length > 0,
+      hasPaymentMethods: paymentMethods.data.length > 0 
+    });
+    
+    // If no subscriptions or payment methods, customer portal won't work
+    if (subscriptions.data.length === 0 && paymentMethods.data.length === 0) {
+      throw new Error("No subscription found. Please upgrade to a paid plan first to manage your subscription.");
+    }
+
     const origin = req.headers.get("origin") || "http://localhost:3000";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
