@@ -99,17 +99,16 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[95vh] w-[95vw] overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20 border-0 shadow-2xl">
-        <DialogHeader className="text-center mb-8">
-          <DialogTitle className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-4">
-            🚀 Supercharge Your Deals
+        <DialogHeader className="sticky top-0 bg-gradient-to-r from-background/95 to-background/95 backdrop-blur-sm pb-6 z-10">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold text-center bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Choose Your Token Package
           </DialogTitle>
-          <DialogDescription className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            <span className="font-semibold text-primary">Limited Time:</span> Get AI-powered deal analysis, buyer matching, and voice outreach. 
-            <span className="block mt-2 text-green-600 font-medium">💰 Bigger packages = Bigger savings!</span>
+          <DialogDescription className="text-center text-base text-muted-foreground max-w-2xl mx-auto">
+            Pay only for what you use. Each token powers our advanced AI features to help you close more deals.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mt-6">
           {TOKEN_PACKAGES.map((pkg, index) => {
             const Icon = pkg.icon;
             return (
@@ -145,16 +144,16 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
                   </div>
                 )}
 
-                <div className="relative p-8 text-center space-y-6">
+                <div className="relative p-4 sm:p-6 text-center space-y-4">
                   {/* Icon with animated background */}
-                  <div className={`relative mx-auto w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  <div className={`relative mx-auto w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${
                     pkg.popular 
                       ? 'bg-gradient-to-br from-primary/20 to-blue-600/20 group-hover:from-primary/30 group-hover:to-blue-600/30' 
                       : pkg.bestValue 
                       ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30'
                       : 'bg-gradient-to-br from-muted to-muted/50 group-hover:from-primary/20 group-hover:to-blue-600/20'
                   }`}>
-                    <Icon className={`h-9 w-9 transition-all duration-300 ${
+                    <Icon className={`h-7 w-7 transition-all duration-300 ${
                       pkg.popular 
                         ? 'text-primary group-hover:scale-110' 
                         : pkg.bestValue 
@@ -165,7 +164,7 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
                   
                   {/* Token count */}
                   <div>
-                    <div className={`text-5xl font-bold transition-colors duration-300 mb-2 ${
+                    <div className={`text-3xl sm:text-4xl font-bold transition-colors duration-300 ${
                       pkg.popular 
                         ? 'text-primary' 
                         : pkg.bestValue 
@@ -174,54 +173,36 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
                     }`}>
                       {pkg.tokens.toLocaleString()}
                     </div>
-                    <div className="text-base text-muted-foreground font-medium">AI Tokens</div>
-                    {pkg.popular && (
-                      <div className="text-sm text-primary font-semibold mt-1">⚡ Close deals faster</div>
-                    )}
-                    {pkg.bestValue && (
-                      <div className="text-sm text-purple-600 font-semibold mt-1">💎 Maximum value</div>
-                    )}
+                    <div className="text-sm text-muted-foreground font-medium">Tokens</div>
                   </div>
 
                   {/* Price and savings */}
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <div className={`text-4xl font-bold transition-colors duration-300 ${
-                        pkg.popular 
-                          ? 'text-primary' 
-                          : pkg.bestValue 
-                          ? 'text-purple-600' 
-                          : 'text-foreground'
-                      }`}>
-                        ${pkg.price}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Only ${pkg.value.toFixed(2)} per token
-                      </div>
+                  <div className="space-y-2">
+                    <div className={`text-2xl sm:text-3xl font-bold transition-colors duration-300 ${
+                      pkg.popular 
+                        ? 'text-primary' 
+                        : pkg.bestValue 
+                        ? 'text-purple-600' 
+                        : 'text-foreground'
+                    }`}>
+                      ${pkg.price}
                     </div>
-                    
-                    {pkg.bonus > 0 ? (
-                      <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-sm font-bold border border-green-200">
-                        🎉 You save {pkg.bonus}%!
+                    <div className="text-xs text-muted-foreground">
+                      ${pkg.value.toFixed(2)} per token
+                    </div>
+                    {pkg.bonus > 0 && (
+                      <div className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                        💰 Save {pkg.bonus}%
                       </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground py-2">Perfect starter package</div>
                     )}
-                    
-                    {/* Psychological triggers */}
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      {pkg.bestValue && <div>🔥 Most customers choose this</div>}
-                      {pkg.popular && <div>⭐ Top selling package</div>}
-                      {!pkg.popular && !pkg.bestValue && <div>✨ Great for getting started</div>}
-                    </div>
                   </div>
 
                   {/* Purchase button */}
                   <Button
                     onClick={() => handlePurchase(pkg)}
                     disabled={loadingPackage === pkg.id}
-                    size="lg"
-                    className={`w-full h-12 transition-all duration-300 font-bold text-base shadow-xl hover:shadow-2xl transform hover:-translate-y-1 ${
+                    size="sm"
+                    className={`w-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl ${
                       pkg.popular 
                         ? 'bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white' 
                         : pkg.bestValue
@@ -231,21 +212,16 @@ export function TokenPricingModal({ open, onOpenChange }: TokenPricingModalProps
                   >
                     {loadingPackage === pkg.id ? (
                       <div className="flex items-center space-x-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         <span>Processing...</span>
                       </div>
                     ) : (
                       <span className="flex items-center justify-center space-x-2">
-                        <Gem className="w-5 h-5" />
-                        <span>Get {pkg.tokens} Tokens Now</span>
+                        <Gem className="w-4 h-4" />
+                        <span>Purchase Now</span>
                       </span>
                     )}
                   </Button>
-                  
-                  {/* Trust signals */}
-                  <div className="text-xs text-muted-foreground">
-                    🔒 Secure payment • 💳 Instant access
-                  </div>
                 </div>
               </div>
             );
