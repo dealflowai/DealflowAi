@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Search, Check, X, AlertCircle, Users, Calculator, FileText } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
@@ -14,85 +14,109 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-
-// Mock notifications data - in a real app this would come from an API
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'buyer',
-    title: 'New qualified buyer',
-    message: 'Michael Rodriguez has been qualified with a $500K budget',
-    time: '2 min ago',
-    read: false,
-    icon: Users,
-    color: 'text-green-600'
-  },
-  {
-    id: 2,
-    type: 'deal',
-    title: 'Deal analysis complete',
-    message: 'AI analysis for 123 Main St is ready for review',
-    time: '5 min ago',
-    read: false,
-    icon: Calculator,
-    color: 'text-blue-600'
-  },
-  {
-    id: 3,
-    type: 'contract',
-    title: 'Contract signed',
-    message: 'Purchase agreement for Elm Street property has been executed',
-    time: '1 hour ago',
-    read: true,
-    icon: FileText,
-    color: 'text-purple-600'
-  },
-  {
-    id: 4,
-    type: 'system',
-    title: 'Low token balance',
-    message: 'You have 5 tokens remaining. Consider purchasing more.',
-    time: '2 hours ago',
-    read: false,
-    icon: AlertCircle,
-    color: 'text-orange-600'
-  }
-];
+import { NotificationService, type Notification } from '@/services/notificationService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const Header = () => {
   const { user } = useUser();
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+
+  // Get user profile for notifications
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', user.id)
+        .single();
+      
+      return profileData;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch real notifications
+  const { data: notifications = [], isLoading: notificationsLoading } = useQuery({
+    queryKey: ['notifications', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      return NotificationService.getUserNotifications(profile.id);
+    },
+    enabled: !!profile?.id,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAsRead = (id: number) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
+  const markAsRead = async (id: string) => {
+    const success = await NotificationService.markAsRead(id);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['notifications', profile?.id] });
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
+  const markAllAsRead = async () => {
+    if (!profile?.id) return;
+    const success = await NotificationService.markAllAsRead(profile.id);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['notifications', profile?.id] });
+    }
   };
 
-  const removeNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const removeNotification = async (id: string) => {
+    const success = await NotificationService.deleteNotification(id);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['notifications', profile?.id] });
+    }
   };
 
-  const getTimeColor = (time: string) => {
-    if (time.includes('min')) return 'text-green-600 dark:text-green-400';
-    if (time.includes('hour')) return 'text-orange-600 dark:text-orange-400';
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    return `${Math.floor(diffInMinutes / 1440)} days ago`;
+  };
+
+  const getTimeColor = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) return 'text-green-600 dark:text-green-400';
+    if (diffInMinutes < 1440) return 'text-orange-600 dark:text-orange-400';
     return 'text-muted-foreground';
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'buyer': return Users;
+      case 'deal': return Calculator;
+      case 'contract': return FileText;
+      case 'system': return AlertCircle;
+      default: return Bell;
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'buyer': return 'text-green-600';
+      case 'deal': return 'text-blue-600';
+      case 'contract': return 'text-purple-600';
+      case 'system': return 'text-orange-600';
+      default: return 'text-gray-600';
+    }
   };
 
   return (
@@ -153,7 +177,8 @@ const Header = () => {
                 </div>
               ) : (
                 notifications.map((notification) => {
-                  const IconComponent = notification.icon;
+                  const IconComponent = getNotificationIcon(notification.type);
+                  const iconColor = getNotificationColor(notification.type);
                   return (
                     <DropdownMenuItem
                       key={notification.id}
@@ -163,7 +188,7 @@ const Header = () => {
                       )}
                       onClick={() => markAsRead(notification.id)}
                     >
-                      <div className={cn("p-1.5 rounded-full bg-muted", notification.color)}>
+                      <div className={cn("p-1.5 rounded-full bg-muted", iconColor)}>
                         <IconComponent className="w-3 h-3" />
                       </div>
                       <div className="flex-1 space-y-1">
@@ -186,8 +211,8 @@ const Header = () => {
                         <p className="text-xs text-muted-foreground line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className={cn("text-xs font-medium", getTimeColor(notification.time))}>
-                          {notification.time}
+                        <p className={cn("text-xs font-medium", getTimeColor(notification.created_at))}>
+                          {getTimeAgo(notification.created_at)}
                         </p>
                       </div>
                       {!notification.read && (

@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { NotificationService } from '@/services/notificationService';
 import { useTokens } from '@/contexts/TokenContext';
 import { TokenPricingModal } from '@/components/ui/token-pricing-modal';
 import { useToast } from '@/hooks/use-toast';
@@ -345,6 +346,13 @@ const Dashboard = () => {
                   title: "Demo Data Imported",
                   description: "Sample buyer Michael Rodriguez has been added to your pipeline.",
                 });
+
+                // Create notification for demo data import
+                await NotificationService.notifyBuyerAdded(
+                  profileData.id,
+                  'Michael Rodriguez',
+                  600000
+                );
                 
                 setShowDemoBanner(false);
                 localStorage.setItem('hasSeenDemoBanner', 'true');

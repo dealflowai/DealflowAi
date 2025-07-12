@@ -10,6 +10,7 @@ import { X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
+import { NotificationService } from '@/services/notificationService';
 
 interface AddBuyerDialogProps {
   open: boolean;
@@ -131,6 +132,15 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
         title: 'Success',
         description: 'Buyer added successfully!',
       });
+
+      // Create notification for new buyer
+      if (profile?.id && formData.name) {
+        await NotificationService.notifyBuyerAdded(
+          profile.id,
+          formData.name,
+          parseInt(formData.budget_max) || 0
+        );
+      }
 
       // Reset form
       setFormData({
