@@ -131,21 +131,6 @@ const AuthPage = () => {
             ))}
           </motion.div>
 
-          {/* Guarantee */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-8 p-6 bg-muted/50 rounded-2xl border"
-          >
-            <div className="text-center">
-              <Shield className="w-8 h-8 text-primary mx-auto mb-3" />
-              <h4 className="font-bold text-foreground mb-2">Money-Back Guarantee</h4>
-              <p className="text-muted-foreground text-sm">
-                Not satisfied? Get a full refund within 30 days, no questions asked.
-              </p>
-            </div>
-          </motion.div>
 
           {/* Terms and Privacy Links */}
           <motion.div
