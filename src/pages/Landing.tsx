@@ -340,7 +340,7 @@ const HeroSection: React.FC = () => {
           }} whileTap={{
             scale: 0.95
           }}>
-              <Link to="/pricing">
+              <Link to="/auth">
                 <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-12 py-4 text-lg rounded-full shadow-2xl">
                   Get Started Free
                   <ArrowRight className="ml-2" size={20} />
