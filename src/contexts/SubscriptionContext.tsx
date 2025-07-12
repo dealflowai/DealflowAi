@@ -174,13 +174,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .single();
 
       if (profile?.selected_plan && profile.selected_plan !== 'free') {
-        // Use admin-set plan
+        // Use admin-set plan (prioritize admin settings)
         setSubscribed(true);
         setSubscriptionTier(profile.selected_plan);
         return;
       }
 
-      // If no admin plan set, check Stripe subscription
+      // If no admin plan set or plan is 'free', check Stripe subscription
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         body: {
           userEmail: user.primaryEmailAddress.emailAddress,
@@ -191,11 +191,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (error) throw error;
 
       setSubscribed(data.subscribed || false);
-      setSubscriptionTier(data.subscription_tier?.toLowerCase() || null);
+      setSubscriptionTier(data.subscription_tier?.toLowerCase() || 'free');
     } catch (error) {
       console.error('Error checking subscription:', error);
       setSubscribed(false);
-      setSubscriptionTier(null);
+      setSubscriptionTier('free');
     }
   };
 

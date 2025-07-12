@@ -45,11 +45,20 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
+    
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
+      
+      // Get the profile UUID from the Clerk ID
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('clerk_id', userId)
+        .single();
+      
       await supabaseClient.from("subscribers").upsert({
         email: userEmail,
-        user_id: userId,
+        user_id: profile?.id || null,
         stripe_customer_id: null,
         subscribed: false,
         subscription_tier: null,
@@ -96,9 +105,16 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
+    // Get the profile UUID from the Clerk ID
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+    
     await supabaseClient.from("subscribers").upsert({
       email: userEmail,
-      user_id: userId,
+      user_id: profile?.id || null,
       stripe_customer_id: customerId,
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,

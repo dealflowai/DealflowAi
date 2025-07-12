@@ -496,8 +496,11 @@ const UserManagement = () => {
                             });
                             toast({ 
                               title: 'Plan Updated', 
-                              description: `User's plan has been changed to ${newPlan}. Changes will take effect on their next login.` 
+                              description: `User's plan has been changed to ${newPlan}. The user will see the change immediately.` 
                             });
+                            
+                            // Trigger a refresh for all connected users by invalidating the profiles query
+                            queryClient.invalidateQueries({ queryKey: ['profiles'] });
                           }}
                         >
                           <SelectTrigger className="w-32">
