@@ -108,10 +108,11 @@ serve(async (req) => {
     // Get the profile UUID from the Clerk ID
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('id')
+      .select('id, subscription_start_date')
       .eq('clerk_id', userId)
       .single();
     
+    // Update subscription data
     await supabaseClient.from("subscribers").upsert({
       email: userEmail,
       user_id: profile?.id || null,
@@ -121,6 +122,24 @@ serve(async (req) => {
       subscription_end: subscriptionEnd,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'email' });
+
+    // If user has active subscription and no subscription start date, set it
+    if (hasActiveSub && profile?.id && !profile.subscription_start_date) {
+      await supabaseClient
+        .from('profiles')
+        .update({
+          subscription_start_date: new Date().toISOString().split('T')[0], // Today's date
+          last_token_grant_date: new Date().toISOString().split('T')[0],
+          next_token_grant_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+          plan_tokens: subscriptionTier?.toLowerCase() === 'pro' || subscriptionTier?.toLowerCase() === 'starter' ? 100 : 25
+        })
+        .eq('id', profile.id);
+      
+      logStep("Set subscription start date for new subscriber", { 
+        userId: profile.id, 
+        subscriptionTier 
+      });
+    }
 
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
     return new Response(JSON.stringify({

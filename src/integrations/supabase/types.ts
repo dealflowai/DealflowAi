@@ -523,9 +523,11 @@ export type Database = {
           has_completed_onboarding: boolean | null
           id: string
           last_name: string | null
+          last_token_grant_date: string | null
           license_number: string | null
           markets_served: string[] | null
           monthly_deal_volume: string | null
+          next_token_grant_date: string | null
           onboarding_completed: boolean | null
           onboarding_step: number | null
           phone: string | null
@@ -537,6 +539,7 @@ export type Database = {
           roi_target: number | null
           role: string | null
           selected_plan: string | null
+          subscription_start_date: string | null
           timeline_to_close: string | null
           typical_clients: string[] | null
           updated_at: string | null
@@ -558,9 +561,11 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
+          last_token_grant_date?: string | null
           license_number?: string | null
           markets_served?: string[] | null
           monthly_deal_volume?: string | null
+          next_token_grant_date?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           phone?: string | null
@@ -572,6 +577,7 @@ export type Database = {
           roi_target?: number | null
           role?: string | null
           selected_plan?: string | null
+          subscription_start_date?: string | null
           timeline_to_close?: string | null
           typical_clients?: string[] | null
           updated_at?: string | null
@@ -593,9 +599,11 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           id?: string
           last_name?: string | null
+          last_token_grant_date?: string | null
           license_number?: string | null
           markets_served?: string[] | null
           monthly_deal_volume?: string | null
+          next_token_grant_date?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           phone?: string | null
@@ -607,6 +615,7 @@ export type Database = {
           roi_target?: number | null
           role?: string | null
           selected_plan?: string | null
+          subscription_start_date?: string | null
           timeline_to_close?: string | null
           typical_clients?: string[] | null
           updated_at?: string | null
@@ -930,6 +939,18 @@ export type Database = {
           used_tokens: number
           remaining_tokens: number
         }[]
+      }
+      grant_monthly_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          tokens_granted: number
+          next_grant_date: string
+        }[]
+      }
+      grant_tokens_to_user: {
+        Args: { p_user_id: string; p_tokens?: number }
+        Returns: boolean
       }
       increment_usage: {
         Args: { p_user_id: string; p_usage_type: string; p_increment?: number }
