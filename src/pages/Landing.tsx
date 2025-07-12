@@ -257,7 +257,7 @@ const Navigation: React.FC = () => {
           }}>
               <Link to="/auth">
                 <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg shadow-md font-medium text-base">
-                  Start Free Now
+                  Get Started Free
                 </Button>
               </Link>
             </motion.div>
@@ -290,7 +290,7 @@ const Navigation: React.FC = () => {
                 </Link>
                 <Link to="/auth">
                   <Button className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 text-base">
-                    Start Free Now
+                    Get Started Free
                   </Button>
                 </Link>
               </div>
@@ -342,7 +342,7 @@ const HeroSection: React.FC = () => {
           }}>
               <Link to="/pricing">
                 <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white px-12 py-4 text-lg rounded-full shadow-2xl">
-                  Start Free Now
+                  Get Started Free
                   <ArrowRight className="ml-2" size={20} />
                 </Button>
               </Link>
@@ -784,7 +784,7 @@ const Landing = () => {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link to="/auth">
                       <Button className="w-full py-4 text-lg rounded-full bg-gray-100 hover:bg-gray-200 text-gray-900">
-                        Start Free Now
+                        Get Started Free
                       </Button>
                     </Link>
                   </motion.div>
@@ -1196,7 +1196,7 @@ const Landing = () => {
             }}>
                 <Link to="/auth">
                   <Button size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 px-12 py-4 text-lg rounded-full font-bold">
-                    Start Free Now
+                    Get Started Free
                     <ArrowRight className="ml-2" size={20} />
                   </Button>
                 </Link>
