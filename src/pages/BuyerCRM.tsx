@@ -15,7 +15,7 @@ import BuyerScraper from '@/components/BuyerCRM/BuyerScraper';
 import BuyerStats from '@/components/BuyerCRM/BuyerStats';
 import AIOutreach from '@/components/BuyerCRM/AIOutreach';
 import RealEstateLeadGenerator from '@/components/BuyerCRM/RealEstateLeadGenerator';
-import GmailIntegration from '@/components/BuyerCRM/GmailIntegration';
+
 import DuplicateDetection from '@/components/BuyerCRM/DuplicateDetection';
 import { AutomatedScrapingManager } from '@/components/BuyerCRM/AutomatedScrapingManager';
 
@@ -578,20 +578,6 @@ const BuyerCRM = () => {
                       </CardContent>
                     </Card>
 
-                    <Card className="border-green-200 dark:border-green-800">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                          <Mail className="h-4 w-4 text-green-600" />
-                          Gmail Integration
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground">
-                          Gmail features for sessions
-                        </p>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <GmailIntegration />
-                      </CardContent>
-                    </Card>
                   </div>
                 </CardContent>
               </Card>
