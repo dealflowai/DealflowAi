@@ -15,6 +15,7 @@ import BuyerScraper from '@/components/BuyerCRM/BuyerScraper';
 import BuyerStats from '@/components/BuyerCRM/BuyerStats';
 import AIOutreach from '@/components/BuyerCRM/AIOutreach';
 import RealEstateLeadGenerator from '@/components/BuyerCRM/RealEstateLeadGenerator';
+import GmailIntegration from '@/components/BuyerCRM/GmailIntegration';
 
 const BuyerCRM = () => {
   const { user } = useUser();
@@ -208,9 +209,10 @@ const BuyerCRM = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Buyer Database</TabsTrigger>
             <TabsTrigger value="discovery">Buyer Discovery</TabsTrigger>
+            <TabsTrigger value="gmail">Gmail Leads</TabsTrigger>
             <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
           </TabsList>
 
@@ -443,6 +445,10 @@ const BuyerCRM = () => {
 
           <TabsContent value="discovery" className="space-y-6">
             <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
+          </TabsContent>
+
+          <TabsContent value="gmail" className="space-y-6">
+            <GmailIntegration />
           </TabsContent>
 
           <TabsContent value="ai-outreach" className="space-y-6">
