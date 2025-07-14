@@ -532,38 +532,69 @@ const BuyerCRM = () => {
                 </CardContent>
               </Card>
 
-              {/* Gmail & Automation - Compact Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="border-green-200 dark:border-green-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Mail className="h-4 w-4 text-green-600" />
-                      Gmail Integration
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      Scan Gmail for leads
-                    </p>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <GmailIntegration />
-                  </CardContent>
-                </Card>
+              {/* Browser Sessions with Automation & Gmail */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Browser Sessions
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Automation and Gmail integration within browser sessions
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Active Filter Display - Linked to main filters */}
+                  {(selectedStatus !== 'All' || selectedPriority !== 'All') && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                        Session Filters (Linked to filters above):
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedStatus !== 'All' && (
+                          <Badge variant="secondary">Status: {selectedStatus}</Badge>
+                        )}
+                        {selectedPriority !== 'All' && (
+                          <Badge variant="secondary">Priority: {selectedPriority}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                <Card className="border-orange-200 dark:border-orange-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Clock className="h-4 w-4 text-orange-600" />
-                      Automation
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      Schedule auto discovery
-                    </p>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <AutomatedScrapingManager />
-                  </CardContent>
-                </Card>
-              </div>
+                  {/* Automation & Gmail in Browser Sessions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="border-orange-200 dark:border-orange-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Bot className="h-4 w-4 text-orange-600" />
+                          Automation
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          Automated scraping in sessions
+                        </p>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <AutomatedScrapingManager />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-green-200 dark:border-green-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Mail className="h-4 w-4 text-green-600" />
+                          Gmail Integration
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          Gmail features for sessions
+                        </p>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <GmailIntegration />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
