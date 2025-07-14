@@ -147,41 +147,23 @@ const BuyerCRM = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Buyer CRM</h1>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Manage and discover qualified cash buyers
-            </p>
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setActiveTab('discovery')}
-              className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400"
-            >
-              <Globe className="w-4 h-4 mr-2" />
-              Discovery & Tools
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setActiveTab('ai-outreach')}
-              className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400"
-            >
-              <Bot className="w-4 h-4 mr-2" />
-              AI Outreach
-            </Button>
-            <Button 
-              size="sm"
-              onClick={() => setShowAddDialog(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Buyer
-            </Button>
-          </div>
+             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Buyer Discovery System</h1>
+             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+               Discover, manage and contact qualified cash buyers
+             </p>
+           </div>
+           
+           {/* Quick Actions */}
+           <div className="flex flex-wrap gap-2">
+             <Button 
+               size="sm"
+               onClick={() => setShowAddDialog(true)}
+               className="bg-primary hover:bg-primary/90"
+             >
+               <Plus className="w-4 h-4 mr-2" />
+               Add Buyer
+             </Button>
+           </div>
         </div>
 
         {/* Discovery CTA */}
@@ -214,451 +196,254 @@ const BuyerCRM = () => {
         {/* Stats Overview */}
         <BuyerStats buyers={buyers} />
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Buyer Database</TabsTrigger>
-            <TabsTrigger value="discovery">Discovery & Tools</TabsTrigger>
-            <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Enhanced Filters & Actions */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Search buyers by name, email, location..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+        {/* Main Discovery Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          {/* Discovery Control Panel */}
+          <div className="lg:col-span-1">
+            <Card className="h-fit">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Discovery Filters</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure search parameters
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Status</label>
+                    <select 
+                      value={selectedStatus} 
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="All">All Status</option>
+                      <option value="New">New</option>
+                      <option value="Active">Active</option>
+                      <option value="Warm">Warm</option>
+                      <option value="Cold">Cold</option>
+                      <option value="Qualified">Qualified</option>
+                    </select>
                   </div>
-                  
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Use the Discovery & Tools tab to access filters and lead generation features.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Priority</label>
+                    <select 
+                      value={selectedPriority} 
+                      onChange={(e) => setSelectedPriority(e.target.value)}
+                      className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="All">All Priority</option>
+                      <option value="VERY HIGH">Very High</option>
+                      <option value="HIGH">High</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="LOW">Low</option>
+                    </select>
+                  </div>
 
-            {/* Buyers List */}
-            {filteredBuyers.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-                    {buyers.length === 0 ? 'No buyers found. Start by discovering new leads.' : 'No buyers match your filters.'}
-                  </p>
-                  {buyers.length === 0 && (
-                    <div className="flex justify-center gap-3">
-                      <Button onClick={() => setShowAddDialog(true)}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Buyer
+                  <div className="pt-3 border-t">
+                    <label className="text-sm font-medium mb-2 block">Quick Filters</label>
+                    <div className="space-y-2">
+                      <Button 
+                        variant={selectedStatus === "Qualified" && selectedPriority === "HIGH" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("Qualified");
+                          setSelectedPriority("HIGH");
+                        }}
+                        className="w-full justify-start text-xs"
+                      >
+                        High Priority Qualified
                       </Button>
-                      <Button variant="outline" onClick={() => setActiveTab('discovery')}>
-                        <Globe className="w-4 h-4 mr-2" />
-                        Discover Leads
+                      <Button 
+                        variant={selectedStatus === "Warm" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("Warm");
+                          setSelectedPriority("All");
+                        }}
+                        className="w-full justify-start text-xs"
+                      >
+                        Warm Prospects
+                      </Button>
+                      <Button 
+                        variant={selectedStatus === "New" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("New");
+                          setSelectedPriority("All");
+                        }}
+                        className="w-full justify-start text-xs"
+                      >
+                        New Leads
+                      </Button>
+                    </div>
+                  </div>
+
+                  {(selectedStatus !== 'All' || selectedPriority !== 'All') && (
+                    <div className="pt-3 border-t">
+                      <div className="text-xs font-medium text-muted-foreground mb-2">Active Filters</div>
+                      <div className="space-y-1">
+                        {selectedStatus !== 'All' && (
+                          <div className="text-xs px-2 py-1 bg-muted rounded">Status: {selectedStatus}</div>
+                        )}
+                        {selectedPriority !== 'All' && (
+                          <div className="text-xs px-2 py-1 bg-muted rounded">Priority: {selectedPriority}</div>
+                        )}
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("All");
+                          setSelectedPriority("All");
+                        }}
+                        className="w-full mt-2 text-xs"
+                      >
+                        Clear Filters
                       </Button>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredBuyers.map((buyer) => (
-                  <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200 dark:bg-gray-800 dark:border-gray-700">
-                    <CardHeader className="pb-3 sm:pb-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">{buyer.name || 'Unnamed Buyer'}</h3>
-                          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
-                            <Badge className={`${getStatusColor(buyer.status || 'new')} text-xs`}>
-                              {buyer.status || 'new'}
-                            </Badge>
-                            {buyer.priority && (
-                              <Badge className={`${getPriorityColor(buyer.priority)} text-xs`}>
-                                {buyer.priority}
-                              </Badge>
-                            )}
-                            {buyer.land_buyer && (
-                              <Badge variant="outline" className="text-xs">
-                                Land Buyer
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <button className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex-shrink-0">
-                          <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </div>
-                    </CardHeader>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-                    <CardContent className="space-y-2 sm:space-y-3 px-3 sm:px-6 pb-3 sm:pb-6">
-                      {buyer.email && (
-                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span className="truncate">{buyer.email}</span>
-                        </div>
-                      )}
-                      
-                      {buyer.phone && (
-                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span className="truncate">{buyer.phone}</span>
-                        </div>
-                      )}
-
-                      {(buyer.city || buyer.state || buyer.markets) && (
-                        <div className="flex items-start space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">
-                            {buyer.city && buyer.state ? `${buyer.city}, ${buyer.state}` : 
-                             buyer.city || buyer.state || ''}
-                            {buyer.markets && buyer.markets.length > 0 && (
-                              <span className="text-gray-500 dark:text-gray-500"> • {buyer.markets.join(', ')}</span>
-                            )}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">{formatBudgetRange(buyer.budget_min, buyer.budget_max)}</span>
-                      </div>
-
-                      {buyer.asset_types && buyer.asset_types.length > 0 && (
-                        <div className="space-y-1 sm:space-y-2">
-                          <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Asset Types:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {buyer.asset_types.slice(0, 3).map((type, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {type}
-                              </Badge>
-                            ))}
-                            {buyer.asset_types.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{buyer.asset_types.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {buyer.property_type_interest && buyer.property_type_interest.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Property Types:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {buyer.property_type_interest.map((type, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {type}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {buyer.acquisition_timeline && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Calendar className="w-4 h-4" />
-                          <span>{buyer.acquisition_timeline}</span>
-                        </div>
-                      )}
-
-                      {buyer.financing_type && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Building className="w-4 h-4" />
-                          <span>{buyer.financing_type}</span>
-                        </div>
-                      )}
-
-                      {buyer.investment_criteria && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Investment Criteria:</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{buyer.investment_criteria}</p>
-                        </div>
-                      )}
-
-                      {buyer.tags && buyer.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {buyer.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-
-                    <CardFooter className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                      <span className="text-xs text-gray-400">
-                        Added: {getTimeAgo(buyer.created_at)}
-                      </span>
-                      <div className="flex space-x-2">
-                        {buyer.phone && (
-                          <Button variant="outline" size="sm">
-                            <Phone className="w-3 h-3 mr-1" />
-                            Call
-                          </Button>
-                        )}
-                        {buyer.email && (
-                          <Button variant="outline" size="sm">
-                            <Mail className="w-3 h-3 mr-1" />
-                            Email
-                          </Button>
-                        )}
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="discovery" className="space-y-6">
-            {/* Professional Discovery Interface */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              
-              {/* Discovery Control Panel */}
-              <div className="lg:col-span-1">
-                <Card className="h-fit">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">Discovery Filters</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Configure search parameters
-                    </p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Status</label>
-                        <select 
-                          value={selectedStatus} 
-                          onChange={(e) => setSelectedStatus(e.target.value)}
-                          className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                          <option value="All">All Status</option>
-                          <option value="New">New</option>
-                          <option value="Active">Active</option>
-                          <option value="Warm">Warm</option>
-                          <option value="Cold">Cold</option>
-                          <option value="Qualified">Qualified</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Priority</label>
-                        <select 
-                          value={selectedPriority} 
-                          onChange={(e) => setSelectedPriority(e.target.value)}
-                          className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                          <option value="All">All Priority</option>
-                          <option value="VERY HIGH">Very High</option>
-                          <option value="HIGH">High</option>
-                          <option value="MEDIUM">Medium</option>
-                          <option value="LOW">Low</option>
-                        </select>
-                      </div>
-
-                      <div className="pt-3 border-t">
-                        <label className="text-sm font-medium mb-2 block">Quick Filters</label>
-                        <div className="space-y-2">
-                          <Button 
-                            variant={selectedStatus === "Qualified" && selectedPriority === "HIGH" ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              setSelectedStatus("Qualified");
-                              setSelectedPriority("HIGH");
-                            }}
-                            className="w-full justify-start text-xs"
-                          >
-                            High Priority Qualified
-                          </Button>
-                          <Button 
-                            variant={selectedStatus === "Warm" ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              setSelectedStatus("Warm");
-                              setSelectedPriority("All");
-                            }}
-                            className="w-full justify-start text-xs"
-                          >
-                            Warm Prospects
-                          </Button>
-                          <Button 
-                            variant={selectedStatus === "New" ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              setSelectedStatus("New");
-                              setSelectedPriority("All");
-                            }}
-                            className="w-full justify-start text-xs"
-                          >
-                            New Leads
-                          </Button>
-                        </div>
-                      </div>
-
-                      {(selectedStatus !== 'All' || selectedPriority !== 'All') && (
-                        <div className="pt-3 border-t">
-                          <div className="text-xs font-medium text-muted-foreground mb-2">Active Filters</div>
-                          <div className="space-y-1">
-                            {selectedStatus !== 'All' && (
-                              <div className="text-xs px-2 py-1 bg-muted rounded">Status: {selectedStatus}</div>
-                            )}
-                            {selectedPriority !== 'All' && (
-                              <div className="text-xs px-2 py-1 bg-muted rounded">Priority: {selectedPriority}</div>
-                            )}
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedStatus("All");
-                              setSelectedPriority("All");
-                            }}
-                            className="w-full mt-2 text-xs"
-                          >
-                            Clear Filters
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Discovery Results */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Platform Discovery</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Search across LinkedIn, Facebook, and PropWire platforms
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <RealEstateLeadGenerator 
-                      onLeadsFound={(leads) => {
-                        console.log('Found leads:', leads);
-                        refetch();
-                      }} 
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Search Results */}
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span className="text-lg">Search Results</span>
-                      <Badge variant="outline">{filteredBuyers.length} buyers</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {filteredBuyers.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        No buyers match your current filters
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {filteredBuyers.slice(0, 5).map((buyer) => (
-                          <div key={buyer.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex-1">
-                              <div className="font-medium">{buyer.name || 'Unnamed Buyer'}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {buyer.location_focus || buyer.city || 'No location specified'}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {formatBudgetRange(buyer.budget_min, buyer.budget_max)}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">
-                                {buyer.status || 'New'}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                {buyer.priority || 'MEDIUM'}
-                              </Badge>
-                            </div>
-                          </div>
-                        ))}
-                        {filteredBuyers.length > 5 && (
-                          <div className="text-center text-sm text-muted-foreground">
-                            ... and {filteredBuyers.length - 5} more buyers
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* AI Settings Panel */}
-              <div className="lg:col-span-1">
-                <Card className="h-fit">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">AI Configuration</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Automated discovery settings
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <AutomatedScrapingManager />
-                  </CardContent>
-                </Card>
-
-
-                {/* Analytics Summary */}
-                <Card className="mt-6">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">Analytics</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Total Buyers</span>
-                        <span className="font-medium">{buyers.length}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Qualified</span>
-                        <span className="font-medium">{buyers.filter(b => b.status === 'Qualified').length}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">High Priority</span>
-                        <span className="font-medium">{buyers.filter(b => b.priority === 'HIGH' || b.priority === 'VERY HIGH').length}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">New This Week</span>
-                        <span className="font-medium">{buyers.filter(b => b.created_at && new Date(b.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="ai-outreach" className="space-y-6">
+          {/* Discovery Results */}
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-purple-600" />
-                  AI-Powered Outreach
-                </CardTitle>
+                <CardTitle className="text-lg">Platform Discovery</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Generate personalized emails, SMS, and voice messages using AI
+                  Search across LinkedIn, Facebook, and PropWire platforms
                 </p>
               </CardHeader>
               <CardContent>
-                <AIOutreach buyers={buyers} onRefresh={refetch} />
+                <RealEstateLeadGenerator 
+                  onLeadsFound={(leads) => {
+                    console.log('Found leads:', leads);
+                    refetch();
+                  }} 
+                />
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+
+            {/* Search Results */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="text-lg">Search Results</span>
+                  <Badge variant="outline">{filteredBuyers.length} buyers</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filteredBuyers.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No buyers match your current filters
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredBuyers.slice(0, 10).map((buyer) => (
+                      <div key={buyer.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium">{buyer.name || 'Unnamed Buyer'}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {buyer.location_focus || buyer.city || 'No location specified'}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {formatBudgetRange(buyer.budget_min, buyer.budget_max)}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {buyer.status || 'New'}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {buyer.priority || 'MEDIUM'}
+                          </Badge>
+                          <div className="flex space-x-2">
+                            {buyer.phone && (
+                              <Button variant="outline" size="sm">
+                                <Phone className="w-3 h-3 mr-1" />
+                                Call
+                              </Button>
+                            )}
+                            {buyer.email && (
+                              <Button variant="outline" size="sm">
+                                <Mail className="w-3 h-3 mr-1" />
+                                Email
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {filteredBuyers.length > 10 && (
+                      <div className="text-center text-sm text-muted-foreground">
+                        ... and {filteredBuyers.length - 10} more buyers
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* AI Outreach */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-lg">AI-Powered Outreach</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Generate personalized emails, SMS, and voice messages
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AIOutreach buyers={filteredBuyers} onRefresh={refetch} />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Settings Panel */}
+          <div className="lg:col-span-1">
+            <Card className="h-fit">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">AI Configuration</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Automated discovery settings
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AutomatedScrapingManager />
+              </CardContent>
+            </Card>
+
+            {/* Analytics Summary */}
+            <Card className="mt-6">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Analytics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Total Buyers</span>
+                    <span className="font-medium">{buyers.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Qualified</span>
+                    <span className="font-medium">{buyers.filter(b => b.status === 'Qualified').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">High Priority</span>
+                    <span className="font-medium">{buyers.filter(b => b.priority === 'HIGH' || b.priority === 'VERY HIGH').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">New This Week</span>
+                    <span className="font-medium">{buyers.filter(b => b.created_at && new Date(b.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         <AddBuyerDialog 
           open={showAddDialog} 
