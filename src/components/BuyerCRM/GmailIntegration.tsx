@@ -44,14 +44,23 @@ const GmailIntegration = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [leads, setLeads] = useState<EmailLead[]>([]);
 
+  const getAuthHeaders = async () => {
+    const session = await supabase.auth.getSession();
+    return {
+      Authorization: `Bearer ${session.data.session?.access_token}`,
+    };
+  };
+
   // Check Gmail auth status
   const { data: authStatus, isLoading: statusLoading } = useQuery({
     queryKey: ['gmail-auth-status', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
+      const headers = await getAuthHeaders();
       const { data, error } = await supabase.functions.invoke('gmail-integration', {
-        body: { action: 'status' }
+        body: { action: 'status' },
+        headers,
       });
       
       if (error) throw error;
@@ -63,8 +72,10 @@ const GmailIntegration = () => {
   const connectGmail = async () => {
     setIsConnecting(true);
     try {
+      const headers = await getAuthHeaders();
       const { data, error } = await supabase.functions.invoke('gmail-integration', {
-        body: { action: 'auth' }
+        body: { action: 'auth' },
+        headers
       });
       
       if (error) throw error;
@@ -76,8 +87,10 @@ const GmailIntegration = () => {
         // Poll for authentication completion
         const checkAuth = async () => {
           try {
+            const headers = await getAuthHeaders();
             const { data: statusData } = await supabase.functions.invoke('gmail-integration', {
-              body: { action: 'status' }
+              body: { action: 'status' },
+              headers
             });
             
             if (statusData?.authenticated) {
@@ -118,8 +131,10 @@ const GmailIntegration = () => {
 
   const disconnectGmail = async () => {
     try {
+      const headers = await getAuthHeaders();
       const { error } = await supabase.functions.invoke('gmail-integration', {
-        body: { action: 'revoke' }
+        body: { action: 'revoke' },
+        headers
       });
       
       if (error) throw error;
@@ -152,6 +167,7 @@ const GmailIntegration = () => {
 
     setIsSearching(true);
     try {
+      const headers = await getAuthHeaders();
       const { data, error } = await supabase.functions.invoke('gmail-integration', {
         body: { 
           action: 'search',
@@ -160,7 +176,8 @@ const GmailIntegration = () => {
           filters: {
             dateRange: 'month'
           }
-        }
+        },
+        headers
       });
       
       if (error) throw error;
