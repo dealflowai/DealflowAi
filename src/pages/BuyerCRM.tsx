@@ -162,7 +162,7 @@ const BuyerCRM = () => {
               className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400"
             >
               <Globe className="w-4 h-4 mr-2" />
-              Discovery
+              Discovery & Tools
             </Button>
             <Button 
               variant="outline" 
@@ -172,15 +172,6 @@ const BuyerCRM = () => {
             >
               <Bot className="w-4 h-4 mr-2" />
               AI Outreach
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setActiveTab('gmail')}
-              className="border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Gmail
             </Button>
             <Button 
               size="sm"
@@ -225,12 +216,10 @@ const BuyerCRM = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Buyers</TabsTrigger>
-            <TabsTrigger value="discovery">Discovery</TabsTrigger>
+            <TabsTrigger value="discovery">Discovery & Tools</TabsTrigger>
             <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
-            <TabsTrigger value="gmail">Gmail</TabsTrigger>
-            <TabsTrigger value="automation">Automation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -471,6 +460,39 @@ const BuyerCRM = () => {
                   <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
                 </CardContent>
               </Card>
+
+              {/* Gmail & Automation - Compact Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="border-green-200 dark:border-green-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Mail className="h-4 w-4 text-green-600" />
+                      Gmail Integration
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Scan Gmail for leads
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <GmailIntegration />
+                  </CardContent>
+                </Card>
+
+                <Card className="border-orange-200 dark:border-orange-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Clock className="h-4 w-4 text-orange-600" />
+                      Automation
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Schedule auto discovery
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <AutomatedScrapingManager />
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
@@ -487,40 +509,6 @@ const BuyerCRM = () => {
               </CardHeader>
               <CardContent>
                 <AIOutreach buyers={buyers} onRefresh={refetch} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="gmail" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-green-600" />
-                  Gmail Lead Integration
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Scan your Gmail for potential buyer leads and import them automatically
-                </p>
-              </CardHeader>
-              <CardContent>
-                <GmailIntegration />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="automation" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-orange-600" />
-                  Automated Lead Discovery
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Schedule automatic scraping and lead discovery to run in the background
-                </p>
-              </CardHeader>
-              <CardContent>
-                <AutomatedScrapingManager />
               </CardContent>
             </Card>
           </TabsContent>
