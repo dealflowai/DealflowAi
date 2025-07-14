@@ -16,7 +16,7 @@ import BuyerStats from '@/components/BuyerCRM/BuyerStats';
 import AIOutreach from '@/components/BuyerCRM/AIOutreach';
 import RealEstateLeadGenerator from '@/components/BuyerCRM/RealEstateLeadGenerator';
 
-import DuplicateDetection from '@/components/BuyerCRM/DuplicateDetection';
+
 import { AutomatedScrapingManager } from '@/components/BuyerCRM/AutomatedScrapingManager';
 
 const BuyerCRM = () => {
@@ -244,8 +244,6 @@ const BuyerCRM = () => {
               </CardContent>
             </Card>
 
-            {/* Smart Duplicate Detection */}
-            <DuplicateDetection onRefresh={refetch} />
 
             {/* Buyers List */}
             {filteredBuyers.length === 0 ? (
@@ -613,15 +611,6 @@ const BuyerCRM = () => {
                   </CardContent>
                 </Card>
 
-                {/* Data Management */}
-                <Card className="mt-6">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">Data Management</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <DuplicateDetection onRefresh={refetch} />
-                  </CardContent>
-                </Card>
 
                 {/* Analytics Summary */}
                 <Card className="mt-6">
