@@ -4,8 +4,7 @@ import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles, AlertCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles, AlertCircle, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
@@ -27,7 +26,6 @@ const BuyerCRM = () => {
   const [selectedPriority, setSelectedPriority] = useState('All');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [filtersOpen, setFiltersOpen] = useState(true);
 
   const { data: buyers = [], isLoading, refetch } = useQuery({
     queryKey: ['buyers', user?.id],
@@ -422,57 +420,33 @@ const BuyerCRM = () => {
           </TabsContent>
 
           <TabsContent value="discovery" className="space-y-6">
-            {/* Browser Sessions with Integrated Filters, Presets, and Tools */}
+            {/* Filters & Presets Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-blue-600" />
-                  Browser Sessions & Discovery Tools
+                  <Filter className="h-5 w-5 text-purple-600" />
+                  Filters & Presets
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Integrated search filters, presets, automation, and Gmail tools for browser sessions
+                  Filter your buyer database and save custom presets
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Collapsible Search Filters with Presets */}
-                <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        Search Filters & Quick Presets
-                      </div>
-                      {filtersOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-4 mt-4">
-                    {/* Search Bar */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        placeholder="Search buyers by name, email, location..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-
-                    {/* Filter Dropdowns */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Filters with integrated presets */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                       <select 
                         value={selectedStatus} 
                         onChange={(e) => setSelectedStatus(e.target.value)}
                         className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="All">All Status</option>
-                        <option value="new">New</option>
-                        <option value="active">Active</option>
-                        <option value="warm">Warm</option>
-                        <option value="cold">Cold</option>
-                        <option value="qualified">Qualified</option>
+                        <option value="New">New</option>
+                        <option value="Active">Active</option>
+                        <option value="Warm">Warm</option>
+                        <option value="Cold">Cold</option>
+                        <option value="Qualified">Qualified</option>
                       </select>
 
                       <select 
@@ -486,149 +460,142 @@ const BuyerCRM = () => {
                         <option value="MEDIUM">Medium</option>
                         <option value="LOW">Low</option>
                       </select>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedStatus("All");
-                          setSelectedPriority("All");
-                          setSearchTerm("");
-                        }}
-                      >
-                        Clear All
-                      </Button>
                     </div>
-
-                    {/* Quick Preset Buttons */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick Presets:</label>
-                      <div className="flex gap-2 flex-wrap">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("qualified");
-                            setSelectedPriority("HIGH");
-                          }}
-                          className="text-xs"
-                        >
-                          <Target className="w-3 h-3 mr-1" />
-                          Hot Prospects
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("warm");
-                            setSelectedPriority("All");
-                          }}
-                          className="text-xs"
-                        >
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          Warm Leads
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("new");
-                            setSelectedPriority("All");
-                          }}
-                          className="text-xs"
-                        >
-                          <Clock className="w-3 h-3 mr-1" />
-                          New Prospects
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("cold");
-                            setSelectedPriority("All");
-                          }}
-                          className="text-xs"
-                        >
-                          <AlertCircle className="w-3 h-3 mr-1" />
-                          Follow-up Needed
-                        </Button>
-                      </div>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Active Filter Display */}
-                {(selectedStatus !== 'All' || selectedPriority !== 'All' || searchTerm) && (
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                      Active Session Filters:
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedStatus !== 'All' && (
-                        <Badge variant="secondary">Status: {selectedStatus}</Badge>
-                      )}
-                      {selectedPriority !== 'All' && (
-                        <Badge variant="secondary">Priority: {selectedPriority}</Badge>
-                      )}
-                      {searchTerm && (
-                        <Badge variant="secondary">Search: "{searchTerm}"</Badge>
-                      )}
-                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStatus("All");
+                        setSelectedPriority("All");
+                      }}
+                    >
+                      Clear All
+                    </Button>
                   </div>
-                )}
 
-                {/* Browser Session Tools */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Automation in Browser Sessions */}
-                  <Card className="border-orange-200 dark:border-orange-800">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <Bot className="h-4 w-4 text-orange-600" />
-                        Automation
-                      </CardTitle>
-                      <p className="text-xs text-muted-foreground">
-                        Automated scraping within browser sessions using current filters
-                      </p>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <AutomatedScrapingManager />
-                    </CardContent>
-                  </Card>
-
-                  {/* Gmail Integration in Browser Sessions */}
-                  <Card className="border-green-200 dark:border-green-800">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <Mail className="h-4 w-4 text-green-600" />
-                        Gmail Integration
-                      </CardTitle>
-                      <p className="text-xs text-muted-foreground">
-                        Gmail outreach features for filtered prospects in sessions
-                      </p>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <GmailIntegration />
-                    </CardContent>
-                  </Card>
+                  {/* Quick Preset Buttons */}
+                  <div className="flex gap-2 flex-wrap">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStatus("Qualified");
+                        setSelectedPriority("HIGH");
+                      }}
+                      className="text-xs"
+                    >
+                      High Priority Qualified
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStatus("Warm");
+                        setSelectedPriority("All");
+                      }}
+                      className="text-xs"
+                    >
+                      Warm Leads
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStatus("New");
+                        setSelectedPriority("All");
+                      }}
+                      className="text-xs"
+                    >
+                      New Prospects
+                    </Button>
+                  </div>
                 </div>
-
-                {/* Platform Lead Discovery - Part of Browser Sessions */}
-                <Card className="border-purple-200 dark:border-purple-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Globe className="h-4 w-4 text-purple-600" />
-                      Platform Lead Discovery
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      Discover qualified buyers from LinkedIn, Facebook, and Propwire within browser sessions
-                    </p>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
-                  </CardContent>
-                </Card>
               </CardContent>
             </Card>
+
+            {/* Discovery Tools Section */}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Platform Lead Discovery */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Platform Lead Discovery
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Discover qualified buyers from LinkedIn, Facebook, and Propwire
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
+                </CardContent>
+              </Card>
+
+              {/* Browser Sessions with Automation & Gmail */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Browser Sessions
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Automation and Gmail integration within browser sessions
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Active Filter Display - Linked to main filters */}
+                  {(selectedStatus !== 'All' || selectedPriority !== 'All') && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                        Session Filters (Linked to filters above):
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedStatus !== 'All' && (
+                          <Badge variant="secondary">Status: {selectedStatus}</Badge>
+                        )}
+                        {selectedPriority !== 'All' && (
+                          <Badge variant="secondary">Priority: {selectedPriority}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Automation & Gmail in Browser Sessions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="border-orange-200 dark:border-orange-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Bot className="h-4 w-4 text-orange-600" />
+                          Automation
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          Automated scraping in sessions
+                        </p>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <AutomatedScrapingManager />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-green-200 dark:border-green-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Mail className="h-4 w-4 text-green-600" />
+                          Gmail Integration
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          Gmail features for sessions
+                        </p>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <GmailIntegration />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="ai-outreach" className="space-y-6">
