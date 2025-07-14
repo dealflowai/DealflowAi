@@ -167,11 +167,20 @@ const BuyerCRM = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setActiveTab('tools')}
+              onClick={() => setActiveTab('ai-outreach')}
               className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400"
             >
               <Bot className="w-4 h-4 mr-2" />
-              AI Tools
+              AI Outreach
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setActiveTab('gmail')}
+              className="border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Gmail
             </Button>
             <Button 
               size="sm"
@@ -201,7 +210,7 @@ const BuyerCRM = () => {
                 <Button 
                   size="sm" 
                   className="bg-orange-600 hover:bg-orange-700 text-white"
-                  onClick={() => setActiveTab('discovery')}
+                  onClick={() => setActiveTab('ai-outreach')}
                 >
                   <Bot className="w-4 h-4 mr-2" />
                   Run Discovery
@@ -216,9 +225,12 @@ const BuyerCRM = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Buyers Database</TabsTrigger>
-            <TabsTrigger value="discovery">Discovery & Tools</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Buyers</TabsTrigger>
+            <TabsTrigger value="discovery">Discovery</TabsTrigger>
+            <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
+            <TabsTrigger value="gmail">Gmail</TabsTrigger>
+            <TabsTrigger value="automation">Automation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -442,59 +454,75 @@ const BuyerCRM = () => {
           </TabsContent>
 
           <TabsContent value="discovery" className="space-y-6">
-            {/* Discovery Tools */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Discovery Tools Section */}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Platform Lead Discovery */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    Platform Discovery
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Platform Lead Discovery
                   </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Discover qualified buyers from LinkedIn, Facebook, and Propwire
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Gmail Integration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <GmailIntegration />
-                </CardContent>
-              </Card>
             </div>
+          </TabsContent>
 
-            {/* AI & Automation Tools */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bot className="h-5 w-5" />
-                    AI Outreach
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AIOutreach buyers={buyers} onRefresh={refetch} />
-                </CardContent>
-              </Card>
+          <TabsContent value="ai-outreach" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-purple-600" />
+                  AI-Powered Outreach
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Generate personalized emails, SMS, and voice messages using AI
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AIOutreach buyers={buyers} onRefresh={refetch} />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Automated Scraping
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AutomatedScrapingManager />
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="gmail" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-green-600" />
+                  Gmail Lead Integration
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Scan your Gmail for potential buyer leads and import them automatically
+                </p>
+              </CardHeader>
+              <CardContent>
+                <GmailIntegration />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="automation" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-orange-600" />
+                  Automated Lead Discovery
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Schedule automatic scraping and lead discovery to run in the background
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AutomatedScrapingManager />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
