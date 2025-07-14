@@ -671,16 +671,14 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="sessions" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="sessions">Browser Sessions</TabsTrigger>
-          <TabsTrigger value="search">Search Filters</TabsTrigger>
-          <TabsTrigger value="presets">Quick Presets</TabsTrigger>
+      <Tabs defaultValue="discover" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="discover">Discover Buyers</TabsTrigger>
           <TabsTrigger value="results">Results ({foundLeads.length})</TabsTrigger>
-          <TabsTrigger value="export">Export & Integrate</TabsTrigger>
+          <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="sessions" className="space-y-6">
+        <TabsContent value="discover" className="space-y-6">
           {/* Browser Session Management */}
           <Card>
             <CardHeader>
@@ -824,329 +822,257 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Scraping Method Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Scraping Method
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${scrapingMethod === 'session' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                         onClick={() => setScrapingMethod('session')}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Users className="h-5 w-5" />
-                        <h3 className="font-medium">Browser Sessions (Recommended)</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Scrape from authenticated Facebook groups, LinkedIn networks, and Propwire platforms for highest quality leads
-                      </p>
-                    </div>
-                    <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${scrapingMethod === 'traditional' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                         onClick={() => setScrapingMethod('traditional')}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Globe className="h-5 w-5" />
-                        <h3 className="font-medium">Traditional Web Scraping</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Scrape public real estate websites like Realtor.com, Zillow, and county records
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Start Scraping Button */}
-              <div className="space-y-4">
-                {scrapingMethod === 'session' && (
-                  <Button 
-                    onClick={scrapeFromBrowserSessions}
-                    disabled={isSearching || Object.values(sessionStatuses).every(status => !status.active)}
-                    size="lg"
-                    className="w-full"
-                  >
-                    {isSearching ? (
-                      <>
-                        <Pause className="mr-2 h-4 w-4" />
-                        Scraping from sessions... {searchProgress}%
-                      </>
-                    ) : (
-                      <>
-                        <Users className="mr-2 h-4 w-4" />
-                        Scrape from Browser Sessions
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {scrapingMethod === 'traditional' && (
-                  <Button 
-                    onClick={startAdvancedSearch}
-                    disabled={isSearching}
-                    size="lg"
-                    className="w-full"
-                  >
-                    {isSearching ? (
-                      <>
-                        <Pause className="mr-2 h-4 w-4" />
-                        Traditional scraping... {searchProgress}%
-                      </>
-                    ) : (
-                      <>
-                        <Search className="mr-2 h-4 w-4" />
-                        Start Traditional Search
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {scrapingMethod === 'session' && Object.values(sessionStatuses).every(status => !status.active) && (
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Please login to at least one platform to use browser session scraping
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Search Progress */}
-              {isSearching && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>{currentStep}</span>
-                        <span>{searchProgress}%</span>
-                      </div>
-                      <Progress value={searchProgress} />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="search" className="space-y-6">
-          {/* Location Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Location Criteria
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <Label>State</Label>
-                <Select value={filters.location.state} onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, location: { ...prev.location, state: value } }))
-                }>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {['TX', 'CA', 'FL', 'NY', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI'].map(state => (
-                      <SelectItem key={state} value={state}>{state}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>City</Label>
-                <Input 
-                  value={filters.location.city}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
-                  placeholder="Enter city" 
-                />
-              </div>
-              <div>
-                <Label>County</Label>
-                <Input 
-                  value={filters.location.county}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: { ...prev.location, county: e.target.value } }))}
-                  placeholder="Enter county" 
-                />
-              </div>
-              <div>
-                <Label>Zip Code</Label>
-                <Input 
-                  value={filters.location.zipCode}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: { ...prev.location, zipCode: e.target.value } }))}
-                  placeholder="Enter zip code" 
-                />
-              </div>
             </CardContent>
           </Card>
 
-          {/* Property Filters */}
+          {/* Search Filters */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                Property Criteria
+                <Filter className="h-5 w-5" />
+                Search Filters
               </CardTitle>
+              <CardDescription>
+                Configure your search criteria to find the most relevant buyer leads
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <Label>Property Types</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                  {propertyTypes.map(type => (
-                    <div key={type} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={type}
-                        checked={filters.propertyType.includes(type)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFilters(prev => ({ ...prev, propertyType: [...prev.propertyType, type] }));
-                          } else {
-                            setFilters(prev => ({ ...prev, propertyType: prev.propertyType.filter(t => t !== type) }));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={type} className="text-sm">{type}</Label>
-                    </div>
-                  ))}
+              {/* Location Filters */}
+              <div className="space-y-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Location Criteria
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      placeholder="e.g., TX, CA, FL"
+                      value={filters.location.state}
+                      onChange={(e) => setFilters(prev => ({
+                        ...prev,
+                        location: { ...prev.location, state: e.target.value }
+                      }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      placeholder="e.g., Austin, Miami"
+                      value={filters.location.city}
+                      onChange={(e) => setFilters(prev => ({
+                        ...prev,
+                        location: { ...prev.location, city: e.target.value }
+                      }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode">Zip Code</Label>
+                    <Input
+                      id="zipCode"
+                      placeholder="e.g., 78701"
+                      value={filters.location.zipCode}
+                      onChange={(e) => setFilters(prev => ({
+                        ...prev,
+                        location: { ...prev.location, zipCode: e.target.value }
+                      }))}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label>Property Value Range: ${filters.valueRange[0].toLocaleString()} - ${filters.valueRange[1].toLocaleString()}</Label>
-                <Slider
-                  value={filters.valueRange}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, valueRange: value as [number, number] }))}
-                  max={5000000}
-                  min={50000}
-                  step={25000}
-                  className="mt-2"
-                />
-              </div>
-
-              <div>
-                <Label>Equity Range: ${filters.equityRange[0].toLocaleString()} - ${filters.equityRange[1].toLocaleString()}</Label>
-                <Slider
-                  value={filters.equityRange}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, equityRange: value as [number, number] }))}
-                  max={2000000}
-                  min={10000}
-                  step={10000}
-                  className="mt-2"
-                />
-              </div>
-
-              <div>
-                <Label>Ownership Length: {filters.ownershipLength[0]} - {filters.ownershipLength[1]} years</Label>
-                <Slider
-                  value={filters.ownershipLength}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, ownershipLength: value as [number, number] }))}
-                  max={50}
-                  min={1}
-                  step={1}
-                  className="mt-2"
-                />
+              {/* Property Filters */}
+              <div className="space-y-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Home className="h-4 w-4" />
+                  Property Criteria
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label>Property Types</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {propertyTypes.map(type => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={type}
+                            checked={filters.propertyType.includes(type)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  propertyType: [...prev.propertyType, type]
+                                }));
+                              } else {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  propertyType: prev.propertyType.filter(t => t !== type)
+                                }));
+                              }
+                            }}
+                          />
+                          <Label htmlFor={type} className="text-sm">{type}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Equity Range: ${filters.equityRange[0].toLocaleString()} - ${filters.equityRange[1].toLocaleString()}</Label>
+                      <Slider
+                        value={filters.equityRange}
+                        onValueChange={(value) => setFilters(prev => ({
+                          ...prev,
+                          equityRange: value as [number, number]
+                        }))}
+                        max={1000000}
+                        min={10000}
+                        step={5000}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Property Value Range: ${filters.valueRange[0].toLocaleString()} - ${filters.valueRange[1].toLocaleString()}</Label>
+                      <Slider
+                        value={filters.valueRange}
+                        onValueChange={(value) => setFilters(prev => ({
+                          ...prev,
+                          valueRange: value as [number, number]
+                        }))}
+                        max={2000000}
+                        min={50000}
+                        step={10000}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Status Filters */}
+          {/* Quick Presets */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                Status & Condition Filters
+                <Target className="h-5 w-5" />
+                Quick Presets
+              </CardTitle>
+              <CardDescription>
+                Apply pre-configured search criteria for common lead types
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {searchPresets.map((preset, index) => (
+                  <Card 
+                    key={index} 
+                    className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-blue-500"
+                    onClick={preset.onClick}
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <preset.icon className="h-5 w-5 text-blue-600" />
+                        <h3 className="font-medium text-sm">{preset.name}</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{preset.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Scraping Method Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Scraping Method
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="vacant"
-                    checked={filters.propertyStatus.vacant}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({ ...prev, propertyStatus: { ...prev.propertyStatus, vacant: checked as boolean } }))
-                    }
-                  />
-                  <Label htmlFor="vacant">Vacant Properties</Label>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${scrapingMethod === 'session' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                     onClick={() => setScrapingMethod('session')}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="h-5 w-5" />
+                    <h3 className="font-medium">Browser Sessions (Recommended)</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Scrape from authenticated Facebook groups, LinkedIn networks, and Propwire platforms for highest quality leads
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="absentee"
-                    checked={filters.propertyStatus.absenteeOwner}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({ ...prev, propertyStatus: { ...prev.propertyStatus, absenteeOwner: checked as boolean } }))
-                    }
-                  />
-                  <Label htmlFor="absentee">Absentee Owners</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="distressed"
-                    checked={filters.propertyStatus.distressed}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({ ...prev, propertyStatus: { ...prev.propertyStatus, distressed: checked as boolean } }))
-                    }
-                  />
-                  <Label htmlFor="distressed">Distressed Properties</Label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="hasPhone"
-                    checked={filters.ownerFilters.hasPhone}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({ ...prev, ownerFilters: { ...prev.ownerFilters, hasPhone: checked as boolean } }))
-                    }
-                  />
-                  <Label htmlFor="hasPhone">Has Phone Number</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="hasEmail"
-                    checked={filters.ownerFilters.hasEmail}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({ ...prev, ownerFilters: { ...prev.ownerFilters, hasEmail: checked as boolean } }))
-                    }
-                  />
-                  <Label htmlFor="hasEmail">Has Email Address</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="outOfState"
-                    checked={filters.ownerFilters.outOfState}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({ ...prev, ownerFilters: { ...prev.ownerFilters, outOfState: checked as boolean } }))
-                    }
-                  />
-                  <Label htmlFor="outOfState">Out-of-State Owners</Label>
+                <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${scrapingMethod === 'traditional' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                     onClick={() => setScrapingMethod('traditional')}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Globe className="h-5 w-5" />
+                    <h3 className="font-medium">Traditional Web Scraping</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Scrape public real estate websites like Realtor.com, Zillow, and county records
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Button 
-            onClick={startAdvancedSearch}
-            disabled={isSearching}
-            size="lg"
-            className="w-full"
-          >
-            {isSearching ? (
-              <>
-                <Pause className="mr-2 h-4 w-4" />
-                Searching... {searchProgress}%
-              </>
-            ) : (
-              <>
-                <Search className="mr-2 h-4 w-4" />
-                Start Advanced Search
-              </>
+          {/* Start Search Buttons */}
+          <div className="space-y-4">
+            {scrapingMethod === 'session' && (
+              <Button 
+                onClick={scrapeFromBrowserSessions}
+                disabled={isSearching || Object.values(sessionStatuses).every(status => !status.active)}
+                size="lg"
+                className="w-full"
+              >
+                {isSearching ? (
+                  <>
+                    <Pause className="mr-2 h-4 w-4" />
+                    Scraping from sessions... {searchProgress}%
+                  </>
+                ) : (
+                  <>
+                    <Users className="mr-2 h-4 w-4" />
+                    Scrape from Browser Sessions
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
 
+            {scrapingMethod === 'traditional' && (
+              <Button 
+                onClick={startAdvancedSearch}
+                disabled={isSearching}
+                size="lg"
+                className="w-full"
+              >
+                {isSearching ? (
+                  <>
+                    <Pause className="mr-2 h-4 w-4" />
+                    Traditional scraping... {searchProgress}%
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Start Traditional Search
+                  </>
+                )}
+              </Button>
+            )}
+
+            {scrapingMethod === 'session' && Object.values(sessionStatuses).every(status => !status.active) && (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Please login to at least one platform to use browser session scraping
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Search Progress */}
           {isSearching && (
             <Card>
               <CardContent className="pt-6">
@@ -1162,37 +1088,7 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
           )}
         </TabsContent>
 
-        <TabsContent value="presets" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {searchPresets.map((preset, index) => (
-              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <preset.icon className="h-5 w-5" />
-                    {preset.name}
-                  </CardTitle>
-                  <CardDescription>{preset.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => {
-                      preset.onClick();
-                      toast({
-                        title: "Preset Applied",
-                        description: `Applied ${preset.name} search criteria`,
-                      });
-                    }}
-                    className="w-full"
-                  >
-                    Apply This Preset
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="results" className="space-y-4">
+        <TabsContent value="results" className="space-y-6">
           {foundLeads.length > 0 && (
             <>
               <div className="flex justify-between items-center">
@@ -1208,7 +1104,13 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
                     {selectedLeads.size} of {foundLeads.length} selected
                   </span>
                 </div>
-                <Badge variant="outline">{foundLeads.length} leads found</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{foundLeads.length} leads found</Badge>
+                  <Button onClick={exportToCSV} disabled={selectedLeads.size === 0} size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export CSV
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -1310,6 +1212,44 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
                   </Card>
                 ))}
               </div>
+
+              {/* Export & Integration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    Export & Integration
+                  </CardTitle>
+                  <CardDescription>
+                    Send selected leads to your CRM or export as CSV
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Zapier Webhook URL</Label>
+                      <Input
+                        value={zapierWebhook}
+                        onChange={(e) => setZapierWebhook(e.target.value)}
+                        placeholder="https://hooks.zapier.com/hooks/catch/..."
+                      />
+                      <Button onClick={sendToZapier} disabled={selectedLeads.size === 0 || !zapierWebhook} className="w-full">
+                        <Zap className="mr-2 h-4 w-4" />
+                        Send to Zapier ({selectedLeads.size} leads)
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Export Options</Label>
+                      <div className="space-y-2">
+                        <Button onClick={exportToCSV} disabled={selectedLeads.size === 0} className="w-full" variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export to CSV ({selectedLeads.size} leads)
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </>
           )}
 
@@ -1318,64 +1258,132 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
               <CardContent className="text-center py-8">
                 <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No leads found</h3>
-                <p className="text-muted-foreground">Start a search to discover real estate leads</p>
+                <p className="text-muted-foreground">Go to the "Discover Buyers" tab to start searching for leads</p>
               </CardContent>
             </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="export" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Download className="h-5 w-5" />
-                  Export to CSV
-                </CardTitle>
-                <CardDescription>
-                  Download selected leads as a CSV file for use in Excel or other tools
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {selectedLeads.size} leads selected for export
-                </p>
-                <Button onClick={exportToCSV} disabled={selectedLeads.size === 0} className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export to CSV
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  Zapier Integration
-                </CardTitle>
-                <CardDescription>
-                  Send leads directly to your CRM or other tools via Zapier webhook
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <TabsContent value="ai-settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                AI Configuration
+              </CardTitle>
+              <CardDescription>
+                Configure AI settings for lead scoring and matching
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
                 <div>
-                  <Label>Zapier Webhook URL</Label>
-                  <Input
-                    value={zapierWebhook}
-                    onChange={(e) => setZapierWebhook(e.target.value)}
-                    placeholder="https://hooks.zapier.com/hooks/catch/..."
+                  <Label>Minimum Confidence Score</Label>
+                  <Slider
+                    value={[70]}
+                    max={100}
+                    min={50}
+                    step={5}
+                    className="mt-2"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Only show leads with confidence scores above this threshold
+                  </p>
+                </div>
+                
+                <div>
+                  <Label>Lead Scoring Weights</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div>
+                      <Label className="text-sm">High Equity Properties</Label>
+                      <Slider value={[20]} max={50} min={0} step={5} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Contact Information Available</Label>
+                      <Slider value={[15]} max={50} min={0} step={5} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Distressed Properties</Label>
+                      <Slider value={[25]} max={50} min={0} step={5} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Long Ownership Period</Label>
+                      <Slider value={[10]} max={50} min={0} step={5} className="mt-1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>AI Processing Options</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="autoSkipTrace" />
+                      <Label htmlFor="autoSkipTrace">Automatically enhance leads with skip tracing</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="autoScore" defaultChecked />
+                      <Label htmlFor="autoScore">Enable AI confidence scoring</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="duplicateFilter" defaultChecked />
+                      <Label htmlFor="duplicateFilter">Filter out duplicate leads automatically</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Smart Matching
+              </CardTitle>
+              <CardDescription>
+                AI-powered matching preferences for buyer qualification
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <Label>Preferred Property Types</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                    {propertyTypes.map(type => (
+                      <div key={type} className="flex items-center space-x-2">
+                        <Checkbox id={`ai-${type}`} defaultChecked={['Single Family', 'Multi Family'].includes(type)} />
+                        <Label htmlFor={`ai-${type}`} className="text-sm">{type}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Investment Focus</Label>
+                  <Select defaultValue="flip">
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="flip">Fix & Flip</SelectItem>
+                      <SelectItem value="rental">Buy & Hold Rental</SelectItem>
+                      <SelectItem value="wholesale">Wholesale</SelectItem>
+                      <SelectItem value="development">Development</SelectItem>
+                      <SelectItem value="mixed">Mixed Strategy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Geographic Preferences</Label>
+                  <Textarea 
+                    placeholder="Preferred markets, areas to avoid, etc."
+                    className="mt-2"
                   />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {selectedLeads.size} leads selected for integration
-                </p>
-                <Button onClick={sendToZapier} disabled={selectedLeads.size === 0 || !zapierWebhook} className="w-full">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Send to Zapier
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
