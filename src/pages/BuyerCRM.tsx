@@ -159,6 +159,15 @@ const BuyerCRM = () => {
             </Button>
             <Button 
               variant="outline"
+              onClick={() => setActiveTab('gmail')}
+              className="border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 text-xs sm:text-sm"
+              size="sm"
+            >
+              <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              Gmail Leads
+            </Button>
+            <Button 
+              variant="outline"
               onClick={() => setActiveTab('ai-outreach')}
               className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20 text-xs sm:text-sm"
               size="sm"

@@ -264,7 +264,9 @@ async function handleAuthStatus(userId: string, supabase: any) {
       authenticated: isAuthenticated,
       expiresAt: tokenData?.expires_at,
       scope: tokenData?.scope,
-      authenticatedAt: tokenData?.created_at
+      authenticatedAt: tokenData?.created_at,
+      connected: isAuthenticated,
+      connectedAt: tokenData?.created_at
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
