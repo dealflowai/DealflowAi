@@ -1,16 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { X, Plus, AlertTriangle, Users, Merge } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationService } from '@/services/notificationService';
+import { useDuplicateDetection } from '@/hooks/useDuplicateDetection';
+import MergeBuyersDialog from './MergeBuyersDialog';
 
 interface AddBuyerDialogProps {
   open: boolean;
@@ -60,6 +63,32 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
   const [newPropertyType, setNewPropertyType] = useState('');
   const [newTag, setNewTag] = useState('');
   const [newAdditionalTag, setNewAdditionalTag] = useState('');
+
+  // Duplicate detection
+  const [showMergeDialog, setShowMergeDialog] = useState(false);
+  const [selectedDuplicate, setSelectedDuplicate] = useState<any>(null);
+
+  // Create a buyer object for duplicate detection
+  const buyerForDetection = {
+    name: formData.name,
+    email: formData.email,
+    phone: formData.phone,
+    company_name: '', // Add if you have this field
+    city: formData.city,
+    state: formData.state,
+  };
+
+  // Use duplicate detection hook
+  const { 
+    duplicateResult, 
+    hasHighConfidenceDuplicates, 
+    shouldWarn, 
+    ignoreDuplicate,
+    isLoading: isDuplicateChecking 
+  } = useDuplicateDetection({
+    newBuyer: buyerForDetection,
+    enabled: !!(formData.name || formData.email || formData.phone) && open
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,6 +284,67 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Duplicate Detection Warning */}
+          {shouldWarn && duplicateResult && duplicateResult.matches.length > 0 && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-semibold">
+                    {hasHighConfidenceDuplicates 
+                      ? 'High-confidence duplicate detected!' 
+                      : 'Potential duplicate(s) found'
+                    }
+                  </p>
+                  <div className="space-y-2">
+                    {duplicateResult.matches.slice(0, 2).map((match, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            {match.buyer.name || 'Unnamed Buyer'} - {match.matchScore}% match
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {match.matchReasons.join(', ')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {match.buyer.email} • Created: {new Date(match.buyer.created_at!).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 ml-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedDuplicate(match.buyer);
+                              setShowMergeDialog(true);
+                            }}
+                          >
+                            <Merge className="w-3 h-3 mr-1" />
+                            Merge
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => ignoreDuplicate(match.buyer.id)}
+                          >
+                            <X className="w-3 h-3 mr-1" />
+                            Ignore
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {duplicateResult.matches.length > 2 && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      +{duplicateResult.matches.length - 2} more potential duplicates
+                    </p>
+                  )}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
           {/* Basic Information */}
           <div className="border-b pb-4">
             <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
@@ -719,6 +809,30 @@ const AddBuyerDialog = ({ open, onOpenChange, onBuyerAdded }: AddBuyerDialogProp
             </Button>
           </div>
         </form>
+
+        {/* Merge Dialog */}
+        {selectedDuplicate && (
+          <MergeBuyersDialog
+            open={showMergeDialog}
+            onOpenChange={setShowMergeDialog}
+            primaryBuyer={selectedDuplicate}
+            secondaryBuyer={{
+              ...formData,
+              id: 'new-buyer',
+              created_at: new Date().toISOString(),
+              markets,
+              asset_types: assetTypes,
+              property_type_interest: propertyTypes,
+              tags,
+              tags_additional: additionalTags,
+            } as any}
+            onMergeComplete={() => {
+              setShowMergeDialog(false);
+              onBuyerAdded();
+              onOpenChange(false);
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

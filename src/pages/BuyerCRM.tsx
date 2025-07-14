@@ -16,6 +16,7 @@ import BuyerStats from '@/components/BuyerCRM/BuyerStats';
 import AIOutreach from '@/components/BuyerCRM/AIOutreach';
 import RealEstateLeadGenerator from '@/components/BuyerCRM/RealEstateLeadGenerator';
 import GmailIntegration from '@/components/BuyerCRM/GmailIntegration';
+import DuplicateDetection from '@/components/BuyerCRM/DuplicateDetection';
 
 const BuyerCRM = () => {
   const { user } = useUser();
@@ -218,10 +219,11 @@ const BuyerCRM = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Buyer Database</TabsTrigger>
             <TabsTrigger value="discovery">Buyer Discovery</TabsTrigger>
             <TabsTrigger value="gmail">Gmail Leads</TabsTrigger>
+            <TabsTrigger value="duplicates">Duplicates</TabsTrigger>
             <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
           </TabsList>
 
@@ -458,6 +460,10 @@ const BuyerCRM = () => {
 
           <TabsContent value="gmail" className="space-y-6">
             <GmailIntegration />
+          </TabsContent>
+
+          <TabsContent value="duplicates" className="space-y-6">
+            <DuplicateDetection onRefresh={refetch} />
           </TabsContent>
 
           <TabsContent value="ai-outreach" className="space-y-6">
