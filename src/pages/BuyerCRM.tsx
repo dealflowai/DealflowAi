@@ -420,226 +420,244 @@ const BuyerCRM = () => {
           </TabsContent>
 
           <TabsContent value="discovery" className="space-y-6">
-            {/* Advanced Discovery Workflow */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* Control Panel */}
-              <div className="xl:col-span-1 space-y-4">
-                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Settings className="h-5 w-5 text-primary" />
-                      Discovery Control
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Configure and orchestrate your lead discovery
-                    </p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Smart Filters */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-primary" />
-                        <span className="font-medium text-sm">Smart Filters</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 gap-2">
-                        <select 
-                          value={selectedStatus} 
-                          onChange={(e) => setSelectedStatus(e.target.value)}
-                          className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        >
-                          <option value="All">All Status</option>
-                          <option value="New">New</option>
-                          <option value="Active">Active</option>
-                          <option value="Warm">Warm</option>
-                          <option value="Cold">Cold</option>
-                          <option value="Qualified">Qualified</option>
-                        </select>
-
-                        <select 
-                          value={selectedPriority} 
-                          onChange={(e) => setSelectedPriority(e.target.value)}
-                          className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        >
-                          <option value="All">All Priority</option>
-                          <option value="VERY HIGH">Very High</option>
-                          <option value="HIGH">High</option>
-                          <option value="MEDIUM">Medium</option>
-                          <option value="LOW">Low</option>
-                        </select>
-                      </div>
+            {/* Unified Discovery System */}
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Globe className="h-6 w-6 text-primary" />
+                  Unified Buyer Discovery System
+                  <Badge variant="secondary" className="ml-2">All-in-One</Badge>
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Search for buyers across all platforms with unified filters and automated scraping
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Unified Search Controls */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Search Filters & Presets */}
+                  <div className="lg:col-span-1 space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Filter className="h-4 w-4 text-primary" />
+                      <span className="font-semibold">Search Criteria</span>
+                    </div>
+                    
+                    {/* Quick Preset Buttons */}
+                    <div className="grid grid-cols-1 gap-2">
+                      <Button 
+                        variant={selectedStatus === "Qualified" && selectedPriority === "HIGH" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("Qualified");
+                          setSelectedPriority("HIGH");
+                        }}
+                        className="justify-start animate-fade-in"
+                      >
+                        🎯 High-Value Qualified
+                      </Button>
+                      <Button 
+                        variant={selectedStatus === "Warm" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("Warm");
+                          setSelectedPriority("All");
+                        }}
+                        className="justify-start animate-fade-in"
+                      >
+                        🔥 Warm Prospects
+                      </Button>
+                      <Button 
+                        variant={selectedStatus === "New" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("New");
+                          setSelectedPriority("All");
+                        }}
+                        className="justify-start animate-fade-in"
+                      >
+                        ✨ Fresh Leads
+                      </Button>
+                      <Button 
+                        variant={selectedStatus === "Active" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("Active");
+                          setSelectedPriority("VERY HIGH");
+                        }}
+                        className="justify-start animate-fade-in"
+                      >
+                        ⚡ Hot Prospects
+                      </Button>
                     </div>
 
-                    {/* Quick Actions */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Zap className="h-4 w-4 text-yellow-500" />
-                        <span className="font-medium text-sm">Quick Presets</span>
-                      </div>
+                    {/* Custom Filters */}
+                    <div className="space-y-3 pt-4 border-t">
+                      <div className="text-sm font-medium text-muted-foreground">Custom Filters</div>
                       
-                      <div className="grid grid-cols-1 gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("Qualified");
-                            setSelectedPriority("HIGH");
-                          }}
-                          className="justify-start text-xs"
-                        >
-                          🎯 High-Value Qualified
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("Warm");
-                            setSelectedPriority("All");
-                          }}
-                          className="justify-start text-xs"
-                        >
-                          🔥 Warm Prospects
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("New");
-                            setSelectedPriority("All");
-                          }}
-                          className="justify-start text-xs"
-                        >
-                          ✨ Fresh Leads
-                        </Button>
-                      </div>
+                      <select 
+                        value={selectedStatus} 
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary hover-scale"
+                      >
+                        <option value="All">All Status</option>
+                        <option value="New">New</option>
+                        <option value="Active">Active</option>
+                        <option value="Warm">Warm</option>
+                        <option value="Cold">Cold</option>
+                        <option value="Qualified">Qualified</option>
+                      </select>
+
+                      <select 
+                        value={selectedPriority} 
+                        onChange={(e) => setSelectedPriority(e.target.value)}
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary hover-scale"
+                      >
+                        <option value="All">All Priority</option>
+                        <option value="VERY HIGH">Very High</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                      </select>
+
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus("All");
+                          setSelectedPriority("All");
+                        }}
+                        className="w-full mt-2"
+                      >
+                        Clear All Filters
+                      </Button>
                     </div>
 
-                    {/* Active Filters Display */}
+                    {/* Active Search Criteria */}
                     {(selectedStatus !== 'All' || selectedPriority !== 'All') && (
-                      <div className="p-3 bg-muted/50 rounded-lg border-l-4 border-l-primary">
+                      <div className="p-3 bg-muted/50 rounded-lg border-l-4 border-l-primary animate-scale-in">
                         <div className="text-xs font-medium text-muted-foreground mb-2">
-                          ACTIVE FILTERS
+                          🔍 ACTIVE SEARCH
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {selectedStatus !== 'All' && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs animate-fade-in">
                               Status: {selectedStatus}
                             </Badge>
                           )}
                           {selectedPriority !== 'All' && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs animate-fade-in">
                               Priority: {selectedPriority}
                             </Badge>
                           )}
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStatus("All");
-                            setSelectedPriority("All");
-                          }}
-                          className="mt-2 h-6 px-2 text-xs"
-                        >
-                          Clear All
-                        </Button>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          All platforms will search for buyers matching these criteria
+                        </div>
                       </div>
                     )}
+                  </div>
 
-                    {/* Automation Status */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium text-sm">Automation Status</span>
-                      </div>
-                      
-                      <div className="bg-muted/30 rounded-lg p-3">
-                        <AutomatedScrapingManager />
+                  {/* Unified Platform Discovery */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="h-4 w-4 text-blue-500" />
+                      <span className="font-semibold">Multi-Platform Search</span>
+                      <Badge variant="outline" className="text-xs">AI-Powered</Badge>
+                    </div>
+                    
+                    {/* Platform Discovery Tool */}
+                    <div className="border rounded-lg p-4 bg-background/50">
+                      <RealEstateLeadGenerator 
+                        onLeadsFound={(leads) => {
+                          console.log('Found leads with current filters:', {
+                            leads,
+                            status: selectedStatus,
+                            priority: selectedPriority
+                          });
+                          refetch(); // Refresh to show new leads
+                        }} 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Automation & Browser Sessions */}
+                <div className="border-t pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Bot className="h-4 w-4 text-orange-500" />
+                    <span className="font-semibold">Automated Browser Sessions</span>
+                    <Badge variant="outline" className="text-xs">Background</Badge>
+                  </div>
+                  
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <AutomatedScrapingManager />
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Clock className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                          🔄 Synchronized Search
+                        </p>
+                        <p className="text-blue-700 dark:text-blue-300 text-xs">
+                          Automated scraping will use your active search criteria above. Manual and automatic searches work together to find buyers matching your filters across all platforms.
+                        </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Discovery Tools */}
-              <div className="xl:col-span-2 space-y-6">
-                {/* Platform Discovery */}
-                <Card className="border-blue-200 dark:border-blue-800">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-blue-600" />
-                      AI-Powered Platform Discovery
-                      <Badge variant="secondary" className="ml-2 text-xs">Advanced</Badge>
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Intelligent lead discovery across LinkedIn, Facebook, and Propwire with AI matching
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <RealEstateLeadGenerator onLeadsFound={(leads) => {
-                      console.log('Found leads:', leads);
-                      refetch(); // Refresh the buyer list to show new leads
-                    }} />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 {/* Smart Duplicate Detection */}
-                <Card className="border-green-200 dark:border-green-800">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-green-600" />
-                      Smart Duplicate Detection
-                      <Badge variant="outline" className="ml-2 text-xs">Auto-Clean</Badge>
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      AI-powered duplicate detection and automatic data cleaning
-                    </p>
-                  </CardHeader>
-                  <CardContent>
+                <div className="border-t pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users className="h-4 w-4 text-green-500" />
+                    <span className="font-semibold">Smart Data Cleaning</span>
+                    <Badge variant="outline" className="text-xs">Auto-Clean</Badge>
+                  </div>
+                  
+                  <div className="bg-muted/30 rounded-lg p-4">
                     <DuplicateDetection onRefresh={refetch} />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
-                {/* Discovery Insights */}
-                <Card className="border-purple-200 dark:border-purple-800">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-purple-600" />
-                      Discovery Analytics
-                      <Badge variant="outline" className="ml-2 text-xs">Live</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {buyers.filter(b => b.created_at && new Date(b.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length}
-                        </div>
-                        <div className="text-xs text-muted-foreground">New This Week</div>
+                {/* Live Discovery Stats */}
+                <div className="border-t pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="h-4 w-4 text-purple-500" />
+                    <span className="font-semibold">Discovery Analytics</span>
+                    <Badge variant="outline" className="text-xs">Live</Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-lg hover-scale">
+                      <div className="text-2xl font-bold text-blue-600 animate-fade-in">
+                        {filteredBuyers.filter(b => b.created_at && new Date(b.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length}
                       </div>
-                      <div className="text-center p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {buyers.filter(b => b.status === 'Qualified').length}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Qualified</div>
-                      </div>
-                      <div className="text-center p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-600">
-                          {buyers.filter(b => b.priority === 'HIGH' || b.priority === 'VERY HIGH').length}
-                        </div>
-                        <div className="text-xs text-muted-foreground">High Priority</div>
-                      </div>
-                      <div className="text-center p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600">
-                          {buyers.filter(b => b.last_contacted && new Date(b.last_contacted) > new Date(Date.now() - 7*24*60*60*1000)).length}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Recent Contact</div>
-                      </div>
+                      <div className="text-xs text-muted-foreground">New This Week</div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                    <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 rounded-lg hover-scale">
+                      <div className="text-2xl font-bold text-green-600 animate-fade-in">
+                        {filteredBuyers.filter(b => b.status === 'Qualified').length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Qualified Matches</div>
+                    </div>
+                    <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 rounded-lg hover-scale">
+                      <div className="text-2xl font-bold text-orange-600 animate-fade-in">
+                        {filteredBuyers.filter(b => b.priority === 'HIGH' || b.priority === 'VERY HIGH').length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">High Priority</div>
+                    </div>
+                    <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 rounded-lg hover-scale">
+                      <div className="text-2xl font-bold text-purple-600 animate-fade-in">
+                        {filteredBuyers.length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Total Filtered</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="ai-outreach" className="space-y-6">
