@@ -217,7 +217,7 @@ const BuyerCRM = () => {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Buyers</TabsTrigger>
+            <TabsTrigger value="overview">Buyer Database</TabsTrigger>
             <TabsTrigger value="discovery">Discovery & Tools</TabsTrigger>
             <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
           </TabsList>
