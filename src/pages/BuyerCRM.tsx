@@ -157,25 +157,16 @@ const BuyerCRM = () => {
               size="sm"
             >
               <Globe className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              Discover Buyers
+              Discovery
             </Button>
             <Button 
               variant="outline"
-              onClick={() => setActiveTab('gmail')}
-              className="border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 text-xs sm:text-sm"
-              size="sm"
-            >
-              <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              Gmail Leads
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => setActiveTab('ai-outreach')}
+              onClick={() => setActiveTab('ai-tools')}
               className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20 text-xs sm:text-sm"
               size="sm"
             >
               <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              AI Outreach
+              AI Tools
             </Button>
             <Button 
               className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
@@ -220,13 +211,10 @@ const BuyerCRM = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Buyer Database</TabsTrigger>
-            <TabsTrigger value="discovery">Buyer Discovery</TabsTrigger>
-            <TabsTrigger value="automation">Automation</TabsTrigger>
-            <TabsTrigger value="gmail">Gmail Leads</TabsTrigger>
-            <TabsTrigger value="duplicates">Duplicates</TabsTrigger>
-            <TabsTrigger value="ai-outreach">AI Outreach</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Buyers</TabsTrigger>
+            <TabsTrigger value="discovery">Discovery</TabsTrigger>
+            <TabsTrigger value="ai-tools">AI Tools</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -280,6 +268,9 @@ const BuyerCRM = () => {
               </CardContent>
             </Card>
 
+            {/* Duplicate Detection Section */}
+            <DuplicateDetection />
+
             {/* Buyers Grid */}
             {filteredBuyers.length === 0 ? (
               <Card className="dark:bg-gray-800 dark:border-gray-700">
@@ -297,9 +288,9 @@ const BuyerCRM = () => {
                         <Globe className="w-4 h-4 mr-2" />
                         Discover Buyers
                       </Button>
-                      <Button variant="outline" onClick={() => setActiveTab('ai-outreach')}>
+                      <Button variant="outline" onClick={() => setActiveTab('ai-tools')}>
                         <Sparkles className="w-4 h-4 mr-2" />
-                        AI Outreach
+                        AI Tools
                       </Button>
                     </div>
                   )}
@@ -458,22 +449,12 @@ const BuyerCRM = () => {
 
           <TabsContent value="discovery" className="space-y-6">
             <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
-          </TabsContent>
-
-          <TabsContent value="automation" className="space-y-6">
-            <AutomatedScrapingManager />
-          </TabsContent>
-
-          <TabsContent value="gmail" className="space-y-6">
             <GmailIntegration />
           </TabsContent>
 
-          <TabsContent value="duplicates" className="space-y-6">
-            <DuplicateDetection onRefresh={refetch} />
-          </TabsContent>
-
-          <TabsContent value="ai-outreach" className="space-y-6">
+          <TabsContent value="ai-tools" className="space-y-6">
             <AIOutreach buyers={buyers} onRefresh={refetch} />
+            <AutomatedScrapingManager />
           </TabsContent>
         </Tabs>
 
