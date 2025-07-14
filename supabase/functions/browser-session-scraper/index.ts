@@ -13,6 +13,15 @@ interface ScrapingRequest {
   loginUrl?: string;
   scrapeTargets?: string[];
   filters?: any;
+  sessionData?: {
+    cookies?: Array<{name: string, value: string, domain?: string, path?: string}>;
+    sessionToken?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    localStorage?: Record<string, any>;
+    sessionStorage?: Record<string, any>;
+    headers?: Record<string, string>;
+  };
 }
 
 serve(async (req) => {
@@ -77,28 +86,35 @@ serve(async (req) => {
 });
 
 async function handleBrowserLogin(body: ScrapingRequest, userId: string, supabase: any) {
-  console.log(`Starting browser login for ${body.platform}`);
+  console.log(`Starting real authentication for ${body.platform}`);
   
-  // In a real implementation, this would:
-  // 1. Launch a headful browser with Puppeteer/Playwright
-  // 2. Navigate to the login URL
-  // 3. Wait for user to complete login manually
-  // 4. Extract session cookies and tokens
-  // 5. Store them securely in the database
-  
-  // For now, simulate the login process
-  const loginData = await simulateBrowserLogin(body.platform, body.loginUrl);
-  
-  // Store session data
+  // Validate required session data is provided
+  if (!body.sessionData) {
+    throw new Error('Session data is required for authentication. Please provide cookies, tokens, or authentication headers.');
+  }
+
+  // Validate session data based on platform
+  const validationResult = await validateSessionData(body.platform, body.sessionData);
+  if (!validationResult.valid) {
+    throw new Error(`Invalid session data: ${validationResult.error}`);
+  }
+
+  // Test the session by making an authenticated request
+  const testResult = await testPlatformSession(body.platform, body.sessionData);
+  if (!testResult.success) {
+    throw new Error(`Session test failed: ${testResult.error}`);
+  }
+
+  // Store validated session data
   const { error } = await supabase
     .from('scraping_sessions')
     .upsert({
       user_id: userId,
       platform: body.platform,
-      session_token: loginData.sessionToken,
-      cookies: loginData.cookies,
-      local_storage: loginData.localStorage,
-      session_storage: loginData.sessionStorage,
+      session_token: body.sessionData.sessionToken || generateSessionId(),
+      cookies: body.sessionData.cookies ? JSON.stringify(body.sessionData.cookies) : null,
+      local_storage: body.sessionData.localStorage ? JSON.stringify(body.sessionData.localStorage) : null,
+      session_storage: body.sessionData.sessionStorage ? JSON.stringify(body.sessionData.sessionStorage) : null,
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
       is_active: true
     }, {
@@ -112,9 +128,10 @@ async function handleBrowserLogin(body: ScrapingRequest, userId: string, supabas
   return new Response(
     JSON.stringify({ 
       success: true,
-      message: `Successfully logged into ${body.platform}`,
+      message: `Successfully authenticated with ${body.platform}`,
       sessionActive: true,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      userInfo: testResult.userInfo
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
@@ -219,26 +236,148 @@ async function handleLogout(body: ScrapingRequest, userId: string, supabase: any
   );
 }
 
-async function simulateBrowserLogin(platform: string, loginUrl?: string) {
-  console.log(`Simulating browser login for ${platform} at ${loginUrl}`);
+async function validateSessionData(platform: string, sessionData: any) {
+  // Validate required fields based on platform
+  switch (platform) {
+    case 'facebook':
+      if (!sessionData.cookies?.some((c: any) => c.name === 'c_user' || c.name === 'xs')) {
+        return { valid: false, error: 'Facebook requires c_user and xs cookies' };
+      }
+      break;
+    case 'linkedin':
+      if (!sessionData.cookies?.some((c: any) => c.name === 'li_at') && !sessionData.accessToken) {
+        return { valid: false, error: 'LinkedIn requires li_at cookie or access token' };
+      }
+      break;
+    case 'propwire':
+      if (!sessionData.sessionToken && !sessionData.cookies?.some((c: any) => c.name.includes('session'))) {
+        return { valid: false, error: 'Propwire requires session token or session cookies' };
+      }
+      break;
+  }
+  return { valid: true };
+}
+
+async function testPlatformSession(platform: string, sessionData: any) {
+  console.log(`Testing session for ${platform}`);
   
-  // For now, simulate the login process with demo data
-  // In production, this would use Puppeteer or similar browser automation
-  const sessionToken = `${platform}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  try {
+    // Test session by making authenticated requests to platform APIs
+    switch (platform) {
+      case 'facebook':
+        return await testFacebookSession(sessionData);
+      case 'linkedin':
+        return await testLinkedInSession(sessionData);
+      case 'propwire':
+        return await testPropwireSession(sessionData);
+      default:
+        return { success: false, error: 'Unsupported platform' };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+async function testFacebookSession(sessionData: any) {
+  // Test Facebook Graph API access
+  const cookieString = sessionData.cookies
+    ?.map((c: any) => `${c.name}=${c.value}`)
+    .join('; ');
+
+  const response = await fetch('https://graph.facebook.com/me', {
+    headers: {
+      'Cookie': cookieString,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+  });
+
+  if (response.ok) {
+    const user = await response.json();
+    return { 
+      success: true, 
+      userInfo: { name: user.name, id: user.id, platform: 'facebook' }
+    };
+  }
   
-  // Simulate session data
-  const demoSessionData = {
-    sessionToken,
-    cookies: JSON.stringify([
-      { name: 'session', value: sessionToken, domain: `.${platform}.com` }
-    ]),
-    localStorage: JSON.stringify({ userToken: sessionToken }),
-    sessionStorage: JSON.stringify({ sessionId: sessionToken }),
-    loginSuccessful: true
+  return { success: false, error: 'Invalid Facebook session' };
+}
+
+async function testLinkedInSession(sessionData: any) {
+  // Test LinkedIn API access
+  if (sessionData.accessToken) {
+    const response = await fetch('https://api.linkedin.com/v2/me', {
+      headers: {
+        'Authorization': `Bearer ${sessionData.accessToken}`,
+        'X-Restli-Protocol-Version': '2.0.0'
+      }
+    });
+
+    if (response.ok) {
+      const user = await response.json();
+      return { 
+        success: true, 
+        userInfo: { name: `${user.firstName?.localized?.en_US} ${user.lastName?.localized?.en_US}`, id: user.id, platform: 'linkedin' }
+      };
+    }
+  }
+
+  // Fallback to cookie-based test
+  const cookieString = sessionData.cookies
+    ?.map((c: any) => `${c.name}=${c.value}`)
+    .join('; ');
+
+  // LinkedIn's feed page as authentication test
+  const response = await fetch('https://www.linkedin.com/feed/', {
+    headers: {
+      'Cookie': cookieString,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    redirect: 'manual'
+  });
+
+  if (response.status === 200) {
+    return { 
+      success: true, 
+      userInfo: { platform: 'linkedin', authenticated: true }
+    };
+  }
+  
+  return { success: false, error: 'Invalid LinkedIn session' };
+}
+
+async function testPropwireSession(sessionData: any) {
+  // Test Propwire session
+  const headers: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
   };
+
+  if (sessionData.sessionToken) {
+    headers['Authorization'] = `Bearer ${sessionData.sessionToken}`;
+  }
+
+  if (sessionData.cookies) {
+    headers['Cookie'] = sessionData.cookies
+      .map((c: any) => `${c.name}=${c.value}`)
+      .join('; ');
+  }
+
+  const response = await fetch('https://propwire.com/api/user/profile', {
+    headers,
+    redirect: 'manual'
+  });
+
+  if (response.ok || response.status === 302) {
+    return { 
+      success: true, 
+      userInfo: { platform: 'propwire', authenticated: true }
+    };
+  }
   
-  console.log(`Demo login completed for ${platform}`);
-  return demoSessionData;
+  return { success: false, error: 'Invalid Propwire session' };
+}
+
+function generateSessionId() {
+  return `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 }
 
 async function performAuthenticatedScraping(platform: string, session: any, targets: string[] = [], filters: any = {}) {
