@@ -4,11 +4,11 @@ import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles, AlertCircle } from 'lucide-react';
+import { Plus, Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Calendar, Target, DollarSign, Building, Globe, Bot, Sparkles, AlertCircle, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AddBuyerDialog from '@/components/BuyerCRM/AddBuyerDialog';
 import BuyerScraper from '@/components/BuyerCRM/BuyerScraper';
@@ -144,42 +144,47 @@ const BuyerCRM = () => {
   return (
     <Layout>
       <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 truncate">Buyer CRM</h1>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Manage your qualified cash buyers and discover new opportunities</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Buyer CRM</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Manage and discover qualified cash buyers
+            </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-2">
             <Button 
-              variant="outline"
-              onClick={() => setActiveTab('discovery')}
-              className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20 text-xs sm:text-sm"
+              variant="outline" 
               size="sm"
+              onClick={() => setActiveTab('discovery')}
+              className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400"
             >
-              <Globe className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <Globe className="w-4 h-4 mr-2" />
               Discovery
             </Button>
             <Button 
-              variant="outline"
-              onClick={() => setActiveTab('ai-tools')}
-              className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20 text-xs sm:text-sm"
+              variant="outline" 
               size="sm"
+              onClick={() => setActiveTab('tools')}
+              className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400"
             >
-              <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <Bot className="w-4 h-4 mr-2" />
               AI Tools
             </Button>
             <Button 
-              className="bg-primary hover:bg-primary/90 text-xs sm:text-sm"
-              onClick={() => setShowAddDialog(true)}
               size="sm"
+              onClick={() => setShowAddDialog(true)}
+              className="bg-primary hover:bg-primary/90"
             >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Add Buyer
             </Button>
           </div>
         </div>
 
-        {/* Discovery CTA - Show if no new buyers for >7 days */}
+        {/* Discovery CTA */}
         {showDiscoveryCTA && (
           <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
             <CardContent className="p-4">
@@ -190,7 +195,7 @@ const BuyerCRM = () => {
                     It's been {daysSinceLastBuyer} days since your last buyer addition
                   </h3>
                   <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                    Run discovery on LinkedIn to find fresh opportunities and grow your pipeline.
+                    Run discovery to find fresh opportunities and grow your pipeline.
                   </p>
                 </div>
                 <Button 
@@ -209,53 +214,46 @@ const BuyerCRM = () => {
         {/* Stats Overview */}
         <BuyerStats buyers={buyers} />
 
-        {/* Main Content Tabs */}
+        {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Buyers</TabsTrigger>
-            <TabsTrigger value="discovery">Discovery</TabsTrigger>
-            <TabsTrigger value="ai-tools">AI Tools</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview">Buyers Database</TabsTrigger>
+            <TabsTrigger value="discovery">Discovery & Tools</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Enhanced Filters */}
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4">
+            {/* Enhanced Filters & Actions */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                       placeholder="Search buyers by name, email, location..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 text-sm"
+                      className="pl-10"
                     />
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <select 
-                        value={selectedStatus} 
-                        onChange={(e) => setSelectedStatus(e.target.value)}
-                        className="flex-1 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="All">All Status</option>
-                        <option value="New">New</option>
-                        <option value="Active">Active</option>
-                        <option value="Warm">Warm</option>
-                        <option value="Cold">Cold</option>
-                        <option value="Not contacted">Not Contacted</option>
-                        <option value="Contacted">Contacted</option>
-                        <option value="Qualified">Qualified</option>
-                        <option value="Deal pending">Deal Pending</option>
-                      </select>
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <select 
+                      value={selectedStatus} 
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="All">All Status</option>
+                      <option value="New">New</option>
+                      <option value="Active">Active</option>
+                      <option value="Warm">Warm</option>
+                      <option value="Cold">Cold</option>
+                      <option value="Qualified">Qualified</option>
+                    </select>
 
                     <select 
                       value={selectedPriority} 
                       onChange={(e) => setSelectedPriority(e.target.value)}
-                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="All">All Priority</option>
                       <option value="VERY HIGH">Very High</option>
@@ -268,36 +266,32 @@ const BuyerCRM = () => {
               </CardContent>
             </Card>
 
-            {/* Duplicate Detection Section */}
-            <DuplicateDetection />
+            {/* Smart Duplicate Detection */}
+            <DuplicateDetection onRefresh={refetch} />
 
-            {/* Buyers Grid */}
+            {/* Buyers List */}
             {filteredBuyers.length === 0 ? (
-              <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <Card>
                 <CardContent className="p-12 text-center">
                   <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-                    {buyers.length === 0 ? 'No buyers found. Import a lead or discover buyers to start building your pipeline.' : 'No buyers match your search criteria.'}
+                    {buyers.length === 0 ? 'No buyers found. Start by discovering new leads.' : 'No buyers match your filters.'}
                   </p>
                   {buyers.length === 0 && (
-                    <div className="flex justify-center space-x-3">
+                    <div className="flex justify-center gap-3">
                       <Button onClick={() => setShowAddDialog(true)}>
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Your First Buyer
+                        Add Buyer
                       </Button>
                       <Button variant="outline" onClick={() => setActiveTab('discovery')}>
                         <Globe className="w-4 h-4 mr-2" />
-                        Discover Buyers
-                      </Button>
-                      <Button variant="outline" onClick={() => setActiveTab('ai-tools')}>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        AI Tools
+                        Discover Leads
                       </Button>
                     </div>
                   )}
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredBuyers.map((buyer) => (
                   <Card key={buyer.id} className="hover:shadow-lg transition-all duration-200 dark:bg-gray-800 dark:border-gray-700">
                     <CardHeader className="pb-3 sm:pb-4">
@@ -448,13 +442,59 @@ const BuyerCRM = () => {
           </TabsContent>
 
           <TabsContent value="discovery" className="space-y-6">
-            <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
-            <GmailIntegration />
-          </TabsContent>
+            {/* Discovery Tools */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Platform Discovery
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <RealEstateLeadGenerator onLeadsFound={(leads) => console.log('Found leads:', leads)} />
+                </CardContent>
+              </Card>
 
-          <TabsContent value="ai-tools" className="space-y-6">
-            <AIOutreach buyers={buyers} onRefresh={refetch} />
-            <AutomatedScrapingManager />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    Gmail Integration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <GmailIntegration />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* AI & Automation Tools */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="h-5 w-5" />
+                    AI Outreach
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AIOutreach buyers={buyers} onRefresh={refetch} />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Automated Scraping
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AutomatedScrapingManager />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
