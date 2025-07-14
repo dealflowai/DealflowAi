@@ -432,37 +432,49 @@ const BuyerCRM = () => {
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Filters */}
-                <div className="flex items-center gap-3 flex-wrap">
-                  <select 
-                    value={selectedStatus} 
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="All">All Status</option>
-                    <option value="New">New</option>
-                    <option value="Active">Active</option>
-                    <option value="Warm">Warm</option>
-                    <option value="Cold">Cold</option>
-                    <option value="Qualified">Qualified</option>
-                  </select>
+                {/* Filters with integrated presets */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <select 
+                        value={selectedStatus} 
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="All">All Status</option>
+                        <option value="New">New</option>
+                        <option value="Active">Active</option>
+                        <option value="Warm">Warm</option>
+                        <option value="Cold">Cold</option>
+                        <option value="Qualified">Qualified</option>
+                      </select>
 
-                  <select 
-                    value={selectedPriority} 
-                    onChange={(e) => setSelectedPriority(e.target.value)}
-                    className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="All">All Priority</option>
-                    <option value="VERY HIGH">Very High</option>
-                    <option value="HIGH">High</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="LOW">Low</option>
-                  </select>
-                </div>
+                      <select 
+                        value={selectedPriority} 
+                        onChange={(e) => setSelectedPriority(e.target.value)}
+                        className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="All">All Priority</option>
+                        <option value="VERY HIGH">Very High</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                      </select>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStatus("All");
+                        setSelectedPriority("All");
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  </div>
 
-                {/* Quick Presets */}
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quick Presets</h4>
+                  {/* Quick Preset Buttons */}
                   <div className="flex gap-2 flex-wrap">
                     <Button 
                       variant="outline" 
@@ -471,6 +483,7 @@ const BuyerCRM = () => {
                         setSelectedStatus("Qualified");
                         setSelectedPriority("HIGH");
                       }}
+                      className="text-xs"
                     >
                       High Priority Qualified
                     </Button>
@@ -481,6 +494,7 @@ const BuyerCRM = () => {
                         setSelectedStatus("Warm");
                         setSelectedPriority("All");
                       }}
+                      className="text-xs"
                     >
                       Warm Leads
                     </Button>
@@ -491,18 +505,9 @@ const BuyerCRM = () => {
                         setSelectedStatus("New");
                         setSelectedPriority("All");
                       }}
+                      className="text-xs"
                     >
                       New Prospects
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setSelectedStatus("All");
-                        setSelectedPriority("All");
-                      }}
-                    >
-                      Clear Filters
                     </Button>
                   </div>
                 </div>
