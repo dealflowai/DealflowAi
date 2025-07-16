@@ -1131,14 +1131,14 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
                         <Checkbox id="mls-data" defaultChecked />
                         <Label htmlFor="mls-data" className="text-sm">MLS Listings Data</Label>
                       </div>
-                      <Badge variant="outline">Premium</Badge>
+                      <Badge variant="outline">Core</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Checkbox id="foreclosure-data" />
                         <Label htmlFor="foreclosure-data" className="text-sm">Foreclosure Records</Label>
                       </div>
-                      <Badge variant="outline">Premium</Badge>
+                      <Badge variant="outline">Core</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
