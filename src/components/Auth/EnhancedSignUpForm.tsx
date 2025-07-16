@@ -595,7 +595,29 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               <Input
                 id="phone"
                 type="tel"
-                {...basicForm.register('phone')}
+                {...basicForm.register('phone', {
+                  onChange: (e) => {
+                    // Format phone number as user types
+                    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                    let formattedValue = '';
+                    
+                    if (value.length > 0) {
+                      if (value.length <= 3) {
+                        formattedValue = `(${value}`;
+                      } else if (value.length <= 6) {
+                        formattedValue = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                      } else if (value.length <= 10) {
+                        formattedValue = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+                      } else {
+                        // Handle 11 digits (with country code)
+                        formattedValue = `+${value.slice(0, 1)} (${value.slice(1, 4)}) ${value.slice(4, 7)}-${value.slice(7, 11)}`;
+                      }
+                    }
+                    
+                    e.target.value = formattedValue;
+                    basicForm.setValue('phone', formattedValue);
+                  }
+                })}
                 className="mt-1"
                 placeholder="+1 (555) 123-4567"
               />
