@@ -530,11 +530,10 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
       </Card>
 
       <Tabs defaultValue="search" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="search">Search Filters</TabsTrigger>
-          <TabsTrigger value="presets">Quick Presets</TabsTrigger>
           <TabsTrigger value="results">Results ({foundLeads.length})</TabsTrigger>
-          <TabsTrigger value="export">Export & Integrate</TabsTrigger>
+          <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="search" className="space-y-6">
@@ -735,6 +734,49 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
             </CardContent>
           </Card>
 
+          {/* Quick Presets */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Quick Presets
+              </CardTitle>
+              <CardDescription>
+                Apply pre-configured search criteria for common scenarios
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {searchPresets.map((preset, index) => (
+                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-sm">
+                        <preset.icon className="h-4 w-4" />
+                        {preset.name}
+                      </CardTitle>
+                      <CardDescription className="text-xs">{preset.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Button 
+                        onClick={() => {
+                          preset.onClick();
+                          toast({
+                            title: "Preset Applied",
+                            description: `Applied ${preset.name} search criteria`,
+                          });
+                        }}
+                        size="sm"
+                        className="w-full"
+                      >
+                        Apply Preset
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           <Button 
             onClick={startAdvancedSearch}
             disabled={isSearching}
@@ -769,36 +811,6 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
           )}
         </TabsContent>
 
-        <TabsContent value="presets" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {searchPresets.map((preset, index) => (
-              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <preset.icon className="h-5 w-5" />
-                    {preset.name}
-                  </CardTitle>
-                  <CardDescription>{preset.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => {
-                      preset.onClick();
-                      toast({
-                        title: "Preset Applied",
-                        description: `Applied ${preset.name} search criteria`,
-                      });
-                    }}
-                    className="w-full"
-                  >
-                    Apply This Preset
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
         <TabsContent value="results" className="space-y-4">
           {foundLeads.length > 0 && (
             <>
@@ -815,8 +827,37 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
                     {selectedLeads.size} of {foundLeads.length} selected
                   </span>
                 </div>
-                <Badge variant="outline">{foundLeads.length} leads found</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{foundLeads.length} leads found</Badge>
+                  <Button onClick={exportToCSV} disabled={selectedLeads.size === 0} size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export CSV
+                  </Button>
+                  <Button onClick={sendToZapier} disabled={selectedLeads.size === 0 || !zapierWebhook} size="sm">
+                    <Zap className="mr-2 h-4 w-4" />
+                    Send to Zapier
+                  </Button>
+                </div>
               </div>
+
+              {/* Zapier Webhook Input */}
+              {selectedLeads.size > 0 && (
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium mb-2 block">Zapier Webhook URL (Optional)</Label>
+                        <Input
+                          value={zapierWebhook}
+                          onChange={(e) => setZapierWebhook(e.target.value)}
+                          placeholder="https://hooks.zapier.com/hooks/catch/..."
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <div className="space-y-2">
                 {foundLeads.map((lead) => (
@@ -931,55 +972,204 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
           )}
         </TabsContent>
 
-        <TabsContent value="export" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TabsContent value="ai-settings" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* AI Scoring Configuration */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Download className="h-5 w-5" />
-                  Export to CSV
+                  <Settings className="h-5 w-5" />
+                  AI Scoring & Ranking
                 </CardTitle>
                 <CardDescription>
-                  Download selected leads as a CSV file for use in Excel or other tools
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {selectedLeads.size} leads selected for export
-                </p>
-                <Button onClick={exportToCSV} disabled={selectedLeads.size === 0} className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export to CSV
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  Zapier Integration
-                </CardTitle>
-                <CardDescription>
-                  Send leads directly to your CRM or other tools via Zapier webhook
+                  Configure how AI evaluates and scores property leads
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Zapier Webhook URL</Label>
-                  <Input
-                    value={zapierWebhook}
-                    onChange={(e) => setZapierWebhook(e.target.value)}
-                    placeholder="https://hooks.zapier.com/hooks/catch/..."
+                  <Label className="text-sm font-medium">Minimum Confidence Score</Label>
+                  <Slider
+                    defaultValue={[70]}
+                    max={100}
+                    min={50}
+                    step={5}
+                    className="mt-2"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Only show leads with confidence scores above this threshold</p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {selectedLeads.size} leads selected for integration
-                </p>
-                <Button onClick={sendToZapier} disabled={selectedLeads.size === 0 || !zapierWebhook} className="w-full">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Send to Zapier
-                </Button>
+                
+                <div>
+                  <Label className="text-sm font-medium">Priority Weighting</Label>
+                  <div className="space-y-3 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Equity Percentage</span>
+                      <Badge variant="outline">High</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Contact Information</span>
+                      <Badge variant="outline">Medium</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Property Condition</span>
+                      <Badge variant="outline">Medium</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Ownership Length</span>
+                      <Badge variant="outline">Low</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">AI Enhancement Options</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="skip-tracing" defaultChecked />
+                      <Label htmlFor="skip-tracing" className="text-sm">Enable skip tracing for contact info</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="property-analysis" defaultChecked />
+                      <Label htmlFor="property-analysis" className="text-sm">Analyze property condition automatically</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="market-analysis" />
+                      <Label htmlFor="market-analysis" className="text-sm">Include market comparables analysis</Label>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Data Sources Configuration */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Data Sources & Processing
+                </CardTitle>
+                <CardDescription>
+                  Select which data sources to include in your search
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Enabled Data Sources</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="public-records" defaultChecked />
+                        <Label htmlFor="public-records" className="text-sm">Public Property Records</Label>
+                      </div>
+                      <Badge variant="outline">Free</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="mls-data" defaultChecked />
+                        <Label htmlFor="mls-data" className="text-sm">MLS Listings Data</Label>
+                      </div>
+                      <Badge variant="outline">Premium</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="foreclosure-data" />
+                        <Label htmlFor="foreclosure-data" className="text-sm">Foreclosure Records</Label>
+                      </div>
+                      <Badge variant="outline">Premium</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="owner-records" defaultChecked />
+                        <Label htmlFor="owner-records" className="text-sm">Property Owner Database</Label>
+                      </div>
+                      <Badge variant="outline">Free</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Processing Speed</Label>
+                  <Select defaultValue="balanced">
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fast">Fast (Less thorough)</SelectItem>
+                      <SelectItem value="balanced">Balanced (Recommended)</SelectItem>
+                      <SelectItem value="thorough">Thorough (Slower but comprehensive)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Balance between search speed and data accuracy</p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Maximum Results Per Search</Label>
+                  <Select defaultValue="25">
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 leads</SelectItem>
+                      <SelectItem value="25">25 leads</SelectItem>
+                      <SelectItem value="50">50 leads</SelectItem>
+                      <SelectItem value="100">100 leads</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Higher limits may require more processing time</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Custom AI Criteria */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Custom AI Criteria
+                </CardTitle>
+                <CardDescription>
+                  Define custom criteria for the AI to focus on during lead discovery
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Custom Search Instructions</Label>
+                  <Textarea 
+                    placeholder="Describe specific criteria you want the AI to focus on when evaluating leads. For example: 'Prioritize properties with recent price reductions' or 'Focus on multi-family properties in gentrifying neighborhoods'..."
+                    className="mt-2 min-h-[100px]"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">These instructions will guide the AI's evaluation process</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Lead Quality Focus</Label>
+                    <Select defaultValue="balanced">
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="quantity">Quantity (More leads, lower quality)</SelectItem>
+                        <SelectItem value="balanced">Balanced (Default)</SelectItem>
+                        <SelectItem value="quality">Quality (Fewer leads, higher quality)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Investment Strategy</Label>
+                    <Select defaultValue="fix-flip">
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fix-flip">Fix & Flip</SelectItem>
+                        <SelectItem value="buy-hold">Buy & Hold</SelectItem>
+                        <SelectItem value="wholesale">Wholesale</SelectItem>
+                        <SelectItem value="mixed">Mixed Strategy</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
