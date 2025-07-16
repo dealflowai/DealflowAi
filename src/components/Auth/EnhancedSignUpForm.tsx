@@ -110,7 +110,37 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     try {
       console.log('Starting signup process...');
       
-      // Create account with basic email/password only
+      // Security check before allowing signup
+      const userIP = '127.0.0.1'; // This would be the actual IP in production
+      const emailDomain = data.email.split('@')[1];
+      
+      const { data: securityCheck } = await supabase.rpc('check_signup_security', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
+      });
+      
+      const securityResult = securityCheck as { allowed: boolean; reason?: string };
+      
+      if (!securityResult.allowed) {
+        toast({
+          title: "Signup Blocked",
+          description: securityResult.reason || "Security check failed",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Log signup attempt for security tracking
+      await supabase.rpc('log_signup_attempt', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone,
+        p_success: false
+      });
+
+      // Try to create account without phone first, then add phone as metadata
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
@@ -172,19 +202,25 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           case 'captcha_invalid':
           case 'captcha_failed':
           case 'verification_failed':
-            errorTitle = "Verification Issue";
-            errorMessage = "There's a temporary issue with our verification system. Please try again in a few moments.";
+            errorTitle = "Account Creation Issue";
+            errorMessage = "Please try creating your account again. If this continues, contact support.";
             break;
           case 'too_many_requests':
             errorTitle = "Too Many Attempts";
             errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
+            console.log('Full error details:', firstError);
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
       } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
         errorTitle = "Verification Required";
         errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
+      } else if (error.message?.includes('security')) {
+        errorTitle = "Security Check Failed";
+        errorMessage = "Please try again. If this continues, contact support.";
+      } else {
+        console.log('Full error object:', error);
       }
       
       toast({
