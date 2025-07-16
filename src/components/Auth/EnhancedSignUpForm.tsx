@@ -143,28 +143,28 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         p_success: false
       });
 
-      // Try creating account with phone number for verification
+      // Create account with email verification (phone as optional metadata)
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
-        phoneNumber: data.phone,
         unsafeMetadata: {
-          role: data.role
+          role: data.role,
+          phone: data.phone
         }
       });
 
       console.log('Signup result:', result);
 
       if (result.status === 'missing_requirements') {
-        // Check what verification is needed - first try phone verification
+        // Check what verification is needed - most likely email verification
         setUserData(data);
-        setCurrentStep(1.7); // Phone verification step
+        setCurrentStep(1.5); // Email verification step
         
         toast({
-          title: "Phone Verification Required",
-          description: "Please verify your phone number to continue.",
+          title: "Email Verification Required",
+          description: "Please check your email for the verification code.",
         });
       } else if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
