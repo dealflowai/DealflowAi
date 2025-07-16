@@ -139,10 +139,25 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
       onClick: () => {
         setFilters(prev => ({
           ...prev,
-          equityRange: [60000, 1000000] as [number, number],
+          equityRange: [150000, 1000000] as [number, number],
           ownershipLength: [5, 50] as [number, number],
-          propertyType: ['Single Family', 'Multi Family']
+          propertyType: ['Single Family', 'Multi Family'],
+          valueRange: [250000, 2000000] as [number, number],
+          propertyStatus: {
+            vacant: false,
+            absenteeOwner: false,
+            distressed: false
+          },
+          ownerFilters: {
+            hasPhone: true,
+            hasEmail: false,
+            outOfState: false
+          }
         }));
+        toast({
+          title: "Preset Applied",
+          description: "Applied High Equity Homes search criteria",
+        });
       }
     },
     {
@@ -153,8 +168,25 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
         setFilters(prev => ({
           ...prev,
           foreclosureStatus: ['Pre-Foreclosure', 'Notice of Default'],
-          propertyStatus: { ...prev.propertyStatus, vacant: true, distressed: true }
+          propertyStatus: {
+            vacant: true,
+            absenteeOwner: false,
+            distressed: true
+          },
+          equityRange: [25000, 500000] as [number, number],
+          valueRange: [50000, 800000] as [number, number],
+          ownershipLength: [1, 50] as [number, number],
+          propertyType: ['Single Family', 'Multi Family', 'Condo'],
+          ownerFilters: {
+            hasPhone: true,
+            hasEmail: false,
+            outOfState: false
+          }
         }));
+        toast({
+          title: "Preset Applied",
+          description: "Applied Distressed Properties search criteria",
+        });
       }
     },
     {
@@ -164,9 +196,25 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
       onClick: () => {
         setFilters(prev => ({
           ...prev,
-          ownerFilters: { ...prev.ownerFilters, outOfState: true },
-          equityRange: [50000, 1000000] as [number, number]
+          ownerFilters: {
+            hasPhone: true,
+            hasEmail: true,
+            outOfState: true
+          },
+          equityRange: [75000, 1000000] as [number, number],
+          valueRange: [150000, 2000000] as [number, number],
+          ownershipLength: [3, 50] as [number, number],
+          propertyType: ['Single Family', 'Multi Family', 'Commercial'],
+          propertyStatus: {
+            vacant: false,
+            absenteeOwner: true,
+            distressed: false
+          }
         }));
+        toast({
+          title: "Preset Applied",
+          description: "Applied Absentee Owners search criteria",
+        });
       }
     },
     {
@@ -177,8 +225,24 @@ const RealEstateLeadGenerator: React.FC<RealEstateLeadGeneratorProps> = ({ onLea
         setFilters(prev => ({
           ...prev,
           propertyType: ['Multi Family', 'Commercial', 'Industrial'],
-          equityRange: [40000, 1000000] as [number, number]
+          equityRange: [100000, 2000000] as [number, number],
+          valueRange: [200000, 5000000] as [number, number],
+          ownershipLength: [2, 50] as [number, number],
+          propertyStatus: {
+            vacant: false,
+            absenteeOwner: false,
+            distressed: false
+          },
+          ownerFilters: {
+            hasPhone: true,
+            hasEmail: true,
+            outOfState: false
+          }
         }));
+        toast({
+          title: "Preset Applied",
+          description: "Applied Investment Opportunities search criteria",
+        });
       }
     }
   ];
