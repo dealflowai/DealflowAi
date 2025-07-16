@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import AuthPage from "./components/Auth/AuthPage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import AuthWrapper from "./components/Auth/AuthWrapper";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import BuyerCRM from "./pages/BuyerCRM";
@@ -79,50 +80,66 @@ const AppContent = () => {
           element={
             isSignedIn ? (
               <ProtectedRoute>
-                <Dashboard />
+                <AuthWrapper>
+                  <Dashboard />
+                </AuthWrapper>
               </ProtectedRoute>
             ) : (
               <Landing />
             )
-          } 
+          }
         />
         <Route path="/buyers" element={
           <ProtectedRoute>
-            <BuyerCRM />
+            <AuthWrapper>
+              <BuyerCRM />
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/analyzer" element={
           <ProtectedRoute>
-            <DealAnalyzer />
+            <AuthWrapper>
+              <DealAnalyzer />
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/contracts" element={
           <ProtectedRoute>
-            <Contracts />
+            <AuthWrapper>
+              <Contracts />
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/marketplace" element={
           <ProtectedRoute>
-            <Suspense fallback={<PageSkeleton />}>
-              <Marketplace />
-            </Suspense>
+            <AuthWrapper>
+              <Suspense fallback={<PageSkeleton />}>
+                <Marketplace />
+              </Suspense>
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/analytics" element={
           <ProtectedRoute>
-            <Suspense fallback={<PageSkeleton />}>
-              <Analytics />
-            </Suspense>
+            <AuthWrapper>
+              <Suspense fallback={<PageSkeleton />}>
+                <Analytics />
+              </Suspense>
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/admin" element={
           <ProtectedRoute>
-            <AdminDashboard />
+            <AuthWrapper>
+              <AdminDashboard />
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/settings" element={
           <ProtectedRoute>
-            <Settings />
+            <AuthWrapper>
+              <Settings />
+            </AuthWrapper>
           </ProtectedRoute>
         } />
         <Route path="/token-purchase-success" element={<TokenPurchaseSuccess />} />

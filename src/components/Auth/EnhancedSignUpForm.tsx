@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { PhoneVerificationStep } from './PhoneVerificationStep';
 
 // Step 1: Basic signup schema
 const basicSignUpSchema = z.object({
@@ -142,14 +143,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         p_success: false
       });
 
-      // Try creating account with minimal metadata to avoid verification issues
+      // Try creating account with phone number for verification
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        phoneNumber: data.phone,
         unsafeMetadata: {
-          phone: data.phone,
           role: data.role
         }
       });
@@ -157,27 +158,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       console.log('Signup result:', result);
 
       if (result.status === 'missing_requirements') {
-        // Try to prepare email verification
-        try {
-          await signUp.prepareEmailAddressVerification({
-            strategy: 'email_code'
-          });
-          
-          setUserData(data);
-          setCurrentStep(1.5);
-          
-          toast({
-            title: "Check Your Email",
-            description: "We've sent you a verification code to complete your registration.",
-          });
-        } catch (verificationError) {
-          console.log('Verification preparation failed:', verificationError);
-          toast({
-            title: "Verification Issue",
-            description: "There's a temporary issue with email verification. Please check your email or try again.",
-            variant: "destructive"
-          });
-        }
+        // Check what verification is needed - first try phone verification
+        setUserData(data);
+        setCurrentStep(1.7); // Phone verification step
+        
+        toast({
+          title: "Phone Verification Required",
+          description: "Please verify your phone number to continue.",
+        });
       } else if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
@@ -740,6 +728,25 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  // Step 1.7: Phone verification
+  if (currentStep === 1.7) {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <PhoneVerificationStep
+          phoneNumber={userData.phone}
+          onSuccess={() => {
+            setCurrentStep(2);
+            toast({
+              title: "Phone Verified!",
+              description: "Let's customize your experience.",
+            });
+          }}
+          onBack={() => setCurrentStep(1)}
+        />
+      </div>
     );
   }
 
