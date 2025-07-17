@@ -890,6 +890,8 @@ export type Database = {
           id: string
           monthly_allowance: number | null
           monthly_reset_date: string | null
+          monthly_tokens: number | null
+          purchased_tokens: number | null
           remaining_tokens: number | null
           total_tokens: number
           updated_at: string
@@ -901,6 +903,8 @@ export type Database = {
           id?: string
           monthly_allowance?: number | null
           monthly_reset_date?: string | null
+          monthly_tokens?: number | null
+          purchased_tokens?: number | null
           remaining_tokens?: number | null
           total_tokens?: number
           updated_at?: string
@@ -912,6 +916,8 @@ export type Database = {
           id?: string
           monthly_allowance?: number | null
           monthly_reset_date?: string | null
+          monthly_tokens?: number | null
+          purchased_tokens?: number | null
           remaining_tokens?: number | null
           total_tokens?: number
           updated_at?: string
@@ -1068,6 +1074,8 @@ export type Database = {
           total_tokens: number
           used_tokens: number
           remaining_tokens: number
+          monthly_tokens: number
+          purchased_tokens: number
         }[]
       }
       grant_monthly_tokens: {
