@@ -107,7 +107,18 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
   // Step 1: Handle initial signup
   const handleBasicSignup = async (data: BasicSignUpData) => {
-    if (!signUp) return;
+    console.log('handleBasicSignup called with data:', data);
+    console.log('signUp object exists:', !!signUp);
+    
+    if (!signUp) {
+      console.error('signUp object is null or undefined');
+      toast({
+        title: "Configuration Error",
+        description: "Authentication not properly configured. Please refresh the page.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsLoading(true);
     
