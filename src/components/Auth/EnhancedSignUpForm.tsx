@@ -312,19 +312,48 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       setVerificationCode('');
       
       let errorMessage = "Verification failed. Please try again.";
+      let shouldShowError = true;
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        if (firstError.code === 'form_code_incorrect') {
-          errorMessage = "Invalid verification code. Please check your email and try again.";
+        
+        switch (firstError.code) {
+          case 'form_code_incorrect':
+            errorMessage = "Invalid verification code. Please check your email and try again.";
+            break;
+          case 'verification_already_verified':
+          case 'form_already_verified':
+            // User is already verified, proceed to next step
+            shouldShowError = false;
+            toast({
+              title: "Already Verified!",
+              description: "Your email is already verified. Proceeding to setup...",
+            });
+            setCurrentStep(2);
+            break;
+          case 'verification_expired':
+            errorMessage = "Verification code has expired. Please request a new one.";
+            break;
+          default:
+            errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
+      } else if (error.message?.includes('already been verified')) {
+        // Handle the specific error message you encountered
+        shouldShowError = false;
+        toast({
+          title: "Already Verified!",
+          description: "Your email is already verified. Proceeding to setup...",
+        });
+        setCurrentStep(2);
       }
       
-      toast({
-        title: "Verification Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      if (shouldShowError) {
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
