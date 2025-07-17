@@ -160,12 +160,14 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       }
     } catch (error: any) {
       console.error('Signup error:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
       
       let errorMessage = "An error occurred during signup. Please try again.";
       let errorTitle = "Signup Failed";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
+        console.error('First error details:', firstError);
         
         switch (firstError.code) {
           case 'form_identifier_exists':
@@ -187,6 +189,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
+            console.log('Unknown error code:', firstError.code);
             console.log('Full error details:', firstError);
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
@@ -197,6 +200,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         errorTitle = "Security Check Failed";
         errorMessage = "Please try again. If this continues, contact support.";
       } else {
+        console.log('Unhandled error type:', error.message);
         console.log('Full error object:', error);
       }
       
