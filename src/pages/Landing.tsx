@@ -744,10 +744,10 @@ const Landing = () => {
                   <CardTitle className="text-2xl font-bold mb-2">Entry / Free</CardTitle>
                   <p className="text-white/80 mb-4">Get started with non-expiring tokens</p>
                   <div className="flex items-baseline space-x-2">
-                    <span className="text-4xl font-bold">25</span>
-                    <span className="text-white/80">free tokens</span>
+                    <span className="text-4xl font-bold">$0</span>
+                    <span className="text-white/80">/month</span>
                   </div>
-                  <div className="text-sm text-white/70 mt-2">No credit card • Tokens never expire</div>
+                  <div className="text-sm text-white/70 mt-2">25 tokens included • Tokens never expire</div>
                 </CardHeader>
                 
                 <CardContent className="p-8">
