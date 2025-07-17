@@ -366,17 +366,17 @@ const Dashboard = () => {
               change={`${stats.totalDeals} total deals`}
               changeType="positive"
               icon={Calculator}
-              trend={{ percentage: 12.5, period: "vs last week" }}
+              trend={{ percentage: trends.dealsWeeklyGrowth, period: "vs last week" }}
               tooltip="Deals currently being analyzed or in negotiation phase."
             />
             <StatsCard
               title="Buying Power"
               value={`$${(stats.totalBuyingPower / 1000000).toFixed(1)}M`}
               change={`Avg: $${stats.averageBudget.toLocaleString()}`}
-              changeType="positive"
+              changeType={trends.buyingPowerGrowth >= 0 ? "positive" : "negative"}
               icon={DollarSign}
               gradient={true}
-              trend={{ percentage: 8.3, period: "vs last month" }}
+              trend={{ percentage: trends.buyingPowerGrowth, period: "vs last month" }}
               tooltip="Total combined buying power of all active buyers in your pipeline."
             />
             <StatsCard
@@ -385,7 +385,7 @@ const Dashboard = () => {
               change={`${stats.closedDeals} closed deals`}
               changeType={trends.conversionRate > 0 ? "positive" : "neutral"}
               icon={TrendingUp}
-              trend={{ percentage: 15.2, period: "vs last month" }}
+              trend={{ percentage: trends.dealsGrowthPercentage, period: "vs last month" }}
               tooltip="Percentage of analyzed deals that result in closed transactions."
             />
           </div>

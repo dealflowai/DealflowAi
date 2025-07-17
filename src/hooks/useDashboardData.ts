@@ -163,6 +163,8 @@ export const useDashboardData = () => {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
   const recentBuyers = buyers.filter(buyer => 
     new Date(buyer.created_at || '') >= thirtyDaysAgo
@@ -177,11 +179,42 @@ export const useDashboardData = () => {
     new Date(deal.created_at || '') >= thirtyDaysAgo
   ).length;
 
+  const previousDeals = deals.filter(deal => {
+    const date = new Date(deal.created_at || '');
+    return date >= sixtyDaysAgo && date < thirtyDaysAgo;
+  }).length;
+
+  // Calculate deals growth (last week vs previous week)
+  const lastWeekDeals = deals.filter(deal => 
+    new Date(deal.created_at || '') >= sevenDaysAgo
+  ).length;
+  
+  const previousWeekDeals = deals.filter(deal => {
+    const date = new Date(deal.created_at || '');
+    return date >= fourteenDaysAgo && date < sevenDaysAgo;
+  }).length;
+
+  // Calculate buying power trends
+  const recentBuyingPower = buyers
+    .filter(buyer => new Date(buyer.created_at || '') >= thirtyDaysAgo)
+    .reduce((sum, buyer) => sum + (buyer.budget_max || 0), 0);
+  
+  const previousBuyingPower = buyers
+    .filter(buyer => {
+      const date = new Date(buyer.created_at || '');
+      return date >= sixtyDaysAgo && date < thirtyDaysAgo;
+    })
+    .reduce((sum, buyer) => sum + (buyer.budget_max || 0), 0);
+
   const trends = {
-    buyersGrowth: previousBuyers > 0 ? ((recentBuyers - previousBuyers) / previousBuyers) * 100 : 0,
+    buyersGrowth: previousBuyers > 0 ? ((recentBuyers - previousBuyers) / previousBuyers) * 100 : (recentBuyers > 0 ? 100 : 0),
     dealsGrowth: recentDeals,
+    dealsGrowthPercentage: previousDeals > 0 ? ((recentDeals - previousDeals) / previousDeals) * 100 : (recentDeals > 0 ? 100 : 0),
+    dealsWeeklyGrowth: previousWeekDeals > 0 ? ((lastWeekDeals - previousWeekDeals) / previousWeekDeals) * 100 : (lastWeekDeals > 0 ? 100 : 0),
+    buyingPowerGrowth: previousBuyingPower > 0 ? ((recentBuyingPower - previousBuyingPower) / previousBuyingPower) * 100 : (recentBuyingPower > 0 ? 100 : 0),
     activationRate: stats.totalBuyers > 0 ? (stats.activeBuyers / stats.totalBuyers) * 100 : 0,
     conversionRate: stats.totalDeals > 0 ? (stats.closedDeals / stats.totalDeals) * 100 : 0,
+    conversionGrowth: 0, // Calculate based on historical data if available
   };
 
   // Generate chart data for buyers over time (last 7 days)
