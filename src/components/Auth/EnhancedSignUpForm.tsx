@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { PhoneVerificationStep } from './PhoneVerificationStep';
+
 
 // Step 1: Basic signup schema
 const basicSignUpSchema = z.object({
@@ -884,24 +884,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     );
   }
 
-  // Step 1.7: Phone verification
-  if (currentStep === 1.7) {
-    return (
-      <div className="w-full max-w-md mx-auto">
-        <PhoneVerificationStep
-          phoneNumber={userData.phone}
-          onSuccess={() => {
-            setCurrentStep(2);
-            toast({
-              title: "Phone Verified!",
-              description: "Let's customize your experience.",
-            });
-          }}
-          onBack={() => setCurrentStep(1)}
-        />
-      </div>
-    );
-  }
 
   // Step 2: Onboarding
   if (currentStep === 2) {
