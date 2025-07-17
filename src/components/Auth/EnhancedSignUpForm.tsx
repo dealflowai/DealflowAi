@@ -157,12 +157,27 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       if (result.status === 'missing_requirements') {
         // Check what verification is needed - most likely email verification
         setUserData(data);
-        setCurrentStep(1.5); // Email verification step
         
-        toast({
-          title: "Email Verification Required",
-          description: "Please check your email for the verification code.",
-        });
+        // Automatically prepare email verification
+        try {
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          setCurrentStep(1.5); // Email verification step
+          
+          toast({
+            title: "Email Verification Required",
+            description: "We've sent a 6-digit code to your email address.",
+          });
+        } catch (verificationError) {
+          console.error('Email verification preparation error:', verificationError);
+          toast({
+            title: "Verification Setup Failed",
+            description: "Please try again or contact support.",
+            variant: "destructive"
+          });
+        }
       } else if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
         await createUserProfile(result.createdUserId!, data);
