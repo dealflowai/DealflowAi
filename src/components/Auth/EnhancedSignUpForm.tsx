@@ -103,26 +103,47 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
   // Step 1: Handle initial signup
   const handleBasicSignup = async (data: BasicSignUpData) => {
-    if (!signUp) return;
+    console.log('=== SIGNUP DEBUG START ===');
+    console.log('1. SignUp object available:', !!signUp);
+    console.log('2. Form data:', data);
     
+    if (!signUp) {
+      console.error('SignUp object not available');
+      toast({
+        title: "Initialization Error",
+        description: "Authentication system not ready. Please refresh the page and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     
+    
     try {
-      console.log('Starting signup process...');
+      console.log('3. Starting security check...');
       
       // Security check before allowing signup
       const userIP = '127.0.0.1'; // This would be the actual IP in production
       const emailDomain = data.email.split('@')[1];
       
-      const { data: securityCheck } = await supabase.rpc('check_signup_security', {
+      const { data: securityCheck, error: securityError } = await supabase.rpc('check_signup_security', {
         p_ip_address: userIP,
         p_email_domain: emailDomain,
         p_phone_number: data.phone
       });
       
+      console.log('4. Security check result:', securityCheck);
+      
+      if (securityError) {
+        console.error('Security check error:', securityError);
+        throw securityError;
+      }
+      
       const securityResult = securityCheck as { allowed: boolean; reason?: string };
       
       if (!securityResult.allowed) {
+        console.log('5. Security check failed:', securityResult.reason);
         toast({
           title: "Signup Blocked",
           description: securityResult.reason || "Security check failed",
@@ -132,6 +153,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         return;
       }
       
+      console.log('6. Security check passed, creating Clerk account...');
+      
       // Log signup attempt for security tracking
       await supabase.rpc('log_signup_attempt', {
         p_ip_address: userIP,
@@ -140,12 +163,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         p_success: false
       });
 
-      // Try to create account without phone first, then add phone as metadata
-      console.log('Creating Clerk account with data:', {
-        email: data.email,
+      // Create Clerk account
+      console.log('7. Creating Clerk account with:', {
+        emailAddress: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: data.role
+        hasPassword: !!data.password,
+        metadata: { role: data.role, phone: data.phone }
       });
 
       const result = await signUp.create({
@@ -159,34 +183,33 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         }
       });
 
-      console.log('Clerk signup result:', {
+      console.log('8. Clerk signup result:', {
         status: result.status,
         createdUserId: result.createdUserId,
         createdSessionId: result.createdSessionId,
-        verifications: result.verifications
+        verifications: result.verifications,
+        fullResult: result
       });
 
       if (result.status === 'missing_requirements') {
-        console.log('Email verification required');
-        // Check what verification is needed - most likely email verification
+        console.log('9. Email verification required');
         setUserData(data);
         
-        // Automatically prepare email verification
         try {
-          console.log('Preparing email verification...');
+          console.log('10. Preparing email verification...');
           await signUp.prepareEmailAddressVerification({
             strategy: 'email_code'
           });
           
-          console.log('Email verification prepared successfully');
-          setCurrentStep(1.5); // Email verification step
+          console.log('11. Email verification prepared successfully');
+          setCurrentStep(1.5);
           
           toast({
             title: "Email Verification Required",
             description: "We've sent a 6-digit code to your email address.",
           });
         } catch (verificationError) {
-          console.error('Email verification preparation error:', verificationError);
+          console.error('12. Email verification preparation error:', verificationError);
           toast({
             title: "Verification Setup Failed",
             description: "Please try again or contact support.",
@@ -194,10 +217,10 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           });
         }
       } else if (result.status === 'complete' && result.createdSessionId) {
-        console.log('Account created successfully, setting session...');
+        console.log('13. Account created successfully, setting session...');
         await setActive({ session: result.createdSessionId });
         
-        console.log('Creating user profile...');
+        console.log('14. Creating user profile...');
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
@@ -208,7 +231,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           description: "Let's customize your experience.",
         });
       } else {
-        console.log('Unexpected signup status:', result.status);
+        console.log('15. Unexpected signup status:', result.status, result);
         toast({
           title: "Signup Issue", 
           description: "There was an issue creating your account. Please try again in a moment.",
@@ -216,7 +239,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         });
       }
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('16. SIGNUP ERROR:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        errors: error.errors,
+        fullError: error
+      });
       
       let errorMessage = "An error occurred during signup. Please try again.";
       let errorTitle = "Signup Failed";
@@ -263,6 +292,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         variant: "destructive"
       });
     } finally {
+      console.log('17. Signup process completed');
+      console.log('=== SIGNUP DEBUG END ===');
       setIsLoading(false);
     }
   };
