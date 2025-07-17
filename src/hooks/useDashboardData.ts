@@ -115,10 +115,22 @@ export const useDashboardData = () => {
       
       if (error) {
         console.error('Error fetching token usage:', error);
-        return { total_tokens: 25, used_tokens: 0, remaining_tokens: 25 };
+        return { 
+          total_tokens: 25, 
+          used_tokens: 0, 
+          remaining_tokens: 25,
+          monthly_tokens: 25,
+          purchased_tokens: 0
+        };
       }
       
-      return data?.[0] || { total_tokens: 25, used_tokens: 0, remaining_tokens: 25 };
+      return data?.[0] || { 
+        total_tokens: 25, 
+        used_tokens: 0, 
+        remaining_tokens: 25,
+        monthly_tokens: 25,
+        purchased_tokens: 0
+      };
     },
     enabled: !!user?.id,
   });
