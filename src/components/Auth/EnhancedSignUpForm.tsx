@@ -117,19 +117,21 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       // Temporarily disable security check for testing
       console.log('Skipping security check for now...');
 
-      // Try to create account without phone first, then add phone as metadata
+      // Try to create account with minimal data first
+      console.log('Creating Clerk account with data:', {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName
+      });
+
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName,
-        unsafeMetadata: {
-          role: data.role,
-          phone: data.phone
-        }
+        lastName: data.lastName
       });
 
-      console.log('Signup result:', result);
+      console.log('Clerk signup result:', result);
 
       if (result.status === 'missing_requirements') {
         // Check what verification is needed - most likely email verification
