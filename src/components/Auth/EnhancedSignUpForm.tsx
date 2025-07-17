@@ -103,7 +103,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
   // Step 1: Handle initial signup
   const handleBasicSignup = async (data: BasicSignUpData) => {
+    console.log('=== SIGNUP DEBUG START ===');
+    console.log('1. SignUp object available:', !!signUp);
+    console.log('2. Form data:', data);
+    
     if (!signUp) {
+      console.error('SignUp object not available');
       toast({
         title: "Initialization Error",
         description: "Authentication system not ready. Please refresh the page and try again.",
@@ -114,8 +119,59 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
     setIsLoading(true);
     
+    
     try {
+      console.log('3. Starting security check...');
+      
+      // Security check before allowing signup
+      const userIP = '127.0.0.1'; // This would be the actual IP in production
+      const emailDomain = data.email.split('@')[1];
+      
+      const { data: securityCheck, error: securityError } = await supabase.rpc('check_signup_security', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
+      });
+      
+      console.log('4. Security check result:', securityCheck);
+      
+      if (securityError) {
+        console.error('Security check error:', securityError);
+        throw securityError;
+      }
+      
+      const securityResult = securityCheck as { allowed: boolean; reason?: string };
+      
+      if (!securityResult.allowed) {
+        console.log('5. Security check failed:', securityResult.reason);
+        toast({
+          title: "Signup Blocked",
+          description: securityResult.reason || "Security check failed",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('6. Security check passed, creating Clerk account...');
+      
+      // Log signup attempt for security tracking
+      await supabase.rpc('log_signup_attempt', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone,
+        p_success: false
+      });
+
       // Create Clerk account
+      console.log('7. Creating Clerk account with:', {
+        emailAddress: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        hasPassword: !!data.password,
+        metadata: { role: data.role, phone: data.phone }
+      });
+
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
@@ -127,22 +183,44 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         }
       });
 
+      console.log('8. Clerk signup result:', {
+        status: result.status,
+        createdUserId: result.createdUserId,
+        createdSessionId: result.createdSessionId,
+        verifications: result.verifications,
+        fullResult: result
+      });
+
       if (result.status === 'missing_requirements') {
+        console.log('9. Email verification required');
         setUserData(data);
         
-        // Prepare email verification
-        await signUp.prepareEmailAddressVerification({
-          strategy: 'email_code'
-        });
-        
-        setCurrentStep(1.5);
-        
-        toast({
-          title: "Email Verification Required",
-          description: "We've sent a 6-digit code to your email address.",
-        });
+        try {
+          console.log('10. Preparing email verification...');
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          console.log('11. Email verification prepared successfully');
+          setCurrentStep(1.5);
+          
+          toast({
+            title: "Email Verification Required",
+            description: "We've sent a 6-digit code to your email address.",
+          });
+        } catch (verificationError) {
+          console.error('12. Email verification preparation error:', verificationError);
+          toast({
+            title: "Verification Setup Failed",
+            description: "Please try again or contact support.",
+            variant: "destructive"
+          });
+        }
       } else if (result.status === 'complete' && result.createdSessionId) {
+        console.log('13. Account created successfully, setting session...');
         await setActive({ session: result.createdSessionId });
+        
+        console.log('14. Creating user profile...');
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
@@ -152,9 +230,22 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           title: "Account Created!",
           description: "Let's customize your experience.",
         });
+      } else {
+        console.log('15. Unexpected signup status:', result.status, result);
+        toast({
+          title: "Signup Issue", 
+          description: "There was an issue creating your account. Please try again in a moment.",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('16. SIGNUP ERROR:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        errors: error.errors,
+        fullError: error
+      });
       
       let errorMessage = "An error occurred during signup. Please try again.";
       let errorTitle = "Signup Failed";
@@ -171,13 +262,28 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorTitle = "Weak Password";
             errorMessage = "This password has been found in a data breach. Please choose a different password.";
             break;
+          case 'captcha_invalid':
+          case 'captcha_failed':
+          case 'verification_failed':
+            errorTitle = "Account Creation Issue";
+            errorMessage = "Please try creating your account again. If this continues, contact support.";
+            break;
           case 'too_many_requests':
             errorTitle = "Too Many Attempts";
             errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
+            console.log('Full error details:', firstError);
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
+      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
+        errorTitle = "Verification Required";
+        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
+      } else if (error.message?.includes('security')) {
+        errorTitle = "Security Check Failed";
+        errorMessage = "Please try again. If this continues, contact support.";
+      } else {
+        console.log('Full error object:', error);
       }
       
       toast({
@@ -186,6 +292,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         variant: "destructive"
       });
     } finally {
+      console.log('17. Signup process completed');
+      console.log('=== SIGNUP DEBUG END ===');
       setIsLoading(false);
     }
   };
@@ -376,7 +484,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         last_name: userData.lastName,
         phone: userData.phone,
         user_role: userData.role,
-        role: 'admin',
+        role: 'admin', // Set as admin by default so users can access admin dashboard
         onboarding_step: 2,
         has_completed_onboarding: false,
         consent_given: true,
