@@ -325,10 +325,10 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       }
     } catch (error: any) {
       console.error('Verification error:', error);
-      setVerificationCode('');
       
       let errorMessage = "Verification failed. Please try again.";
       let shouldShowError = true;
+      let shouldClearCode = false; // Only clear code when moving to next step
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
@@ -336,11 +336,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         switch (firstError.code) {
           case 'form_code_incorrect':
             errorMessage = "Invalid verification code. Please check your email and try again.";
+            shouldClearCode = true; // Clear incorrect code
             break;
           case 'verification_already_verified':
           case 'form_already_verified':
             // User is already verified, proceed to next step
             shouldShowError = false;
+            shouldClearCode = true; // Clear code when moving forward
             toast({
               title: "Already Verified!",
               description: "Your email is already verified. Proceeding to setup...",
@@ -349,6 +351,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             break;
           case 'verification_expired':
             errorMessage = "Verification code has expired. Please request a new one.";
+            shouldClearCode = true; // Clear expired code
             break;
           default:
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
@@ -356,11 +359,17 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       } else if (error.message?.includes('already been verified')) {
         // Handle the specific error message you encountered
         shouldShowError = false;
+        shouldClearCode = true; // Clear code when moving forward
         toast({
           title: "Already Verified!",
           description: "Your email is already verified. Proceeding to setup...",
         });
         setCurrentStep(2);
+      }
+      
+      // Only clear code when appropriate
+      if (shouldClearCode) {
+        setVerificationCode('');
       }
       
       if (shouldShowError) {
