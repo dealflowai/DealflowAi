@@ -38,7 +38,11 @@ const basicSignUpSchema = z.object({
   }),
   phone: z.string()
     .min(10, 'Phone number must be at least 10 digits')
-    .regex(/^[\+]?[\d\s\(\)\-]{10,}$/, 'Please enter a valid phone number'),
+    .refine((phone) => {
+      // Extract only digits from formatted phone
+      const digits = phone.replace(/\D/g, '');
+      return digits.length >= 10 && digits.length <= 11;
+    }, 'Please enter a valid phone number with 10-11 digits'),
   consent: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy'
   })
