@@ -141,6 +141,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       });
 
       // Try to create account without phone first, then add phone as metadata
+      console.log('Creating Clerk account with data:', {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role
+      });
+
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
@@ -152,18 +159,26 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         }
       });
 
-      console.log('Signup result:', result);
+      console.log('Clerk signup result:', {
+        status: result.status,
+        createdUserId: result.createdUserId,
+        createdSessionId: result.createdSessionId,
+        verifications: result.verifications
+      });
 
       if (result.status === 'missing_requirements') {
+        console.log('Email verification required');
         // Check what verification is needed - most likely email verification
         setUserData(data);
         
         // Automatically prepare email verification
         try {
+          console.log('Preparing email verification...');
           await signUp.prepareEmailAddressVerification({
             strategy: 'email_code'
           });
           
+          console.log('Email verification prepared successfully');
           setCurrentStep(1.5); // Email verification step
           
           toast({
@@ -179,7 +194,10 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           });
         }
       } else if (result.status === 'complete' && result.createdSessionId) {
+        console.log('Account created successfully, setting session...');
         await setActive({ session: result.createdSessionId });
+        
+        console.log('Creating user profile...');
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
@@ -190,6 +208,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           description: "Let's customize your experience.",
         });
       } else {
+        console.log('Unexpected signup status:', result.status);
         toast({
           title: "Signup Issue", 
           description: "There was an issue creating your account. Please try again in a moment.",
