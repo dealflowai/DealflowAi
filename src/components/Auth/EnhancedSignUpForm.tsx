@@ -458,13 +458,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       } else {
         console.log('Profile created successfully:', createdProfile);
         
-        // Initialize user tokens
+        // Initialize user tokens (monthly allowance, not purchased)
         try {
-          await supabase.rpc('grant_tokens_to_user', {
-            p_user_id: createdProfile.id,
-            p_tokens: 25
+          await supabase.rpc('reset_monthly_tokens', {
+            p_user_id: createdProfile.id
           });
-          console.log('Initial tokens granted successfully');
+          console.log('Initial monthly tokens granted successfully');
         } catch (tokenError) {
           console.error('Token initialization error:', tokenError);
         }
