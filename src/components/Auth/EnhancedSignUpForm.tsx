@@ -38,11 +38,7 @@ const basicSignUpSchema = z.object({
   }),
   phone: z.string()
     .min(10, 'Phone number must be at least 10 digits')
-    .refine((phone) => {
-      // Extract only digits from formatted phone
-      const digits = phone.replace(/\D/g, '');
-      return digits.length >= 10 && digits.length <= 11;
-    }, 'Please enter a valid phone number with 10-11 digits'),
+    .regex(/^[\+]?[\d\s\(\)\-]{10,}$/, 'Please enter a valid phone number'),
   consent: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy'
   })
@@ -107,42 +103,56 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
   // Step 1: Handle initial signup
   const handleBasicSignup = async (data: BasicSignUpData) => {
-    console.log('handleBasicSignup called with data:', data);
-    console.log('signUp object exists:', !!signUp);
-    
-    if (!signUp) {
-      console.error('signUp object is null or undefined');
-      toast({
-        title: "Configuration Error",
-        description: "Authentication not properly configured. Please refresh the page.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!signUp) return;
     
     setIsLoading(true);
     
     try {
       console.log('Starting signup process...');
       
-      // Temporarily disable security check for testing
-      console.log('Skipping security check for now...');
-
-      // Try to create account with minimal data first
-      console.log('Creating Clerk account with data:', {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName
+      // Security check before allowing signup
+      const userIP = '127.0.0.1'; // This would be the actual IP in production
+      const emailDomain = data.email.split('@')[1];
+      
+      const { data: securityCheck } = await supabase.rpc('check_signup_security', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
+      });
+      
+      const securityResult = securityCheck as { allowed: boolean; reason?: string };
+      
+      if (!securityResult.allowed) {
+        toast({
+          title: "Signup Blocked",
+          description: securityResult.reason || "Security check failed",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Log signup attempt for security tracking
+      await supabase.rpc('log_signup_attempt', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone,
+        p_success: false
       });
 
+      // Try to create account without phone first, then add phone as metadata
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName
+        lastName: data.lastName,
+        unsafeMetadata: {
+          role: data.role,
+          phone: data.phone
+        }
       });
 
-      console.log('Clerk signup result:', result);
+      console.log('Signup result:', result);
 
       if (result.status === 'missing_requirements') {
         // Check what verification is needed - most likely email verification
@@ -173,14 +183,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       }
     } catch (error: any) {
       console.error('Signup error:', error);
-      console.error('Full error object:', JSON.stringify(error, null, 2));
       
       let errorMessage = "An error occurred during signup. Please try again.";
       let errorTitle = "Signup Failed";
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
-        console.error('First error details:', firstError);
         
         switch (firstError.code) {
           case 'form_identifier_exists':
@@ -202,7 +210,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
-            console.log('Unknown error code:', firstError.code);
             console.log('Full error details:', firstError);
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
@@ -213,7 +220,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         errorTitle = "Security Check Failed";
         errorMessage = "Please try again. If this continues, contact support.";
       } else {
-        console.log('Unhandled error type:', error.message);
         console.log('Full error object:', error);
       }
       
