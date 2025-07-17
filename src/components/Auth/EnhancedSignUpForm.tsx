@@ -1047,7 +1047,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               if (onSuccess) {
                 onSuccess();
               } else {
-                // Fallback: redirect directly to dashboard
+                // Fallback: redirect directly to home (where dashboard is served)
                 window.location.href = '/';
               }
             }}

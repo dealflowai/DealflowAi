@@ -103,8 +103,8 @@ const AuthPage = () => {
                   onSuccess={() => {
                     // Mark onboarding as complete and redirect to dashboard
                     setHasCompletedOnboarding(true);
-                    // Force redirect to dashboard after successful signup
-                    window.location.href = '/dashboard';
+                    // Force redirect to home page (where dashboard is served)
+                    window.location.href = '/';
                   }}
                 />
               </ErrorBoundary>
