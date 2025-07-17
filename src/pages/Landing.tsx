@@ -726,7 +726,7 @@ const Landing = () => {
               Pay Only For What You Use
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              Start with 25 free non-expiring tokens, upgrade to Core for $49/month with 100 monthly tokens.
+              Start with 25 free tokens that never expire, upgrade to Core for $49/month with 100 monthly tokens that reset each month.
             </p>
           </motion.div>
           
@@ -754,7 +754,7 @@ const Landing = () => {
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">25 non-expiring tokens included</span>
+                      <span className="text-gray-600">25 tokens included (never expire)</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -830,7 +830,7 @@ const Landing = () => {
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
-                      <span className="text-gray-600">Tokens never expire</span>
+                      <span className="text-gray-600">Monthly tokens reset each month</span>
                     </li>
                     <li className="flex items-start space-x-3">
                       <CheckCircle className="text-emerald-500 mt-0.5" size={16} />
@@ -1191,7 +1191,7 @@ const Landing = () => {
             <div className="mt-12 flex items-center justify-center space-x-8 text-white/80">
               <div className="flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2" />
-                <span>Tokens never expire</span>
+                <span>Purchased tokens never expire</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2" />

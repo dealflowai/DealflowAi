@@ -98,11 +98,11 @@ const Settings = () => {
 
   const getPlanDescription = () => {
     const plan = getCurrentPlan();
-    if (plan === 'free') return '25 non-expiring tokens, no credit card required';
-    if (plan === 'core') return '$49/month • 100 tokens every month';
+    if (plan === 'free') return '25 tokens included (never expire), no credit card required';
+    if (plan === 'core') return '$49/month • 100 monthly tokens (reset each month)';
     if (plan === 'agency') return '$299/month • 1,500 tokens + 5 seats';
-    if (plan === 'starter') return '$19/month • 10 tokens every month';
-    return '25 non-expiring tokens, no credit card required';
+    if (plan === 'starter') return '$19/month • 10 monthly tokens (reset each month)';
+    return '25 tokens included (never expire), no credit card required';
   };
 
   // Load profile data on component mount
@@ -326,9 +326,9 @@ const Settings = () => {
       name: "Entry / Free",
       price: 0,
       period: "",
-      description: "25 non-expiring tokens, no credit card required",
+      description: "25 tokens included (never expire), no credit card required",
       features: [
-        "25 non-expiring tokens included",
+        "25 tokens included (never expire)",
         "Basic AI discovery",
         "Email support",
         "1 user included"

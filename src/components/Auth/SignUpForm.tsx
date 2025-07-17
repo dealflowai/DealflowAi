@@ -29,9 +29,9 @@ const plans = [
     name: "Entry / Free",
     price: 0,
     originalPrice: 0,
-    description: "25 non-expiring tokens, no credit card required",
+    description: "25 tokens included (never expire), no credit card required",
     features: [
-      "25 non-expiring tokens included",
+      "25 tokens included (never expire)",
       "Basic AI discovery",
       "Email support",
       "1 user included"
@@ -43,9 +43,9 @@ const plans = [
     name: "Core Plan", 
     price: 49,
     originalPrice: 0,
-    description: "$49/month recurring with 100 tokens every month",
+    description: "$49/month recurring with 100 monthly tokens (reset each month)",
     features: [
-      "100 tokens included every month",
+      "100 monthly tokens (reset each month)",
       "Advanced AI buyer discovery",
       "Unlimited deal analysis",
       "Priority support", 

@@ -20,7 +20,7 @@ interface UpgradeModalProps {
 
 const PLAN_FEATURES = {
   starter: [
-    '25 non-expiring tokens included',
+    '25 tokens included (never expire)',
     'Basic AI discovery',
     'Email support',
     '1 user included',
@@ -28,7 +28,7 @@ const PLAN_FEATURES = {
     '5 contract templates',
   ],
   pro: [
-    '100 tokens included every month',
+    '100 monthly tokens (reset each month)',
     'Advanced AI buyer discovery',
     'Unlimited deal analysis',
     'Priority support',
@@ -102,7 +102,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   <h3 className="text-xl font-semibold">Entry / Free</h3>
                 </div>
                 <div className="text-3xl font-bold">Free</div>
-                <p className="text-sm text-muted-foreground">25 non-expiring tokens</p>
+                <p className="text-sm text-muted-foreground">25 tokens (never expire)</p>
               </div>
               
               <ul className="space-y-2 text-sm">
@@ -138,7 +138,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   <h3 className="text-xl font-semibold">Core Plan</h3>
                 </div>
                 <div className="text-3xl font-bold">$49<span className="text-sm font-normal">/mo</span></div>
-                <p className="text-sm text-muted-foreground">100 tokens included every month</p>
+                <p className="text-sm text-muted-foreground">100 monthly tokens (reset each month)</p>
               </div>
               
               <ul className="space-y-2 text-sm">
