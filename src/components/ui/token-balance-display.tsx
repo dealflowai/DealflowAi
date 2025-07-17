@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTokens } from '@/contexts/TokenContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { Gem, Plus } from 'lucide-react';
+import { Gem, Plus, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TokenBalanceDisplayProps {
   showBuyButton?: boolean;
@@ -32,22 +33,50 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens, userPla
   const isFreePlan = !currentPlan || currentPlan.toLowerCase() === 'free' || currentPlan.toLowerCase().includes('free');
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border">
-        <Gem className={`h-4 w-4 ${isEmpty ? 'text-destructive' : isLow ? 'text-orange-500' : 'text-primary'}`} />
-        <Badge 
-          variant={isEmpty ? "destructive" : isLow ? "outline" : "secondary"}
-          className={`font-medium border-0 ${
-            isEmpty 
-              ? "bg-destructive/10 text-destructive hover:bg-destructive/20" 
-              : isLow 
-                ? "bg-orange-500/10 text-orange-700 hover:bg-orange-500/20" 
-                : "bg-primary/10 text-primary hover:bg-primary/20"
-          }`}
-        >
-          {tokenBalance.remainingTokens} tokens
-        </Badge>
-      </div>
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border cursor-pointer">
+              <Gem className={`h-4 w-4 ${isEmpty ? 'text-destructive' : isLow ? 'text-orange-500' : 'text-primary'}`} />
+              <Badge 
+                variant={isEmpty ? "destructive" : isLow ? "outline" : "secondary"}
+                className={`font-medium border-0 ${
+                  isEmpty 
+                    ? "bg-destructive/10 text-destructive hover:bg-destructive/20" 
+                    : isLow 
+                      ? "bg-orange-500/10 text-orange-700 hover:bg-orange-500/20" 
+                      : "bg-primary/10 text-primary hover:bg-primary/20"
+                }`}
+              >
+                {tokenBalance.remainingTokens} tokens
+              </Badge>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-xs">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-blue-500" />
+                <span className="text-sm">
+                  Monthly: {tokenBalance.monthlyTokens} 
+                  <span className="text-muted-foreground"> (reset each month)</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-green-500" />
+                <span className="text-sm">
+                  Purchased: {tokenBalance.purchasedTokens}
+                  <span className="text-muted-foreground"> (never expire)</span>
+                </span>
+              </div>
+              <div className="border-t pt-2">
+                <div className="text-sm">
+                  <span className="font-medium">Total remaining: {tokenBalance.remainingTokens}</span>
+                </div>
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       {showBuyButton && !isFreePlan && (
         <Button
           size="sm"
@@ -66,6 +95,7 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens, userPla
           Upgrade to buy tokens
         </div>
       )}
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

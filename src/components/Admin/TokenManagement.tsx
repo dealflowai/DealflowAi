@@ -57,6 +57,8 @@ const TokenManagement = () => {
             totalTokens: tokenData?.[0]?.total_tokens || 0,
             usedTokens: tokenData?.[0]?.used_tokens || 0,
             remainingTokens: tokenData?.[0]?.remaining_tokens || 0,
+            monthlyTokens: tokenData?.[0]?.monthly_tokens || 0,
+            purchasedTokens: tokenData?.[0]?.purchased_tokens || 0,
           };
         }) || []
       );
@@ -318,7 +320,8 @@ const TokenManagement = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Total Tokens</TableHead>
+                    <TableHead>Monthly Tokens</TableHead>
+                    <TableHead>Purchased Tokens</TableHead>
                     <TableHead>Used Tokens</TableHead>
                     <TableHead>Remaining</TableHead>
                     <TableHead>Status</TableHead>
@@ -343,8 +346,15 @@ const TokenManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="font-semibold text-blue-600">
-                            {user.totalTokens.toLocaleString()}
+                            {user.monthlyTokens.toLocaleString()}
                           </div>
+                          <div className="text-xs text-gray-500">Reset monthly</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-semibold text-green-600">
+                            {user.purchasedTokens.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-gray-500">Never expire</div>
                         </TableCell>
                         <TableCell>
                           <div className="text-gray-600">

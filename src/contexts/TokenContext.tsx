@@ -7,6 +7,8 @@ interface TokenBalance {
   totalTokens: number;
   usedTokens: number;
   remainingTokens: number;
+  monthlyTokens: number;
+  purchasedTokens: number;
 }
 
 interface TokenContextType {
@@ -63,6 +65,8 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
           totalTokens: data[0].total_tokens,
           usedTokens: data[0].used_tokens,
           remainingTokens: data[0].remaining_tokens,
+          monthlyTokens: data[0].monthly_tokens,
+          purchasedTokens: data[0].purchased_tokens,
         });
       }
     } catch (error) {
