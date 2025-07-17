@@ -37,7 +37,7 @@ const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessCon
         console.error('Error fetching profile:', fetchError);
       }
       
-      // If profile doesn't exist, create it
+      // If profile doesn't exist, create it with user role
       if (!existingProfile) {
         console.log('Profile not found, creating new profile...');
         const { data: newProfile, error: insertError } = await supabase
@@ -47,7 +47,7 @@ const AdminAccessControl = ({ children, requiredRole = 'admin' }: AdminAccessCon
             email: user.primaryEmailAddress?.emailAddress,
             first_name: user.firstName,
             last_name: user.lastName,
-            role: 'super_admin' // Default to super_admin for testing
+            role: 'user' // Default to user role (can be upgraded to admin later)
           })
           .select('role, first_name, last_name, email')
           .single();

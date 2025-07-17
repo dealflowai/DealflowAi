@@ -434,26 +434,46 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         last_name: userData.lastName,
         phone: userData.phone,
         user_role: userData.role,
-        role: 'user',
+        role: 'admin', // Set as admin by default so users can access admin dashboard
         onboarding_step: 2,
         has_completed_onboarding: false,
         consent_given: true,
+        plan_tokens: 25, // Default tokens
         created_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      console.log('Creating profile with data:', profileData);
+
+      const { data: createdProfile, error } = await supabase
         .from('profiles')
         .upsert(profileData, {
           onConflict: 'clerk_id'
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Profile creation error:', error);
+        throw error;
       } else {
-        console.log('Profile created successfully');
+        console.log('Profile created successfully:', createdProfile);
+        
+        // Initialize user tokens
+        try {
+          await supabase.rpc('grant_tokens_to_user', {
+            p_user_id: createdProfile.id,
+            p_tokens: 25
+          });
+          console.log('Initial tokens granted successfully');
+        } catch (tokenError) {
+          console.error('Token initialization error:', tokenError);
+        }
+        
+        return createdProfile;
       }
     } catch (error) {
       console.error('Profile creation error:', error);
+      throw error;
     }
   };
 
