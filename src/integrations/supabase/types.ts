@@ -1074,8 +1074,6 @@ export type Database = {
           total_tokens: number
           used_tokens: number
           remaining_tokens: number
-          monthly_tokens: number
-          purchased_tokens: number
         }[]
       }
       grant_monthly_tokens: {
