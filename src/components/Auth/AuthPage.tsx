@@ -33,6 +33,8 @@ const AuthPage = () => {
           console.error('Error checking onboarding status:', error);
           setHasCompletedOnboarding(false);
         }
+      } else if (isLoaded && !isSignedIn) {
+        setHasCompletedOnboarding(null);
       }
     };
 
@@ -101,10 +103,7 @@ const AuthPage = () => {
                 <EnhancedSignUpForm 
                   onSwitchToSignIn={() => setActiveTab("signin")} 
                   onSuccess={() => {
-                    // Mark onboarding as complete and redirect to dashboard
                     setHasCompletedOnboarding(true);
-                    // Force redirect to home page (where dashboard is served)
-                    window.location.href = '/';
                   }}
                 />
               </ErrorBoundary>
@@ -115,7 +114,7 @@ const AuthPage = () => {
                 <SignInForm 
                   onSwitchToSignUp={() => setActiveTab("signup")} 
                   onSuccess={() => {
-                    // After successful sign in, redirect to dashboard - handled by onSuccess
+                    setHasCompletedOnboarding(true);
                   }}
                 />
               </ErrorBoundary>
