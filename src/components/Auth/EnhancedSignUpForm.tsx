@@ -1024,7 +1024,13 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             onClick={() => {
               localStorage.setItem('hasCompletedOnboard', 'true');
               localStorage.setItem('showWelcomeTour', 'true');
-              onSuccess?.();
+              // Call onSuccess to trigger redirect
+              if (onSuccess) {
+                onSuccess();
+              } else {
+                // Fallback: redirect directly to dashboard
+                window.location.href = '/';
+              }
             }}
             className="w-full"
           >
