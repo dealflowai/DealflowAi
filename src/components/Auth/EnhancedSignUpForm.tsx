@@ -103,12 +103,15 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
   // Step 1: Handle initial signup
   const handleBasicSignup = async (data: BasicSignUpData) => {
-    console.log('Starting signup process...');
+    console.log('=== SIGNUP DEBUG START ===');
+    console.log('1. SignUp object available:', !!signUp);
+    console.log('2. Form data:', data);
     
     if (!signUp) {
+      console.error('SignUp object not available');
       toast({
-        title: "Error",
-        description: "Authentication system not ready. Please refresh and try again.",
+        title: "Initialization Error",
+        description: "Authentication system not ready. Please refresh the page and try again.",
         variant: "destructive"
       });
       return;
@@ -116,10 +119,59 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
     setIsLoading(true);
     
+    
     try {
-      console.log('Creating Clerk account...');
+      console.log('3. Starting security check...');
+      
+      // Security check before allowing signup
+      const userIP = '127.0.0.1'; // This would be the actual IP in production
+      const emailDomain = data.email.split('@')[1];
+      
+      const { data: securityCheck, error: securityError } = await supabase.rpc('check_signup_security', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
+      });
+      
+      console.log('4. Security check result:', securityCheck);
+      
+      if (securityError) {
+        console.error('Security check error:', securityError);
+        throw securityError;
+      }
+      
+      const securityResult = securityCheck as { allowed: boolean; reason?: string };
+      
+      if (!securityResult.allowed) {
+        console.log('5. Security check failed:', securityResult.reason);
+        toast({
+          title: "Signup Blocked",
+          description: securityResult.reason || "Security check failed",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('6. Security check passed, creating Clerk account...');
+      
+      // Log signup attempt for security tracking
+      await supabase.rpc('log_signup_attempt', {
+        p_ip_address: userIP,
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone,
+        p_success: false
+      });
 
       // Create Clerk account
+      console.log('7. Creating Clerk account with:', {
+        emailAddress: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        hasPassword: !!data.password,
+        metadata: { role: data.role, phone: data.phone }
+      });
+
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
@@ -131,39 +183,69 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         }
       });
 
-      console.log('Signup result status:', result.status);
+      console.log('8. Clerk signup result:', {
+        status: result.status,
+        createdUserId: result.createdUserId,
+        createdSessionId: result.createdSessionId,
+        verifications: result.verifications,
+        fullResult: result
+      });
 
       if (result.status === 'missing_requirements') {
-        console.log('Email verification required');
+        console.log('9. Email verification required');
         setUserData(data);
         
-        await signUp.prepareEmailAddressVerification({
-          strategy: 'email_code'
-        });
-        
-        setCurrentStep(1.5);
-        
-        toast({
-          title: "Check Your Email",
-          description: "We've sent a verification code to your email address.",
-        });
+        try {
+          console.log('10. Preparing email verification...');
+          await signUp.prepareEmailAddressVerification({
+            strategy: 'email_code'
+          });
+          
+          console.log('11. Email verification prepared successfully');
+          setCurrentStep(1.5);
+          
+          toast({
+            title: "Email Verification Required",
+            description: "We've sent a 6-digit code to your email address.",
+          });
+        } catch (verificationError) {
+          console.error('12. Email verification preparation error:', verificationError);
+          toast({
+            title: "Verification Setup Failed",
+            description: "Please try again or contact support.",
+            variant: "destructive"
+          });
+        }
       } else if (result.status === 'complete' && result.createdSessionId) {
-        console.log('Account created successfully');
+        console.log('13. Account created successfully, setting session...');
         await setActive({ session: result.createdSessionId });
         
-        // Create user profile in database
+        console.log('14. Creating user profile...');
         await createUserProfile(result.createdUserId!, data);
+        
+        setUserData({ ...data, clerkId: result.createdUserId });
+        setCurrentStep(2);
         
         toast({
           title: "Account Created!",
-          description: "Welcome to DealFlow AI!",
+          description: "Let's customize your experience.",
         });
-        
-        // Complete signup and redirect
-        onSuccess?.();
+      } else {
+        console.log('15. Unexpected signup status:', result.status, result);
+        toast({
+          title: "Signup Issue", 
+          description: "There was an issue creating your account. Please try again in a moment.",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('16. SIGNUP ERROR:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        errors: error.errors,
+        fullError: error
+      });
       
       let errorMessage = "An error occurred during signup. Please try again.";
       let errorTitle = "Signup Failed";
@@ -178,11 +260,30 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
             break;
           case 'form_password_pwned':
             errorTitle = "Weak Password";
-            errorMessage = "This password has been compromised. Please choose a different password.";
+            errorMessage = "This password has been found in a data breach. Please choose a different password.";
+            break;
+          case 'captcha_invalid':
+          case 'captcha_failed':
+          case 'verification_failed':
+            errorTitle = "Account Creation Issue";
+            errorMessage = "Please try creating your account again. If this continues, contact support.";
+            break;
+          case 'too_many_requests':
+            errorTitle = "Too Many Attempts";
+            errorMessage = "Please wait 5-10 minutes before trying again.";
             break;
           default:
+            console.log('Full error details:', firstError);
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
+      } else if (error.message?.includes('CAPTCHA') || error.message?.includes('captcha')) {
+        errorTitle = "Verification Required";
+        errorMessage = "Please try again in a moment. If this persists, try using a different browser or disabling extensions.";
+      } else if (error.message?.includes('security')) {
+        errorTitle = "Security Check Failed";
+        errorMessage = "Please try again. If this continues, contact support.";
+      } else {
+        console.log('Full error object:', error);
       }
       
       toast({
@@ -191,6 +292,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         variant: "destructive"
       });
     } finally {
+      console.log('17. Signup process completed');
+      console.log('=== SIGNUP DEBUG END ===');
       setIsLoading(false);
     }
   };
@@ -198,7 +301,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   // Handle email verification
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp || isLoading) return;
+    if (!signUp || isLoading) return; // Prevent double submission
     
     setIsLoading(true);
     
@@ -215,7 +318,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         return;
       }
 
-      console.log('Attempting email verification...');
+      console.log('Attempting verification...');
       
       const result = await signUp.attemptEmailAddressVerification({
         code: cleanCode,
@@ -223,38 +326,45 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
 
       console.log('Verification result:', result);
       
-      if (result.status === 'complete' && result.createdSessionId) {
-        console.log('Verification complete, activating session...');
-        await setActive({ session: result.createdSessionId });
+      if (result.verifications?.emailAddress?.status === 'verified') {
+        // Clear verification code only on success
+        setVerificationCode('');
         
-        // Create user profile
-        await createUserProfile(result.createdUserId!, userData);
-        
-        toast({
-          title: "Account Created!",
-          description: "Welcome to DealFlow AI!",
-        });
-        
-        // Complete signup and redirect - no more steps needed
-        onSuccess?.();
-      } else if (result.verifications?.emailAddress?.status === 'verified') {
-        // Email verified but need to complete signup
-        try {
-          const completionResult = await signUp.update({});
+        if (result.status === 'complete' && result.createdSessionId) {
+          await setActive({ session: result.createdSessionId });
+          await createUserProfile(result.createdUserId!, userData);
           
-          if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-            await setActive({ session: completionResult.createdSessionId });
-            await createUserProfile(completionResult.createdUserId!, userData);
-            
-            toast({
-              title: "Account Created!",
-              description: "Welcome to DealFlow AI!",
+          setUserData({ ...userData, clerkId: result.createdUserId });
+          setCurrentStep(2);
+          
+          toast({
+            title: "Email Verified!",
+            description: "Let's customize your experience.",
+          });
+        } else {
+          // Need to complete signup
+          try {
+            const completionResult = await signUp.update({
+              firstName: userData.firstName,
+              lastName: userData.lastName,
             });
             
-            onSuccess?.();
+            if (completionResult.status === 'complete' && completionResult.createdSessionId) {
+              await setActive({ session: completionResult.createdSessionId });
+              await createUserProfile(completionResult.createdUserId!, userData);
+              
+              setUserData({ ...userData, clerkId: completionResult.createdUserId });
+              setCurrentStep(2);
+              
+              toast({
+                title: "Email Verified!",
+                description: "Let's customize your experience.",
+              });
+            }
+          } catch (completionError) {
+            console.error('Completion error:', completionError);
+            setCurrentStep(2);
           }
-        } catch (completionError) {
-          console.error('Completion error:', completionError);
         }
       } else {
         toast({
@@ -267,6 +377,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       console.error('Verification error:', error);
       
       let errorMessage = "Verification failed. Please try again.";
+      let shouldShowError = true;
+      let shouldClearCode = false; // Only clear code when moving to next step
       
       if (error.errors && error.errors.length > 0) {
         const firstError = error.errors[0];
@@ -274,39 +386,49 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         switch (firstError.code) {
           case 'form_code_incorrect':
             errorMessage = "Invalid verification code. Please check your email and try again.";
+            shouldClearCode = true; // Clear incorrect code
             break;
           case 'verification_already_verified':
           case 'form_already_verified':
-            // Already verified, complete signup
+            // User is already verified, proceed to next step
+            shouldShowError = false;
+            shouldClearCode = true; // Clear code when moving forward
             toast({
-              title: "Email Already Verified!",
-              description: "Creating your account now...",
+              title: "Already Verified!",
+              description: "Your email is already verified. Proceeding to setup...",
             });
-            
-            try {
-              const completionResult = await signUp.update({});
-              if (completionResult.status === 'complete' && completionResult.createdSessionId) {
-                await setActive({ session: completionResult.createdSessionId });
-                await createUserProfile(completionResult.createdUserId!, userData);
-                onSuccess?.();
-              }
-            } catch (completionError) {
-              console.error('Auto-completion error:', completionError);
-            }
-            return;
+            setCurrentStep(2);
+            break;
           case 'verification_expired':
             errorMessage = "Verification code has expired. Please request a new one.";
+            shouldClearCode = true; // Clear expired code
             break;
           default:
             errorMessage = firstError.longMessage || firstError.message || errorMessage;
         }
+      } else if (error.message?.includes('already been verified')) {
+        // Handle the specific error message you encountered
+        shouldShowError = false;
+        shouldClearCode = true; // Clear code when moving forward
+        toast({
+          title: "Already Verified!",
+          description: "Your email is already verified. Proceeding to setup...",
+        });
+        setCurrentStep(2);
       }
       
-      toast({
-        title: "Verification Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      // Only clear code when appropriate
+      if (shouldClearCode) {
+        setVerificationCode('');
+      }
+      
+      if (shouldShowError) {
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -362,10 +484,12 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         last_name: userData.lastName,
         phone: userData.phone,
         user_role: userData.role,
-        role: 'admin',
-        has_completed_onboarding: true, // Mark as complete since we're simplifying the flow
+        role: 'admin', // Set as admin by default so users can access admin dashboard
+        onboarding_step: 2,
+        has_completed_onboarding: false,
         consent_given: true,
-        plan_tokens: 25,
+        plan_tokens: 25, // Default tokens
+        created_at: new Date().toISOString()
       };
 
       console.log('Creating profile with data:', profileData);
@@ -381,22 +505,21 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       if (error) {
         console.error('Profile creation error:', error);
         throw error;
+      } else {
+        console.log('Profile created successfully:', createdProfile);
+        
+        // Initialize user tokens (monthly allowance, not purchased)
+        try {
+          await supabase.rpc('reset_monthly_tokens', {
+            p_user_id: createdProfile.id
+          });
+          console.log('Initial monthly tokens granted successfully');
+        } catch (tokenError) {
+          console.error('Token initialization error:', tokenError);
+        }
+        
+        return createdProfile;
       }
-      
-      console.log('Profile created successfully:', createdProfile);
-      
-      // Initialize user tokens
-      try {
-        await supabase.rpc('add_tokens', {
-          p_user_id: createdProfile.id,
-          p_tokens: 25
-        });
-        console.log('Initial tokens granted successfully');
-      } catch (tokenError) {
-        console.error('Token initialization error:', tokenError);
-      }
-      
-      return createdProfile;
     } catch (error) {
       console.error('Profile creation error:', error);
       throw error;
