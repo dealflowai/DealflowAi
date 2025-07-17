@@ -15,6 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { PhoneVerificationStep } from './PhoneVerificationStep';
+
 // Step 1: Basic signup schema
 const basicSignUpSchema = z.object({
   firstName: z.string()
@@ -34,6 +36,9 @@ const basicSignUpSchema = z.object({
   role: z.enum(['buyer', 'wholesaler', 'real_estate_agent', 'other'], {
     required_error: 'Please select your role'
   }),
+  phone: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .regex(/^[\+]?[\d\s\(\)\-]{10,}$/, 'Please enter a valid phone number'),
   consent: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and privacy policy'
   })
@@ -124,7 +129,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       
       const { data: securityCheck, error: securityError } = await supabase.rpc('check_signup_security', {
         p_ip_address: userIP,
-        p_email_domain: emailDomain
+        p_email_domain: emailDomain,
+        p_phone_number: data.phone
       });
       
       console.log('4. Security check result:', securityCheck);
@@ -153,6 +159,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       await supabase.rpc('log_signup_attempt', {
         p_ip_address: userIP,
         p_email_domain: emailDomain,
+        p_phone_number: data.phone,
         p_success: false
       });
 
@@ -162,7 +169,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         firstName: data.firstName,
         lastName: data.lastName,
         hasPassword: !!data.password,
-        metadata: { role: data.role }
+        metadata: { role: data.role, phone: data.phone }
       });
 
       const result = await signUp.create({
@@ -171,7 +178,8 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         firstName: data.firstName,
         lastName: data.lastName,
         unsafeMetadata: {
-          role: data.role
+          role: data.role,
+          phone: data.phone
         }
       });
 
@@ -474,6 +482,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         email: userData.email,
         first_name: userData.firstName,
         last_name: userData.lastName,
+        phone: userData.phone,
         user_role: userData.role,
         role: 'admin', // Set as admin by default so users can access admin dashboard
         onboarding_step: 2,
@@ -704,6 +713,41 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
               )}
             </div>
 
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                {...basicForm.register('phone', {
+                  onChange: (e) => {
+                    // Format phone number as user types
+                    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                    let formattedValue = '';
+                    
+                    if (value.length > 0) {
+                      if (value.length <= 3) {
+                        formattedValue = `(${value}`;
+                      } else if (value.length <= 6) {
+                        formattedValue = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                      } else if (value.length <= 10) {
+                        formattedValue = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+                      } else {
+                        // Handle 11 digits (with country code)
+                        formattedValue = `+${value.slice(0, 1)} (${value.slice(1, 4)}) ${value.slice(4, 7)}-${value.slice(7, 11)}`;
+                      }
+                    }
+                    
+                    e.target.value = formattedValue;
+                    basicForm.setValue('phone', formattedValue);
+                  }
+                })}
+                className="mt-1"
+                placeholder="+1 (555) 123-4567"
+              />
+              {basicForm.formState.errors.phone && (
+                <p className="text-sm text-destructive mt-1">{basicForm.formState.errors.phone.message}</p>
+              )}
+            </div>
 
             <div className="flex items-start space-x-3">
               <Checkbox
@@ -840,6 +884,24 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
     );
   }
 
+  // Step 1.7: Phone verification
+  if (currentStep === 1.7) {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <PhoneVerificationStep
+          phoneNumber={userData.phone}
+          onSuccess={() => {
+            setCurrentStep(2);
+            toast({
+              title: "Phone Verified!",
+              description: "Let's customize your experience.",
+            });
+          }}
+          onBack={() => setCurrentStep(1)}
+        />
+      </div>
+    );
+  }
 
   // Step 2: Onboarding
   if (currentStep === 2) {
