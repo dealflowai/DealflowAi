@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Brain, Zap, Shield, Target, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { EnhancedSignUpForm } from './EnhancedSignUpForm';
+import { SimpleSignUpForm } from './SimpleSignUpForm';
 import ErrorBoundary from '../ErrorBoundary';
 import { SignInForm } from './SignInForm';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,7 +98,7 @@ const AuthPage = () => {
             
             <TabsContent value="signup">
               <ErrorBoundary>
-                <EnhancedSignUpForm 
+                <SimpleSignUpForm 
                   onSwitchToSignIn={() => setActiveTab("signin")} 
                   onSuccess={() => {
                     // Mark onboarding as complete and redirect to dashboard
