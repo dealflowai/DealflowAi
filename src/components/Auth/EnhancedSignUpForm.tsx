@@ -251,7 +251,7 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
   // Handle email verification
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp) return;
+    if (!signUp || isLoading) return; // Prevent double submission
     
     setIsLoading(true);
     
@@ -277,6 +277,9 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
       console.log('Verification result:', result);
       
       if (result.verifications?.emailAddress?.status === 'verified') {
+        // Clear verification code only on success
+        setVerificationCode('');
+        
         if (result.status === 'complete' && result.createdSessionId) {
           await setActive({ session: result.createdSessionId });
           await createUserProfile(result.createdUserId!, userData);
@@ -320,8 +323,6 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
           variant: "destructive"
         });
       }
-      
-      setVerificationCode('');
     } catch (error: any) {
       console.error('Verification error:', error);
       setVerificationCode('');
@@ -746,10 +747,15 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
                 id="verificationCode"
                 type="text"
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
+                onChange={(e) => {
+                  // Only allow numbers and limit to 6 digits
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setVerificationCode(value);
+                }}
                 className="mt-1 text-center text-lg tracking-widest"
                 placeholder="123456"
                 maxLength={6}
+                autoComplete="one-time-code"
               />
             </div>
 
