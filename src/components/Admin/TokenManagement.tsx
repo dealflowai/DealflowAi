@@ -57,8 +57,7 @@ const TokenManagement = () => {
             totalTokens: tokenData?.[0]?.total_tokens || 0,
             usedTokens: tokenData?.[0]?.used_tokens || 0,
             remainingTokens: tokenData?.[0]?.remaining_tokens || 0,
-            monthlyTokens: tokenData?.[0]?.monthly_tokens || 0,
-            purchasedTokens: tokenData?.[0]?.purchased_tokens || 0,
+            // These properties are no longer returned by the function
           };
         }) || []
       );
@@ -317,17 +316,16 @@ const TokenManagement = () => {
           ) : (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Monthly Tokens</TableHead>
-                    <TableHead>Purchased Tokens</TableHead>
-                    <TableHead>Used Tokens</TableHead>
-                    <TableHead>Remaining</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Quick Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Total Tokens</TableHead>
+                      <TableHead>Used Tokens</TableHead>
+                      <TableHead>Remaining</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Quick Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {filteredUsers?.map((user) => {
                     const status = getTokenStatusBadge(user.remainingTokens);
@@ -346,15 +344,9 @@ const TokenManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="font-semibold text-blue-600">
-                            {user.monthlyTokens.toLocaleString()}
+                            {user.totalTokens.toLocaleString()}
                           </div>
-                          <div className="text-xs text-gray-500">Reset monthly</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-semibold text-green-600">
-                            {user.purchasedTokens.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-gray-500">Never expire</div>
+                          <div className="text-xs text-gray-500">Monthly + Purchased</div>
                         </TableCell>
                         <TableCell>
                           <div className="text-gray-600">
@@ -412,11 +404,11 @@ const TokenManagement = () => {
                     );
                   })}
                   {filteredUsers?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                        {searchEmail ? 'No users found matching your search.' : 'No users found.'}
-                      </TableCell>
-                    </TableRow>
+                     <TableRow>
+                       <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                         {searchEmail ? 'No users found matching your search.' : 'No users found.'}
+                       </TableCell>
+                     </TableRow>
                   )}
                 </TableBody>
               </Table>

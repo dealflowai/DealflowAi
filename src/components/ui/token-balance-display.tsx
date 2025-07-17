@@ -58,15 +58,15 @@ export function TokenBalanceDisplay({ showBuyButton = true, onBuyTokens, userPla
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-500" />
                 <span className="text-sm">
-                  Monthly: {tokenBalance.monthlyTokens} 
-                  <span className="text-muted-foreground"> (reset each month)</span>
+                  Total tokens: {tokenBalance.totalTokens}
+                  <span className="text-muted-foreground"> (monthly + purchased)</span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-green-500" />
                 <span className="text-sm">
-                  Purchased: {tokenBalance.purchasedTokens}
-                  <span className="text-muted-foreground"> (never expire)</span>
+                  Used: {tokenBalance.usedTokens}
+                  <span className="text-muted-foreground"> tokens</span>
                 </span>
               </div>
               <div className="border-t pt-2">

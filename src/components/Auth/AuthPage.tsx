@@ -100,7 +100,12 @@ const AuthPage = () => {
               <ErrorBoundary>
                 <EnhancedSignUpForm 
                   onSwitchToSignIn={() => setActiveTab("signin")} 
-                  onSuccess={() => setHasCompletedOnboarding(true)}
+                  onSuccess={() => {
+                    // Mark onboarding as complete and redirect to dashboard
+                    setHasCompletedOnboarding(true);
+                    // Force redirect to dashboard after successful signup
+                    window.location.href = '/dashboard';
+                  }}
                 />
               </ErrorBoundary>
             </TabsContent>
