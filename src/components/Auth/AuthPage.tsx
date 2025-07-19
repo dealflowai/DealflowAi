@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Brain, Zap, Shield, Target, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { SignUpForm } from './SignUpForm';
+import { EnhancedSignUpForm } from './EnhancedSignUpForm';
 import ErrorBoundary from '../ErrorBoundary';
 import { SignInForm } from './SignInForm';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,7 +98,8 @@ const AuthPage = () => {
             
             <TabsContent value="signup">
               <ErrorBoundary>
-                <SignUpForm 
+                <EnhancedSignUpForm 
+                  onSwitchToSignIn={() => setActiveTab("signin")} 
                   onSuccess={() => {
                     // Navigate will handle the redirect once Clerk state updates
                   }}
