@@ -41,8 +41,8 @@ const AuthPage = () => {
     }
   }, [isSignedIn, isLoaded, user]);
 
-  // Only redirect to dashboard if user is signed in AND has completed onboarding
-  if (isLoaded && isSignedIn && hasCompletedOnboarding) {
+  // Redirect to dashboard if user is signed in
+  if (isLoaded && isSignedIn) {
     return <Navigate to="/" replace />;
   }
 
@@ -101,10 +101,7 @@ const AuthPage = () => {
                 <EnhancedSignUpForm 
                   onSwitchToSignIn={() => setActiveTab("signin")} 
                   onSuccess={() => {
-                    // Mark onboarding as complete and redirect to dashboard
-                    setHasCompletedOnboarding(true);
-                    // Force redirect to home page (where dashboard is served)
-                    window.location.href = '/';
+                    // Navigate will handle the redirect once Clerk state updates
                   }}
                 />
               </ErrorBoundary>
@@ -115,7 +112,7 @@ const AuthPage = () => {
                 <SignInForm 
                   onSwitchToSignUp={() => setActiveTab("signup")} 
                   onSuccess={() => {
-                    // After successful sign in, redirect to dashboard - handled by onSuccess
+                    // Navigate will handle the redirect once Clerk state updates
                   }}
                 />
               </ErrorBoundary>
