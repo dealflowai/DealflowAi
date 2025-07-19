@@ -40,8 +40,8 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id });
 
-    // Get request data
-    const { contractData } = await req.json();
+    // Get request data - the frontend sends the data directly, not nested in contractData
+    const contractData = await req.json();
     if (!contractData) throw new Error("Contract data is required");
 
     logStep("Contract data received", { contractData });

@@ -53,7 +53,13 @@ const ContractGenerator = ({}: ContractGeneratorProps) => {
     setIsGenerating(true);
     
     try {
-      // Call the AI contract generator edge function
+      // Check authentication first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Call the AI contract generator edge function with proper auth headers
       const { data, error } = await supabase.functions.invoke('ai-contract-generator', {
         body: {
           templateType,
@@ -67,6 +73,9 @@ const ContractGenerator = ({}: ContractGeneratorProps) => {
           earnestMoney: parseInt(formData.earnestMoney) || null,
           closingDate: formData.closingDate || null,
           specialTerms: formData.specialTerms
+        },
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         }
       });
 
@@ -88,7 +97,7 @@ const ContractGenerator = ({}: ContractGeneratorProps) => {
         closing_date: formData.closingDate || null,
         special_terms: formData.specialTerms,
         status: 'draft',
-        contract_content: data.content,
+        contract_content: data.contractContent,
         deal_id: dealId || null
       };
 
