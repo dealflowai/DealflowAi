@@ -110,7 +110,7 @@ const ESignatureWorkflow = ({ contracts, onStatusUpdate }: ESignatureWorkflowPro
     }
   };
 
-  const contractsForSignature = contracts.filter(c => c.status !== 'executed');
+  const contractsForSignature = contracts.filter(c => c.status?.toLowerCase() !== 'executed');
 
   return (
     <Card>

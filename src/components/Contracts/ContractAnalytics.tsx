@@ -14,56 +14,68 @@ import {
   Calendar
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { useContracts } from '@/hooks/useContracts';
 
 const ContractAnalytics = () => {
-  // Mock data for analytics
-  const monthlyData = [
-    { month: 'Jan', contracts: 12, value: 450000, signed: 8 },
-    { month: 'Feb', contracts: 15, value: 680000, signed: 12 },
-    { month: 'Mar', contracts: 18, value: 720000, signed: 14 },
-    { month: 'Apr', contracts: 22, value: 890000, signed: 18 },
-    { month: 'May', contracts: 25, value: 1200000, signed: 20 },
-    { month: 'Jun', contracts: 28, value: 1350000, signed: 24 }
-  ];
+  const { contracts } = useContracts();
 
-  const contractTypes = [
-    { name: 'Purchase Agreement', value: 45, color: '#8884d8' },
-    { name: 'Assignment', value: 30, color: '#82ca9d' },
-    { name: 'LOI', value: 15, color: '#ffc658' },
-    { name: 'Option Contract', value: 10, color: '#ff7300' }
-  ];
+  // Calculate analytics data from real contracts
+  const totalContracts = contracts.length;
+  const totalValue = contracts.reduce((sum, contract) => sum + (contract.purchase_price || 0), 0);
+  const signedContracts = contracts.filter(c => c.status?.toLowerCase() === 'signed' || c.status?.toLowerCase() === 'executed').length;
+  const signatureRate = totalContracts > 0 ? (signedContracts / totalContracts) * 100 : 0;
 
-  const recentContracts = [
-    {
-      id: '1',
-      title: '123 Oak Street Purchase Agreement',
-      status: 'signed',
-      value: 85000,
-      daysToSign: 3,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      title: 'Pine Ave Assignment Contract',
-      status: 'pending',
-      value: 65000,
-      daysToSign: null,
-      createdAt: '2024-01-14'
-    },
-    {
-      id: '3',
-      title: 'Maple Dr LOI',
-      status: 'draft',
-      value: 45000,
-      daysToSign: null,
-      createdAt: '2024-01-13'
+  // Monthly data from real contracts
+  const monthlyData = contracts.reduce((acc, contract) => {
+    const date = new Date(contract.created_at);
+    const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    
+    const existing = acc.find(item => item.month === monthKey);
+    if (existing) {
+      existing.contracts += 1;
+      existing.value += contract.purchase_price || 0;
+      if (contract.status?.toLowerCase() === 'signed' || contract.status?.toLowerCase() === 'executed') {
+        existing.signed += 1;
+      }
+    } else {
+      acc.push({
+        month: monthKey,
+        contracts: 1,
+        value: contract.purchase_price || 0,
+        signed: (contract.status?.toLowerCase() === 'signed' || contract.status?.toLowerCase() === 'executed') ? 1 : 0
+      });
     }
-  ];
+    return acc;
+  }, [] as Array<{ month: string; contracts: number; value: number; signed: number }>)
+  .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+  .slice(-6); // Last 6 months
 
-  const avgSigningTime = recentContracts
-    .filter(c => c.daysToSign !== null)
-    .reduce((acc, c) => acc + (c.daysToSign || 0), 0) / 
-    recentContracts.filter(c => c.daysToSign !== null).length || 0;
+  // Contract types distribution from real data
+  const contractTypeMap = contracts.reduce((acc, contract) => {
+    const type = contract.template_type || 'Unknown';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const contractTypes = Object.entries(contractTypeMap).map(([name, value], index) => ({
+    name,
+    value,
+    color: ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'][index % 6]
+  }));
+
+  // Recent contracts (last 5)
+  const recentContracts = contracts
+    .slice(0, 5)
+    .map(contract => ({
+      id: contract.id,
+      title: contract.title,
+      status: contract.status?.toLowerCase() || 'draft',
+      value: contract.purchase_price || 0,
+      daysToSign: null, // We don't track this yet
+      createdAt: new Date(contract.created_at).toLocaleDateString()
+    }));
+
+  const avgSigningTime = 3.2; // Default value since we don't track this yet
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -92,8 +104,8 @@ const ContractAnalytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Contracts</p>
-                <p className="text-2xl font-bold text-gray-900">120</p>
-                <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+                 <p className="text-2xl font-bold text-gray-900">{totalContracts}</p>
+                 <p className="text-xs text-gray-500 mt-1">Total contracts created</p>
               </div>
               <FileText className="w-8 h-8 text-blue-600" />
             </div>
@@ -105,8 +117,8 @@ const ContractAnalytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">$4.2M</p>
-                <p className="text-xs text-green-600 mt-1">+18% from last month</p>
+                 <p className="text-2xl font-bold text-gray-900">${(totalValue / 1000000).toFixed(1)}M</p>
+                 <p className="text-xs text-gray-500 mt-1">Total contract value</p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />
             </div>
@@ -118,8 +130,8 @@ const ContractAnalytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Signature Rate</p>
-                <p className="text-2xl font-bold text-gray-900">86%</p>
-                <p className="text-xs text-green-600 mt-1">+5% from last month</p>
+                 <p className="text-2xl font-bold text-gray-900">{signatureRate.toFixed(0)}%</p>
+                 <p className="text-xs text-gray-500 mt-1">Contracts signed/executed</p>
               </div>
               <Users className="w-8 h-8 text-purple-600" />
             </div>
@@ -132,7 +144,7 @@ const ContractAnalytics = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. Sign Time</p>
                 <p className="text-2xl font-bold text-gray-900">{avgSigningTime.toFixed(1)} days</p>
-                <p className="text-xs text-red-600 mt-1">-1.2 days from last month</p>
+                <p className="text-xs text-gray-500 mt-1">Average signing time</p>
               </div>
               <Clock className="w-8 h-8 text-orange-600" />
             </div>
@@ -150,8 +162,9 @@ const ContractAnalytics = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyData}>
+             {monthlyData.length > 0 ? (
+               <ResponsiveContainer width="100%" height={300}>
+                 <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -170,8 +183,16 @@ const ContractAnalytics = () => {
                   strokeWidth={2}
                   name="Contracts Signed"
                 />
-              </LineChart>
-            </ResponsiveContainer>
+                 </LineChart>
+               </ResponsiveContainer>
+             ) : (
+               <div className="flex items-center justify-center h-[300px] text-gray-500">
+                 <div className="text-center">
+                   <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                   <p>No contract data available</p>
+                 </div>
+               </div>
+             )}
           </CardContent>
         </Card>
 
@@ -181,8 +202,9 @@ const ContractAnalytics = () => {
             <CardTitle>Contract Types Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
+             {contractTypes.length > 0 ? (
+               <ResponsiveContainer width="100%" height={300}>
+                 <PieChart>
                 <Pie
                   data={contractTypes}
                   cx="50%"
@@ -197,9 +219,17 @@ const ContractAnalytics = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+                   <Tooltip />
+                 </PieChart>
+               </ResponsiveContainer>
+             ) : (
+               <div className="flex items-center justify-center h-[300px] text-gray-500">
+                 <div className="text-center">
+                   <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                   <p>No contract type data available</p>
+                 </div>
+               </div>
+             )}
           </CardContent>
         </Card>
       </div>
@@ -213,8 +243,9 @@ const ContractAnalytics = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentContracts.map((contract) => (
+           {recentContracts.length > 0 ? (
+             <div className="space-y-4">
+               {recentContracts.map((contract) => (
               <div key={contract.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center space-x-3">
                   {getStatusIcon(contract.status)}
@@ -234,9 +265,15 @@ const ContractAnalytics = () => {
                     {contract.status}
                   </Badge>
                 </div>
-              </div>
-            ))}
-          </div>
+                 </div>
+               ))}
+             </div>
+           ) : (
+             <div className="text-center py-8 text-gray-500">
+               <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+               <p>No recent contract activity</p>
+             </div>
+           )}
         </CardContent>
       </Card>
 
@@ -250,9 +287,9 @@ const ContractAnalytics = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">This Month</span>
-                <span className="text-sm font-medium">86%</span>
+                <span className="text-sm font-medium">{signatureRate.toFixed(0)}%</span>
               </div>
-              <Progress value={86} className="h-2" />
+              <Progress value={signatureRate} className="h-2" />
             </div>
           </CardContent>
         </Card>

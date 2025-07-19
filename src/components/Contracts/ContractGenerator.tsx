@@ -9,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Wand2, FileText, Send } from 'lucide-react';
 import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
+import { useContracts } from '@/hooks/useContracts';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContractGeneratorProps {
-  onContractGenerated: (contract: any) => void;
 }
 
-const ContractGenerator = ({ onContractGenerated }: ContractGeneratorProps) => {
+const ContractGenerator = ({}: ContractGeneratorProps) => {
   const [templateType, setTemplateType] = useState('');
   const [dealId, setDealId] = useState('');
   const [formData, setFormData] = useState({
@@ -31,6 +32,7 @@ const ContractGenerator = ({ onContractGenerated }: ContractGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const { deductTokens } = useTokens();
+  const { createContract } = useContracts();
 
   const handleGenerateContract = async () => {
     if (!templateType) {
@@ -51,11 +53,29 @@ const ContractGenerator = ({ onContractGenerated }: ContractGeneratorProps) => {
     setIsGenerating(true);
     
     try {
-      // Simulate AI contract generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const generatedContract = {
-        id: Math.random().toString(36).substr(2, 9),
+      // Call the AI contract generator edge function
+      const { data, error } = await supabase.functions.invoke('ai-contract-generator', {
+        body: {
+          templateType,
+          dealId: dealId || null,
+          propertyAddress: formData.propertyAddress,
+          buyerName: formData.buyerName,
+          buyerEmail: formData.buyerEmail,
+          sellerName: formData.sellerName,
+          sellerEmail: formData.sellerEmail,
+          purchasePrice: parseInt(formData.purchasePrice) || null,
+          earnestMoney: parseInt(formData.earnestMoney) || null,
+          closingDate: formData.closingDate || null,
+          specialTerms: formData.specialTerms
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Create the contract in the database
+      const contractData = {
         title: `${templateType} - ${formData.propertyAddress || 'New Property'}`,
         template_type: templateType,
         property_address: formData.propertyAddress,
@@ -68,12 +88,11 @@ const ContractGenerator = ({ onContractGenerated }: ContractGeneratorProps) => {
         closing_date: formData.closingDate || null,
         special_terms: formData.specialTerms,
         status: 'draft',
-        contract_content: `AI-generated ${templateType} contract with all terms and conditions...`,
-        created_at: new Date().toISOString(),
+        contract_content: data.content,
         deal_id: dealId || null
       };
 
-      onContractGenerated(generatedContract);
+      await createContract(contractData);
       
       toast({
         title: "Contract Generated",

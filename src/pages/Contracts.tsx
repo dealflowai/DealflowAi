@@ -4,114 +4,74 @@ import Layout from '@/components/Layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Plus, Download, Edit, Eye, Clock, BarChart3, Wand2, Send, BookOpen } from 'lucide-react';
+import { FileText, Plus, Download, Edit, Eye, Clock, BarChart3, Wand2, Send, BookOpen, Loader2 } from 'lucide-react';
 import ContractGenerator from '@/components/Contracts/ContractGenerator';
 import ESignatureWorkflow from '@/components/Contracts/ESignatureWorkflow';
 import TemplateLibrary from '@/components/Contracts/TemplateLibrary';
 import ContractAnalytics from '@/components/Contracts/ContractAnalytics';
-
-const initialContracts = [
-  {
-    id: 1,
-    title: 'Purchase Agreement - 123 Oak Street',
-    template_type: 'Purchase Agreement',
-    status: 'Draft',
-    buyer_name: 'Sarah Johnson',
-    buyer_email: 'sarah.johnson@email.com',
-    seller_name: 'Michael Thompson',
-    seller_email: 'michael.thompson@email.com',
-    purchase_price: 45000,
-    earnest_money: 1000,
-    property_address: '123 Oak Street',
-    created_at: '2024-01-15',
-    closing_date: '2024-02-15'
-  },
-  {
-    id: 2,
-    title: 'Assignment Contract - 456 Pine Avenue',
-    template_type: 'Assignment',
-    status: 'Signed',
-    buyer_name: 'Jennifer Rodriguez',
-    buyer_email: 'jennifer.rodriguez@email.com',
-    seller_name: 'David Chen',
-    seller_email: 'david.chen@email.com',
-    purchase_price: 67500,
-    earnest_money: 2000,
-    property_address: '456 Pine Avenue',
-    created_at: '2024-01-10',
-    closing_date: '2024-02-10'
-  },
-  {
-    id: 3,
-    title: 'LOI - Riverside Commercial',
-    template_type: 'Letter of Intent',
-    status: 'Pending',
-    buyer_name: 'Investment Group LLC',
-    buyer_email: 'contact@investmentgroup.com',
-    seller_name: 'Commercial Properties Inc',
-    seller_email: 'sales@commercialproperties.com',
-    purchase_price: 125000,
-    earnest_money: 5000,
-    property_address: 'Riverside Commercial Complex',
-    created_at: '2024-01-08',
-    closing_date: '2024-03-01'
-  },
-  {
-    id: 4,
-    title: 'Purchase Agreement - 789 Elm Street',
-    template_type: 'Purchase Agreement',
-    status: 'Executed',
-    buyer_name: 'Michael Chen',
-    buyer_email: 'michael.chen@email.com',
-    seller_name: 'Property Holdings Co',
-    seller_email: 'info@propertyholdings.com',
-    purchase_price: 89000,
-    earnest_money: 3000,
-    property_address: '789 Elm Street',
-    created_at: '2024-01-05',
-    closing_date: '2024-01-30'
-  }
-];
+import { useContracts } from '@/hooks/useContracts';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Contracts = () => {
-  const [contracts, setContracts] = useState(initialContracts);
+  const { contracts, loading, error, updateContract } = useContracts();
   const [activeTab, setActiveTab] = useState('overview');
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Draft':
+    switch (status.toLowerCase()) {
+      case 'draft':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Pending':
+      case 'pending':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Sent':
+      case 'sent':
         return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'Signed':
+      case 'signed':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'Executed':
+      case 'executed':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const handleContractGenerated = (newContract: any) => {
-    setContracts(prev => [newContract, ...prev]);
-  };
-
-  const handleStatusUpdate = (contractId: string, newStatus: string) => {
-    setContracts(prev => 
-      prev.map(contract => 
-        contract.id.toString() === contractId 
-          ? { ...contract, status: newStatus }
-          : contract
-      )
-    );
+  const handleStatusUpdate = async (contractId: string, newStatus: string) => {
+    try {
+      await updateContract(contractId, { status: newStatus });
+    } catch (error) {
+      console.error('Failed to update contract status:', error);
+    }
   };
 
   const handleTemplateSelect = (template: any) => {
     // Switch to generator tab and pre-fill template type
     setActiveTab('generator');
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Loading contracts...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <Alert variant="destructive">
+            <AlertDescription>
+              Failed to load contracts: {error}
+            </AlertDescription>
+          </Alert>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -181,7 +141,7 @@ const Contracts = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Pending Signature</p>
-                    <p className="text-2xl font-bold text-yellow-600">{contracts.filter(c => c.status === 'Pending').length}</p>
+                    <p className="text-2xl font-bold text-yellow-600">{contracts.filter(c => c.status.toLowerCase() === 'pending').length}</p>
                   </div>
                   <Clock className="w-8 h-8 text-yellow-600" />
                 </div>
@@ -191,7 +151,7 @@ const Contracts = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Executed</p>
-                    <p className="text-2xl font-bold text-green-600">{contracts.filter(c => c.status === 'Executed').length}</p>
+                    <p className="text-2xl font-bold text-green-600">{contracts.filter(c => c.status.toLowerCase() === 'executed').length}</p>
                   </div>
                   <Badge className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
                     ✓
@@ -251,9 +211,9 @@ const Contracts = () => {
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="text-sm text-gray-500">
-                        Created: {contract.created_at} • Closing: {contract.closing_date}
-                      </div>
+                       <div className="text-sm text-gray-500">
+                         Created: {new Date(contract.created_at).toLocaleDateString()} • Closing: {contract.closing_date ? new Date(contract.closing_date).toLocaleDateString() : 'TBD'}
+                       </div>
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm">
                           <Eye className="w-3 h-3 mr-1" />
@@ -276,7 +236,7 @@ const Contracts = () => {
           </TabsContent>
 
           <TabsContent value="generator">
-            <ContractGenerator onContractGenerated={handleContractGenerated} />
+            <ContractGenerator />
           </TabsContent>
 
           <TabsContent value="signatures">
