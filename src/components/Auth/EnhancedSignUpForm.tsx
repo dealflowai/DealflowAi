@@ -224,12 +224,29 @@ export const EnhancedSignUpForm: React.FC<EnhancedSignUpFormProps> = ({ onSucces
         await createUserProfile(result.createdUserId!, data);
         
         setUserData({ ...data, clerkId: result.createdUserId });
-        setCurrentStep(2);
         
+        // Skip onboarding and go directly to completion
         toast({
           title: "Account Created!",
-          description: "Let's customize your experience.",
+          description: "Welcome to DealFlow AI!",
         });
+        
+        // Mark onboarding as complete and redirect immediately
+        try {
+          await supabase
+            .from('profiles')
+            .update({ has_completed_onboarding: true })
+            .eq('clerk_id', result.createdUserId);
+        } catch (error) {
+          console.error('Profile update error:', error);
+        }
+        
+        // Call onSuccess to trigger redirect
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          window.location.href = '/';
+        }
       } else {
         console.log('15. Unexpected signup status:', result.status, result);
         toast({
