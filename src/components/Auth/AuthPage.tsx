@@ -41,8 +41,8 @@ const AuthPage = () => {
     }
   }, [isSignedIn, isLoaded, user]);
 
-  // Redirect to dashboard if user is signed in
-  if (isLoaded && isSignedIn) {
+  // Only redirect to dashboard if user is signed in AND has completed onboarding
+  if (isLoaded && isSignedIn && hasCompletedOnboarding) {
     return <Navigate to="/" replace />;
   }
 
@@ -101,10 +101,10 @@ const AuthPage = () => {
                 <EnhancedSignUpForm 
                   onSwitchToSignIn={() => setActiveTab("signin")} 
                   onSuccess={() => {
-                    // Wait a moment for Clerk to update the session, then redirect
-                    setTimeout(() => {
-                      window.location.href = '/';
-                    }, 500);
+                    // Mark onboarding as complete and redirect to dashboard
+                    setHasCompletedOnboarding(true);
+                    // Force redirect to home page (where dashboard is served)
+                    window.location.href = '/';
                   }}
                 />
               </ErrorBoundary>
