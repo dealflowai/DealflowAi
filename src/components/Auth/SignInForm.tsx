@@ -25,9 +25,10 @@ type SignInFormData = z.infer<typeof signInSchema>;
 
 interface SignInFormProps {
   onSuccess?: () => void;
+  onSwitchToSignUp?: () => void;
 }
 
-export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
+export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onSwitchToSignUp }) => {
   const { signIn, setActive } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
   const [resetMode, setResetMode] = useState<'request' | 'verify' | null>(null);
@@ -396,11 +397,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSuccess }) => {
           <button 
             type="button"
             className="text-primary hover:underline font-medium"
-            onClick={() => {
-              // Switch to signup tab in parent component
-              const signupTab = document.querySelector('[data-value="signup"]') as HTMLElement;
-              signupTab?.click();
-            }}
+            onClick={() => onSwitchToSignUp?.()}
           >
             Sign up here
           </button>
