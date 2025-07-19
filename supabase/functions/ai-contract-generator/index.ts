@@ -30,10 +30,16 @@ serve(async (req) => {
     );
 
     const authHeader = req.headers.get("Authorization");
+    logStep("Auth header received", { hasAuthHeader: !!authHeader, authHeaderLength: authHeader?.length });
+    
     if (!authHeader) throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
+    logStep("Token extracted", { tokenLength: token.length, tokenPrefix: token.substring(0, 10) + "..." });
+    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    logStep("User data retrieved", { hasUser: !!userData?.user, userId: userData?.user?.id, error: userError?.message });
+    
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");

@@ -44,22 +44,59 @@ const ContractGenerator = ({}: ContractGeneratorProps) => {
       return;
     }
 
-    // Check and deduct tokens before generating contract
-    const tokenDeducted = await deductTokens(TOKEN_COSTS['Contract Generator'], 'Contract Generator');
-    if (!tokenDeducted) {
-      return; // Token deduction failed, user was notified
-    }
-
     setIsGenerating(true);
     
     try {
       // Check authentication first
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("Current user:", user, "Error:", userError);
+      
+      if (userError || !user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to generate contracts.",
+          variant: "destructive"
+        });
+        setIsGenerating(false);
+        return;
       }
 
-      // Call the AI contract generator edge function with proper auth headers
+      // Get current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log("Current session:", session, "Error:", sessionError);
+      
+      if (sessionError || !session) {
+        toast({
+          title: "Session Error",
+          description: "Please sign in again to generate contracts.",
+          variant: "destructive"
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      // Check and deduct tokens before generating contract
+      const tokenDeducted = await deductTokens(TOKEN_COSTS['Contract Generator'], 'Contract Generator');
+      if (!tokenDeducted) {
+        setIsGenerating(false);
+        return; // Token deduction failed, user was notified
+      }
+
+      console.log("Calling AI contract generator with data:", {
+        templateType,
+        dealId: dealId || null,
+        propertyAddress: formData.propertyAddress,
+        buyerName: formData.buyerName,
+        buyerEmail: formData.buyerEmail,
+        sellerName: formData.sellerName,
+        sellerEmail: formData.sellerEmail,
+        purchasePrice: parseInt(formData.purchasePrice) || null,
+        earnestMoney: parseInt(formData.earnestMoney) || null,
+        closingDate: formData.closingDate || null,
+        specialTerms: formData.specialTerms
+      });
+
+      // Call the AI contract generator edge function
       const { data, error } = await supabase.functions.invoke('ai-contract-generator', {
         body: {
           templateType,
@@ -73,14 +110,17 @@ const ContractGenerator = ({}: ContractGeneratorProps) => {
           earnestMoney: parseInt(formData.earnestMoney) || null,
           closingDate: formData.closingDate || null,
           specialTerms: formData.specialTerms
-        },
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         }
       });
 
+      console.log("AI contract generator response:", data, "Error:", error);
+
       if (error) {
         throw error;
+      }
+
+      if (!data || !data.contractContent) {
+        throw new Error("No contract content received from AI generator");
       }
 
       // Create the contract in the database
