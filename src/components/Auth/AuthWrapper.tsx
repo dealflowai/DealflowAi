@@ -7,11 +7,8 @@ interface AuthWrapperProps {
 }
 
 const AuthWrapper = ({ children }: AuthWrapperProps) => {
-  return (
-    <PhoneVerificationWrapper>
-      {children}
-    </PhoneVerificationWrapper>
-  );
+  // Skip phone verification for now - only use email verification
+  return <>{children}</>;
 };
 
 export default AuthWrapper;
