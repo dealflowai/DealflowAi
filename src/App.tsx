@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ClerkProvider, useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { TokenProvider } from "@/contexts/TokenContext";
 import { useSupabaseSync } from "@/hooks/useSupabaseSync";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -37,11 +37,6 @@ const Help = lazy(() => import("./pages/Help"));
 const ApiDocs = lazy(() => import("./pages/ApiDocs"));
 const Community = lazy(() => import("./pages/Community"));
 
-const PUBLISHABLE_KEY = "pk_test_ZW5kbGVzcy1tYXJtb3NldC00Ni5jbGVyay5hY2NvdW50cy5kZXYk";
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key");
-}
 
 const queryClient = new QueryClient();
 
@@ -183,21 +178,19 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <TokenProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <SubscriptionProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <AppContent />
-            </TooltipProvider>
-          </SubscriptionProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </TokenProvider>
-  </ClerkProvider>
+  <TokenProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <SubscriptionProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AppContent />
+          </TooltipProvider>
+        </SubscriptionProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </TokenProvider>
 );
 
 export default App;
