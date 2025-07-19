@@ -183,7 +183,11 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+  <ClerkProvider 
+    publishableKey={PUBLISHABLE_KEY}
+    signInFallbackRedirectUrl="/"
+    signUpFallbackRedirectUrl="/"
+  >
     <TokenProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
