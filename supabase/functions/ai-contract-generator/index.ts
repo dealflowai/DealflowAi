@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,30 +22,7 @@ serve(async (req) => {
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) throw new Error('OPENAI_API_KEY is not set');
 
-    // Create Supabase client for authentication
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
-    const authHeader = req.headers.get("Authorization");
-    logStep("Auth header received", { hasAuthHeader: !!authHeader, authHeaderLength: authHeader?.length });
-    
-    if (!authHeader) throw new Error("No authorization header provided");
-
-    const token = authHeader.replace("Bearer ", "");
-    logStep("Token extracted", { tokenLength: token.length, tokenPrefix: token.substring(0, 10) + "..." });
-    
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    logStep("User data retrieved", { hasUser: !!userData?.user, userId: userData?.user?.id, error: userError?.message });
-    
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user) throw new Error("User not authenticated");
-
-    logStep("User authenticated", { userId: user.id });
-
-    // Get request data - the frontend sends the data directly, not nested in contractData
+    // Get request data - the frontend sends the data directly
     const contractData = await req.json();
     if (!contractData) throw new Error("Contract data is required");
 
@@ -100,7 +76,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { 
             role: 'system', 

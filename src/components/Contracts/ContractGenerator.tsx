@@ -10,12 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Wand2, FileText, Send } from 'lucide-react';
 import { useTokens, TOKEN_COSTS } from '@/contexts/TokenContext';
 import { useContracts } from '@/hooks/useContracts';
+import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ContractGeneratorProps {
 }
 
 const ContractGenerator = ({}: ContractGeneratorProps) => {
+  const { user } = useUser();
   const [templateType, setTemplateType] = useState('');
   const [dealId, setDealId] = useState('');
   const [formData, setFormData] = useState({
@@ -47,28 +49,13 @@ const ContractGenerator = ({}: ContractGeneratorProps) => {
     setIsGenerating(true);
     
     try {
-      // Check authentication first
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log("Current user:", user, "Error:", userError);
+      // Check Clerk authentication
+      console.log("Current Clerk user:", user);
       
-      if (userError || !user) {
+      if (!user) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to generate contracts.",
-          variant: "destructive"
-        });
-        setIsGenerating(false);
-        return;
-      }
-
-      // Get current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log("Current session:", session, "Error:", sessionError);
-      
-      if (sessionError || !session) {
-        toast({
-          title: "Session Error",
-          description: "Please sign in again to generate contracts.",
           variant: "destructive"
         });
         setIsGenerating(false);
